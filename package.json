@@ -1,0 +1,17 @@
+{
+  "name": "photoscout",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter @photoscout/web dev",
+    "dev:api": "pnpm --filter @photoscout/api dev",
+    "build": "pnpm -r build",
+    "build:web": "pnpm --filter @photoscout/web build",
+    "build:api": "pnpm --filter @photoscout/api build",
+    "deploy": "cd infra && pnpm cdk deploy",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

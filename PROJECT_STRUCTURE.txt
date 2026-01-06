@@ -1,0 +1,191 @@
+PhotoScout Project Structure
+============================
+
+photoscout/
+│
+├── 📱 MOBILE APP (iOS - Native + Web)
+│   └── ios/                          [To be created in Xcode]
+│       └── PhotoScout/
+│           ├── PhotoScoutApp.swift   [Entry point, AppState]
+│           ├── MainTabView.swift     [Tab navigation]
+│           ├── Config.swift          [API URL, utilities]
+│           ├── Views/                [5 SwiftUI views]
+│           ├── Components/           [3 reusable components]
+│           ├── Models/               [2 data models]
+│           └── Services/             [API service layer]
+│
+├── 🌐 WEB APP (React + Vite)
+│   └── packages/web/
+│       ├── src/
+│       │   ├── components/
+│       │   │   ├── chat/             [4 chat components]
+│       │   │   └── shared/           [1 shared component]
+│       │   ├── pages/                [2 route pages]
+│       │   ├── hooks/                [2 custom hooks]
+│       │   ├── lib/                  [API + storage utils]
+│       │   ├── App.tsx               [Router setup]
+│       │   ├── main.tsx              [Entry point]
+│       │   └── index.css             [Global styles]
+│       ├── index.html
+│       ├── vite.config.ts
+│       ├── tailwind.config.js
+│       └── package.json
+│
+├── ⚡ API (Lambda Functions)
+│   └── packages/api/
+│       ├── src/
+│       │   ├── handlers/
+│       │   │   ├── chat.ts           [Streaming chat endpoint]
+│       │   │   ├── conversations.ts  [History management]
+│       │   │   └── plans.ts          [Plan CRUD]
+│       │   └── lib/
+│       │       ├── anthropic.ts      [Claude integration]
+│       │       ├── dynamo.ts         [Database operations]
+│       │       └── prompts.ts        [System prompt]
+│       ├── package.json
+│       └── tsconfig.json
+│
+├── 🏗️ INFRASTRUCTURE (AWS CDK)
+│   └── infra/
+│       ├── lib/
+│       │   └── photoscout-stack.ts  [Complete AWS infrastructure]
+│       ├── bin/
+│       │   └── infra.ts              [CDK app entry]
+│       ├── cdk.json
+│       ├── package.json
+│       └── tsconfig.json
+│
+├── 📦 SHARED (Types)
+│   └── packages/shared/
+│       ├── src/
+│       │   ├── types.ts              [All TypeScript interfaces]
+│       │   └── index.ts              [Exports]
+│       ├── package.json
+│       └── tsconfig.json
+│
+├── 📚 DOCUMENTATION
+│   ├── docs/
+│   │   └── IOS_CODE.md               [Complete iOS Swift code]
+│   ├── README.md                     [Main documentation]
+│   ├── QUICKSTART.md                 [Step-by-step guide]
+│   ├── PROJECT_SUMMARY.md            [This build summary]
+│   ├── DEPLOYMENT_CHECKLIST.md       [Track deployment]
+│   └── PROJECT_STRUCTURE.txt         [This file]
+│
+└── ⚙️ CONFIGURATION
+    ├── package.json                  [Root workspace config]
+    ├── pnpm-workspace.yaml           [Workspace definition]
+    ├── .gitignore                    [Git exclusions]
+    └── .nvmrc                        [Node version]
+
+
+TECHNOLOGY STACK
+================
+
+Frontend:
+  • React 18 + TypeScript
+  • Vite (dev server + bundler)
+  • Tailwind CSS (styling)
+  • React Router (navigation)
+  • Lucide React (icons)
+
+Backend:
+  • AWS Lambda (Node.js 20)
+  • DynamoDB (database)
+  • CloudFront (CDN)
+  • S3 (static hosting)
+  • SSM (secrets)
+
+Mobile:
+  • SwiftUI (native UI)
+  • WKWebView (web content)
+  • Native TabView navigation
+
+AI:
+  • Anthropic Claude Sonnet 4
+  • Server-Sent Events (streaming)
+
+Infrastructure:
+  • AWS CDK (TypeScript)
+  • pnpm workspaces
+
+
+DEPLOYMENT FLOW
+===============
+
+1. Backend Deploy:
+   pnpm install → pnpm build → pnpm deploy
+   → CloudFront URL
+
+2. iOS Setup:
+   Create Xcode project → Add Swift files → Update Config
+   → Test in simulator
+
+3. TestFlight:
+   Archive → Upload → Add testers → Test on device
+
+
+FILE COUNTS
+===========
+
+TypeScript/TSX:      38 files
+Swift (documented):  14 files
+Config files:        12 files
+Documentation:        6 files
+──────────────────────────
+Total:               70+ files
+
+
+KEY FEATURES
+============
+
+✅ Conversational trip planning with AI
+✅ Streaming responses for real-time feedback
+✅ Interactive maps with photo spots
+✅ Optimal timing recommendations
+✅ Walking route suggestions
+✅ Conversation history
+✅ Saved plans library
+✅ Native iOS app with web flexibility
+✅ Pull-to-refresh
+✅ Share functionality
+✅ Dark theme throughout
+
+
+NEXT STEPS
+==========
+
+1. Deploy backend to AWS
+2. Create iOS app in Xcode
+3. Add Swift files from docs/IOS_CODE.md
+4. Test in simulator
+5. Deploy to TestFlight
+6. Gather photographer feedback
+7. Iterate and improve
+
+
+ESTIMATED TIMELINE
+==================
+
+Setup & Deploy Backend:  1 hour
+Create iOS App:          1 hour
+TestFlight Upload:       0.5 hours
+Testing & Fixes:         0.5 hours
+────────────────────────────────
+Total:                   2-3 hours
+
+
+COSTS (Monthly)
+===============
+
+DynamoDB:        ~$5
+Lambda:          ~$10
+CloudFront:      ~$5
+S3:              <$1
+Anthropic API:   $50-200 (variable)
+──────────────────────────
+Total:           $70-220/month
+
+
+STATUS: ✅ Ready for Deployment
+

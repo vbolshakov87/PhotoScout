@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+.env.local
+*.js.map
+*.d.ts
+!vite.config.ts
+cdk.out/
+.DS_Store
+
+# iOS
+ios/PhotoScout/PhotoScout.xcodeproj/xcuserdata/
+ios/PhotoScout/PhotoScout.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcuserstate
