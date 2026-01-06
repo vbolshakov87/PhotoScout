@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "esbuild src/handlers/*.ts --bundle --platform=node --target=node20 --outdir=dist --format=esm --external:@aws-sdk/* --external:@anthropic-ai/sdk && echo '{\"type\":\"module\"}' > dist/package.json",
+    "build": "esbuild src/handlers/*.ts --bundle --platform=node --target=node20 --outdir=dist --format=esm --external:@aws-sdk/* && echo '{\"type\":\"module\"}' > dist/package.json",
     "dev": "tsx watch src/dev-server.ts"
   },
   "dependencies": {
