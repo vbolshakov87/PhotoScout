@@ -34,14 +34,20 @@ export function HtmlPreview({ html }: HtmlPreviewProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { html: extractedHtml, prefix } = extractHtml(html);
 
+  console.log('[HtmlPreview] Rendering iframe with HTML:', {
+    originalLength: html.length,
+    extractedLength: extractedHtml.length,
+    hasPrefix: !!prefix,
+    prefixContent: prefix
+  });
+
   useEffect(() => {
     if (iframeRef.current) {
-      const doc = iframeRef.current.contentDocument;
-      if (doc) {
-        doc.open();
-        doc.write(extractedHtml);
-        doc.close();
-      }
+      console.log('[HtmlPreview] Setting iframe srcdoc');
+      // Use srcdoc to set HTML - this properly reloads the iframe content
+      iframeRef.current.srcdoc = extractedHtml;
+    } else {
+      console.warn('[HtmlPreview] iframeRef.current is null');
     }
   }, [extractedHtml]);
 
@@ -70,7 +76,7 @@ export function HtmlPreview({ html }: HtmlPreviewProps) {
         <iframe
           ref={iframeRef}
           className="w-full h-full border-0"
-          sandbox="allow-scripts"
+          sandbox="allow-scripts allow-same-origin"
           title="Photo Trip Plan"
         />
       </div>

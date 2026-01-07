@@ -12,6 +12,15 @@ export function PreviewTab({ messages }: PreviewTabProps) {
     .reverse()
     .find((msg) => msg.content.includes('<!DOCTYPE html>') && msg.content.includes('</html>'));
 
+  console.log('[PreviewTab] Checking for HTML message:', {
+    totalMessages: messages.length,
+    messagesWithHtml: messages.filter(m => m.content.includes('<!DOCTYPE html>')).length,
+    messagesWithClosing: messages.filter(m => m.content.includes('</html>')).length,
+    htmlMessageFound: !!htmlMessage,
+    htmlMessageId: htmlMessage?.id,
+    htmlContentLength: htmlMessage?.content.length
+  });
+
   if (!htmlMessage) {
     return (
       <div className="flex items-center justify-center h-full p-8 text-center">

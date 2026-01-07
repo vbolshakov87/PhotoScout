@@ -64,6 +64,38 @@ export function useChat() {
               },
             ];
           });
+        } else if (event.type === 'html' && event.content) {
+          // Replace JSON content with generated HTML
+          console.log('Received HTML from server, replacing content', {
+            htmlLength: event.content.length,
+            hasDoctype: event.content.includes('<!DOCTYPE html>'),
+            hasClosingTag: event.content.includes('</html>')
+          });
+          assistantContent = event.content;
+
+          setMessages((prev) => {
+            const existing = prev.find((m) => m.id === assistantMessageId);
+            if (existing) {
+              return prev.map((m) =>
+                m.id === assistantMessageId
+                  ? { ...m, content: assistantContent, isHtml: true }
+                  : m
+              );
+            }
+            // If message doesn't exist yet, create it with HTML
+            return [
+              ...prev,
+              {
+                id: assistantMessageId,
+                visitorId,
+                conversationId,
+                timestamp: Date.now(),
+                role: 'assistant',
+                content: assistantContent,
+                isHtml: true,
+              },
+            ];
+          });
         } else if (event.type === 'done') {
           console.log('Stream done, conversationId:', event.conversationId);
           if (event.conversationId) {

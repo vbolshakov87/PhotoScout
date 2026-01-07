@@ -22,6 +22,16 @@ export interface Conversation {
   lastMessage?: string;
 }
 
+export interface User {
+  userId: string; // Google sub (unique ID)
+  email: string;
+  name: string;
+  profilePicture?: string;
+  encryptedRefreshToken?: string;
+  createdAt: number;
+  lastLoginAt: number;
+}
+
 export interface Plan {
   planId: string;
   visitorId: string;
@@ -29,7 +39,8 @@ export interface Plan {
   createdAt: number;
   city: string;
   title: string;
-  htmlContent: string;
+  htmlUrl: string; // CloudFront URL to HTML file in S3
+  htmlContent?: string; // Deprecated - legacy field for backwards compatibility
   thumbnail?: string; // Base64 or URL for plan preview
   spotCount: number;
 }
@@ -41,7 +52,7 @@ export interface ChatRequest {
 }
 
 export interface ChatStreamEvent {
-  type: 'delta' | 'done' | 'error' | 'plan_saved';
+  type: 'delta' | 'done' | 'error' | 'plan_saved' | 'html';
   content?: string;
   conversationId?: string;
   messageId?: string;

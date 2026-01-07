@@ -13,16 +13,26 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   const { share, copyToClipboard, haptic } = useNativeBridge();
   const isUser = message.role === 'user';
 
-  // Check for HTML content (<!DOCTYPE html> or <html tag anywhere in the content)
+  // Check for HTML content - only show preview when HTML is COMPLETE
   const hasHtmlStart = message.content.includes('<!DOCTYPE html>') || message.content.includes('<html');
   const hasHtmlEnd = message.content.includes('</html>');
-
-  // Only treat as complete HTML if it has both start and end tags
   const isCompleteHtml = hasHtmlStart && hasHtmlEnd;
-  const isIncompleteHtml = hasHtmlStart && !hasHtmlEnd;
+
+  // Debug logging for assistant messages
+  if (!isUser && message.content.length > 0) {
+    console.log('[MessageBubble] Message:', {
+      id: message.id,
+      contentLength: message.content.length,
+      isHtml: message.isHtml,
+      hasHtmlStart,
+      hasHtmlEnd,
+      isCompleteHtml,
+      contentPreview: message.content.substring(0, 100)
+    });
+  }
 
   // Check if content contains markdown syntax (for assistant messages only)
-  const isMarkdown = !isUser && !hasHtmlStart && (
+  const isMarkdown = !isUser && !isCompleteHtml && (
     message.content.includes('**') ||
     message.content.includes('\n- ') ||
     message.content.includes('\n1. ') ||
@@ -39,21 +49,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     copyToClipboard(message.content);
   };
 
-  // Show "Generating..." for incomplete HTML
-  if (isIncompleteHtml) {
-    return (
-      <div className="flex justify-start">
-        <div className="max-w-[85%] px-4 py-3 rounded-2xl bg-card text-foreground rounded-bl-md">
-          <div className="flex items-center gap-2">
-            <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-            <span>Generating interactive HTML plan...</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show complete HTML with preview and actions
+  // Show complete HTML with preview and actions (only when fully generated)
   if (isCompleteHtml) {
     return (
       <div className="space-y-2">

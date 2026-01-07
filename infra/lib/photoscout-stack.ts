@@ -60,6 +60,36 @@ export class PhotoScoutStack extends cdk.Stack {
       sortKey: { name: 'createdAt', type: dynamodb.AttributeType.NUMBER },
     });
 
+    // Users Table
+    const usersTable = new dynamodb.Table(this, 'UsersTable', {
+      tableName: 'photoscout-users',
+      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    usersTable.addGlobalSecondaryIndex({
+      indexName: 'email-index',
+      partitionKey: { name: 'email', type: dynamodb.AttributeType.STRING },
+    });
+
+    // ============ S3 Buckets ============
+
+    // S3 Bucket for HTML Plans
+    const htmlPlansBucket = new s3.Bucket(this, 'HtmlPlansBucket', {
+      bucketName: `photoscout-plans-${this.account}`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      cors: [
+        {
+          allowedMethods: [s3.HttpMethods.GET],
+          allowedOrigins: ['*'],
+          allowedHeaders: ['*'],
+        },
+      ],
+    });
+
     // ============ Lambda Functions ============
 
     // Get API keys from environment variables
@@ -72,10 +102,13 @@ export class PhotoScoutStack extends cdk.Stack {
     const deepseekApiKey = process.env.DEEPSEEK_API_KEY;
     const environment = process.env.ENVIRONMENT || 'production';
 
+    // Will add CLOUDFRONT_DOMAIN after distribution is created
     const lambdaEnvironment: { [key: string]: string } = {
       MESSAGES_TABLE: messagesTable.tableName,
       CONVERSATIONS_TABLE: conversationsTable.tableName,
       PLANS_TABLE: plansTable.tableName,
+      USERS_TABLE: usersTable.tableName,
+      HTML_PLANS_BUCKET: htmlPlansBucket.bucketName,
       ANTHROPIC_API_KEY: anthropicApiKey,
       ENVIRONMENT: environment,
     };
@@ -119,11 +152,14 @@ export class PhotoScoutStack extends cdk.Stack {
     messagesTable.grantReadWriteData(chatFunction);
     conversationsTable.grantReadWriteData(chatFunction);
     plansTable.grantReadWriteData(chatFunction);
+    usersTable.grantReadWriteData(chatFunction);
 
     messagesTable.grantReadData(conversationsFunction);
     conversationsTable.grantReadWriteData(conversationsFunction);
+    usersTable.grantReadData(conversationsFunction);
 
     plansTable.grantReadWriteData(plansFunction);
+    usersTable.grantReadData(plansFunction);
 
     // Function URLs
     const chatFunctionUrl = chatFunction.addFunctionUrl({
@@ -154,8 +190,9 @@ export class PhotoScoutStack extends cdk.Stack {
       },
     });
 
-    // ============ S3 + CloudFront ============
+    // ============ CloudFront Distribution ============
 
+    // S3 Bucket for Website
     const websiteBucket = new s3.Bucket(this, 'WebsiteBucket', {
       bucketName: `photoscout-web-${this.account}`,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -170,6 +207,15 @@ export class PhotoScoutStack extends cdk.Stack {
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
       },
       additionalBehaviors: {
+        '/plans/*': {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(htmlPlansBucket),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: new cloudfront.CachePolicy(this, 'HtmlPlansCachePolicy', {
+            defaultTtl: cdk.Duration.days(365),
+            maxTtl: cdk.Duration.days(365),
+            minTtl: cdk.Duration.days(1),
+          }),
+        },
         '/api/chat': {
           origin: new origins.FunctionUrlOrigin(chatFunctionUrl),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -230,5 +276,18 @@ export class PhotoScoutStack extends cdk.Stack {
       value: plansFunctionUrl.url,
       description: 'Plans Lambda Function URL',
     });
+
+    new cdk.CfnOutput(this, 'HtmlPlansBucket', {
+      value: htmlPlansBucket.bucketName,
+      description: 'S3 Bucket for HTML Plans',
+    });
+
+    new cdk.CfnOutput(this, 'HtmlPlansUrl', {
+      value: `https://${distribution.distributionDomainName}/plans/`,
+      description: 'CloudFront URL for HTML Plans',
+    });
+
+    // Update Lambda environment with CloudFront domain (for generating URLs)
+    chatFunction.addEnvironment('CLOUDFRONT_DOMAIN', distribution.distributionDomainName);
   }
 }

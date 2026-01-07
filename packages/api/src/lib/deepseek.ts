@@ -28,12 +28,21 @@ export async function* streamChatResponse(
       ...formattedMessages,
     ],
     stream: true,
-    max_tokens: 16384, // Increased for large HTML plans (DeepSeek supports up to 16K output)
+    max_tokens: 8192, // DeepSeek API limit (same as Claude Sonnet 4)
     temperature: 0.7,
   });
 
   for await (const chunk of stream) {
-    const content = chunk.choices[0]?.delta?.content;
+    const choice = chunk.choices[0];
+
+    // Log finish reason if stream is ending
+    if (choice?.finish_reason) {
+      console.log('[DeepSeek] Stream finished:', {
+        finish_reason: choice.finish_reason
+      });
+    }
+
+    const content = choice?.delta?.content;
     if (content) {
       yield content;
     }

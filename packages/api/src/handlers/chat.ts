@@ -10,6 +10,8 @@ import {
   countSpotsInPlan,
 } from '../lib/dynamo';
 import { getLLMClient } from '../lib/llm-factory';
+import { generateHTML, type TripPlan } from '../lib/html-template';
+import { uploadHtmlToS3 } from '../lib/s3';
 
 // AWS Lambda streaming types
 declare const awslambda: {
@@ -69,28 +71,74 @@ async function internalHandler(
     let fullContent = '';
     const llmClient = getLLMClient();
 
-    for await (const chunk of llmClient.streamChatResponse(history, message)) {
-      fullContent += chunk;
-      const event = `data: ${JSON.stringify({ type: 'delta', content: chunk })}\n\n`;
-      responseStream.write(event);
+    console.log('[Chat] Starting LLM streaming...', { historyLength: history.length });
+
+    try {
+      for await (const chunk of llmClient.streamChatResponse(history, message)) {
+        fullContent += chunk;
+        const event = `data: ${JSON.stringify({ type: 'delta', content: chunk })}\n\n`;
+        responseStream.write(event);
+      }
+      console.log('[Chat] LLM streaming completed', { contentLength: fullContent.length });
+    } catch (streamError) {
+      console.error('[Chat] LLM streaming error:', streamError);
+      throw streamError; // Re-throw to be caught by outer catch block
     }
 
-    // Check if response contains HTML plan
-    const isHtmlPlan = fullContent.includes('<!DOCTYPE html>');
+    // Check if response is JSON trip plan
+    let isHtmlPlan = false;
     let savedPlanId: string | undefined;
+    let finalContent = fullContent;
+
+    // Detect if LLM returned JSON trip plan
+    if (fullContent.trim().startsWith('{') && fullContent.includes('"title"') && fullContent.includes('"spots"')) {
+      console.log('[Chat] Detected JSON trip plan, converting to HTML...');
+
+      try {
+        // Parse JSON and generate HTML
+        const tripPlan: TripPlan = JSON.parse(fullContent);
+        const htmlContent = generateHTML(tripPlan);
+
+        // Replace fullContent with HTML for storage and client
+        finalContent = htmlContent;
+        isHtmlPlan = true;
+
+        console.log('[Chat] Successfully converted JSON to HTML', {
+          jsonLength: fullContent.length,
+          htmlLength: htmlContent.length
+        });
+
+        // Stream the HTML to client
+        const htmlEvent = `data: ${JSON.stringify({ type: 'html', content: htmlContent })}\n\n`;
+        responseStream.write(htmlEvent);
+      } catch (parseError) {
+        console.error('[Chat] Failed to parse JSON trip plan:', parseError);
+        // Keep original content if JSON parsing fails
+      }
+    } else {
+      // Check if response contains HTML plan (legacy support)
+      isHtmlPlan = fullContent.includes('<!DOCTYPE html>');
+    }
 
     if (isHtmlPlan) {
-      const city = extractCityFromContent(fullContent);
-      const spotCount = countSpotsInPlan(fullContent);
+      const city = extractCityFromContent(finalContent);
+      const spotCount = countSpotsInPlan(finalContent);
+
+      const planId = uuidv4();
+
+      // Upload HTML to S3
+      console.log('[Chat] Uploading HTML to S3...', { planId, htmlLength: finalContent.length });
+      const htmlUrl = await uploadHtmlToS3(visitorId, planId, finalContent);
+      console.log('[Chat] HTML uploaded to S3:', { htmlUrl });
 
       const plan: Plan = {
-        planId: uuidv4(),
+        planId,
         visitorId,
         conversationId,
         createdAt: Date.now(),
         city: city || 'Unknown',
         title: city ? `${city} Photo Trip` : 'Photo Trip Plan',
-        htmlContent: fullContent,
+        htmlUrl, // CloudFront URL
         spotCount,
       };
 
@@ -122,7 +170,7 @@ async function internalHandler(
       conversationId,
       timestamp: Date.now(),
       role: 'assistant',
-      content: fullContent,
+      content: finalContent,
       isHtml: isHtmlPlan,
       model: 'claude-sonnet-4-20250514',
     };
@@ -139,7 +187,10 @@ async function internalHandler(
     responseStream.end();
   } catch (error) {
     console.error('Chat error:', error);
-    responseStream.write(JSON.stringify({ error: 'Internal server error' }));
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    // Send error in SSE format
+    const errorEvent = `data: ${JSON.stringify({ type: 'error', error: errorMessage })}\n\n`;
+    responseStream.write(errorEvent);
     responseStream.end();
   }
 }
