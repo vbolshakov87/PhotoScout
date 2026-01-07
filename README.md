@@ -55,19 +55,52 @@ pnpm build:api
 
 ## Deployment
 
-### 1. Store Anthropic API Key
+### Quick Deploy (Recommended)
+
+Use the automated deployment script:
 
 ```bash
-aws ssm put-parameter \
-  --name "/photoscout/anthropic-api-key" \
-  --value "sk-ant-xxxxx" \
-  --type "SecureString" \
-  --region eu-central-1
+# Make script executable (first time only)
+chmod +x deploy.sh
+
+# Deploy everything (checks prerequisites, builds, and deploys)
+./deploy.sh
 ```
 
-### 2. Build & Deploy Infrastructure
+The script will:
+- ✓ Check prerequisites (Node.js, pnpm, AWS CLI, CDK)
+- ✓ Verify `.env` file configuration
+- ✓ Install dependencies
+- ✓ Build all packages
+- ✓ Deploy CDK infrastructure
+- ✓ Output deployment URLs
+- ✓ Test the deployment
+
+### Manual Deployment
+
+If you prefer manual steps:
+
+#### 1. Configure Environment Variables
+
+Create a `.env` file in the project root:
 
 ```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit .env and add your Anthropic API key
+# ANTHROPIC_API_KEY=sk-ant-xxxxx
+# AWS_REGION=eu-central-1
+```
+
+**Important:** The `.env` file is excluded from git. Never commit API keys to version control.
+
+#### 2. Build & Deploy Infrastructure
+
+```bash
+# Install dependencies
+pnpm install
+
 # Build all packages
 pnpm build
 
@@ -79,6 +112,41 @@ cd infra && pnpm cdk deploy
 ```
 
 The deployment will output your CloudFront URL. **Save this URL** - you'll need it for the iOS app.
+
+### Deployment Scripts
+
+The project includes helpful scripts in the `scripts/` directory:
+
+**View Logs:**
+```bash
+# View chat function logs
+./scripts/logs.sh chat
+
+# Follow logs in real-time
+./scripts/logs.sh chat --follow
+
+# Show only errors
+./scripts/logs.sh chat --errors
+
+# Show logs from last hour
+./scripts/logs.sh chat --since 1h
+
+# Other functions
+./scripts/logs.sh conversations
+./scripts/logs.sh plans
+```
+
+**Test API:**
+```bash
+# Test all API endpoints
+./scripts/test-api.sh
+```
+
+**Destroy Stack:**
+```bash
+# Remove all AWS resources
+./scripts/destroy.sh
+```
 
 ### 3. Update iOS Config
 
@@ -266,9 +334,234 @@ Monthly for moderate use (100 active users):
 
 **Total: ~$20-30/month + Claude API costs**
 
-## Troubleshooting
+## Troubleshooting & Common Errors
 
-### Build Errors
+This section documents all errors encountered during development and their solutions.
+
+### Error 1: TypeScript Compilation Failures
+
+**Symptoms:**
+```
+packages/web/src/components/chat/Chat.tsx(1,10): error TS6133: 'useState' is declared but its value is never read.
+packages/web/src/vite-env.d.ts(1,1): error TS2688: Cannot find type definition file for 'vite/client'.
+Property 'env' does not exist on type 'ImportMeta'
+```
+
+**Root Cause:**
+- Unused imports in React components
+- Missing Vite type definitions for `import.meta.env`
+- Unused state variables
+
+**Solution:**
+1. Remove unused imports from `Chat.tsx` and other components
+2. Create `packages/web/src/vite-env.d.ts` with proper type definitions:
+   ```typescript
+   /// <reference types="vite/client" />
+
+   interface ImportMetaEnv {
+     readonly VITE_API_URL?: string
+   }
+
+   interface ImportMeta {
+     readonly env: ImportMetaEnv
+   }
+   ```
+3. Remove unused state variables from components
+
+**Verification:** Run `pnpm -r build` - should complete without errors
+
+---
+
+### Error 2: SSM SecureString Not Supported in Lambda Environment
+
+**Symptoms:**
+```
+SSM Secure reference is not supported in Lambda environment variables.
+Use plaintext or KMS-encrypted values instead.
+```
+
+**Root Cause:**
+AWS Lambda does not support SSM SecureString parameters directly in environment variables. Only plaintext or KMS-encrypted values are supported.
+
+**Initial Solution (Workaround):**
+- Pass SSM parameter name instead of value
+- Modified Lambda to fetch from SSM at runtime using `@aws-sdk/client-ssm`
+- Added caching to avoid repeated SSM calls
+
+**Final Solution (Recommended):**
+After encountering API key validation issues with SSM, switched to `.env` file approach:
+
+1. Create `.env.example` template:
+   ```bash
+   ANTHROPIC_API_KEY=sk-ant-your-key-here
+   AWS_REGION=eu-central-1
+   ```
+
+2. Create `.env` with actual key (excluded from git)
+
+3. Update `infra/lib/photoscout-stack.ts`:
+   ```typescript
+   import * as dotenv from 'dotenv';
+   dotenv.config({ path: path.join(__dirname, '../../.env') });
+
+   const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+   if (!anthropicApiKey) {
+     throw new Error('ANTHROPIC_API_KEY environment variable is required');
+   }
+
+   // Pass directly to Lambda
+   environment: {
+     ANTHROPIC_API_KEY: anthropicApiKey,
+   }
+   ```
+
+4. Add `dotenv` to `infra/package.json` dependencies
+
+5. Simplify `packages/api/src/lib/anthropic.ts`:
+   ```typescript
+   const anthropic = new Anthropic({
+     apiKey: process.env.ANTHROPIC_API_KEY,
+   });
+   ```
+
+**Verification:** Deploy and check CloudWatch logs - API key should be accessible
+
+---
+
+### Error 3: OPTIONS Method Invalid for Lambda Function URLs
+
+**Symptoms:**
+```
+OPTIONS is not a valid enum value.
+Supported values: [GET, PUT, HEAD, POST, PATCH, DELETE, *]
+```
+
+**Root Cause:**
+Lambda Function URLs handle CORS preflight OPTIONS requests automatically. Explicitly adding `lambda.HttpMethod.OPTIONS` to the CORS configuration causes a validation error.
+
+**Solution:**
+Remove `lambda.HttpMethod.OPTIONS` from CORS configuration in `infra/lib/photoscout-stack.ts`:
+
+```typescript
+cors: {
+  allowedOrigins: ['*'],
+  allowedMethods: [
+    lambda.HttpMethod.GET,
+    lambda.HttpMethod.POST,
+    lambda.HttpMethod.DELETE,
+    // Removed: lambda.HttpMethod.OPTIONS
+  ],
+  allowedHeaders: ['*'],
+  allowCredentials: false,
+}
+```
+
+**Verification:** CDK deploy should succeed without validation errors
+
+---
+
+### Error 4: ES Module Import Error in Lambda
+
+**Symptoms:**
+```
+Cannot use import statement outside a module
+SyntaxError: Cannot use import statement outside a module
+```
+
+**Root Cause:**
+Lambda function code uses ES module syntax (`import`/`export`) but Node.js doesn't recognize the bundled output as an ES module because it lacks `"type": "module"` in package.json.
+
+**Solution:**
+Modify the build script in `packages/api/package.json` to create a `package.json` file in the dist folder:
+
+```json
+"build": "esbuild src/handlers/*.ts --bundle --platform=node --target=node20 --outdir=dist --format=esm --external:@aws-sdk/* && echo '{\"type\":\"module\"}' > dist/package.json"
+```
+
+This creates `dist/package.json` with:
+```json
+{"type":"module"}
+```
+
+**Verification:** Deploy and invoke Lambda - should execute without syntax errors
+
+---
+
+### Error 5: Dynamic Require Error with Anthropic SDK
+
+**Symptoms:**
+```
+Dynamic require of "stream" is not supported
+Error [ERR_REQUIRE_ESM]: require() of ES Module not supported
+```
+
+**Root Cause:**
+When bundling the Anthropic SDK with esbuild in ES module format, the SDK's internal use of `require()` for dynamic imports fails because `require` is not available in ES modules.
+
+**Solution:**
+Add an esbuild banner to create a `require` function using Node.js's `createRequire`:
+
+```json
+"build": "esbuild src/handlers/*.ts --bundle --platform=node --target=node20 --outdir=dist --format=esm --external:@aws-sdk/* --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\" && echo '{\"type\":\"module\"}' > dist/package.json"
+```
+
+Also removed `--external:@anthropic-ai/sdk` to ensure the SDK is bundled (external packages can't use the injected require).
+
+**Verification:** Test chat endpoint - should stream responses without require errors
+
+---
+
+### Error 6: Anthropic API Authentication Failure
+
+**Symptoms:**
+```
+BadRequestError: 400 invalid x-api-key
+{"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"}}
+```
+
+**Root Cause:**
+API key stored in SSM parameter was outdated or invalid. This error can also occur if:
+- API key format is incorrect
+- Key doesn't have proper permissions
+- Account has insufficient credits
+
+**Solution:**
+1. **Verify API Key:** Get a fresh key from [Anthropic Console](https://console.anthropic.com/settings/keys)
+
+2. **Update .env file:**
+   ```bash
+   ANTHROPIC_API_KEY=sk-ant-your-actual-valid-key
+   ```
+
+3. **Rebuild and redeploy:**
+   ```bash
+   pnpm build
+   pnpm deploy
+   ```
+
+4. **Check CloudWatch logs** for the actual error:
+   ```bash
+   aws logs tail /aws/lambda/PhotoScoutStack-ChatFunction3D7C447E-XXXXX --since 5m
+   ```
+
+**Common API Key Issues:**
+- **Invalid format:** Must start with `sk-ant-`
+- **Insufficient credits:** Error message will mention credit balance
+- **Expired key:** Regenerate in Anthropic Console
+- **Wrong region:** Ensure using the correct Anthropic endpoint
+
+**Verification:**
+```bash
+curl -X POST 'https://your-lambda-url.on.aws/' \
+  -H 'Content-Type: application/json' \
+  -d '{"visitorId":"test-123","message":"Hello"}'
+```
+
+Should stream back a response, not return 401/400 authentication errors.
+
+---
+
+### General Build Errors
 
 ```bash
 # Clean install
@@ -287,6 +580,9 @@ cdk bootstrap aws://ACCOUNT-ID/eu-central-1
 
 # Check deployed stacks
 aws cloudformation list-stacks --region eu-central-1
+
+# View detailed stack events
+aws cloudformation describe-stack-events --stack-name PhotoScoutStack --region eu-central-1
 ```
 
 ### iOS Blank Screen
@@ -298,9 +594,27 @@ aws cloudformation list-stacks --region eu-central-1
 
 ### Chat Not Streaming
 
-- Check CloudWatch Logs: `/aws/lambda/PhotoScoutStack-ChatFunction`
-- Verify SSM parameter exists: `aws ssm get-parameter --name /photoscout/anthropic-api-key`
-- Test endpoint directly: `curl -X POST https://your-cf-domain/api/chat -d '{"visitorId":"test","message":"hi"}'`
+1. **Check CloudWatch Logs:**
+   ```bash
+   # Find log group
+   aws logs describe-log-groups --log-group-name-prefix /aws/lambda/PhotoScout
+
+   # Tail logs
+   aws logs tail /aws/lambda/PhotoScoutStack-ChatFunction3D7C447E-XXXXX --follow --since 5m
+   ```
+
+2. **Verify environment variables in Lambda:**
+   ```bash
+   aws lambda get-function-configuration --function-name PhotoScoutStack-ChatFunction3D7C447E-XXXXX
+   ```
+
+3. **Test endpoint directly:**
+   ```bash
+   curl -X POST 'https://your-lambda-url.on.aws/' \
+     -H 'Content-Type: application/json' \
+     -d '{"visitorId":"test","message":"hi"}' \
+     -v
+   ```
 
 ## Development Tips
 

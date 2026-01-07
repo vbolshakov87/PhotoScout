@@ -1,7 +1,4 @@
-import type {
-  APIGatewayProxyEventV2,
-  APIGatewayProxyResultV2,
-} from 'aws-lambda';
+import type { APIGatewayProxyEventV2 } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 import type { ChatRequest, Message, Plan } from '@photoscout/shared';
 import {
@@ -14,21 +11,29 @@ import {
 } from '../lib/dynamo';
 import { streamChatResponse } from '../lib/anthropic';
 
-export async function handler(
-  event: APIGatewayProxyEventV2
-): Promise<APIGatewayProxyResultV2> {
-  // CORS headers
-  const headers = {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    Connection: 'keep-alive',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+// AWS Lambda streaming types
+declare const awslambda: {
+  streamifyResponse: (handler: StreamingHandler) => any;
+  HttpResponseStream: {
+    from(responseStream: any, metadata: any): any;
   };
+};
 
+type StreamingHandler = (
+  event: APIGatewayProxyEventV2,
+  responseStream: any
+) => Promise<void>;
+
+// Internal handler for actual logic
+async function internalHandler(
+  event: APIGatewayProxyEventV2,
+  responseStream: any
+): Promise<void> {
+  // Handle OPTIONS
   if (event.requestContext.http.method === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    responseStream.write('');
+    responseStream.end();
+    return;
   }
 
   try {
@@ -36,11 +41,9 @@ export async function handler(
     const { visitorId, message, conversationId = uuidv4() } = body;
 
     if (!visitorId || !message) {
-      return {
-        statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Missing visitorId or message' }),
-      };
+      responseStream.write(JSON.stringify({ error: 'Missing visitorId or message' }));
+      responseStream.end();
+      return;
     }
 
     // Get conversation history
@@ -58,18 +61,17 @@ export async function handler(
     await saveMessage(userMessage);
 
     // Update conversation metadata
-    const conversationTitle = message.length > 50
-      ? message.substring(0, 50) + '...'
-      : message;
+    const conversationTitle =
+      message.length > 50 ? message.substring(0, 50) + '...' : message;
     await upsertConversation(visitorId, conversationId, conversationTitle);
 
     // Stream response
     let fullContent = '';
-    const chunks: string[] = [];
 
     for await (const chunk of streamChatResponse(history, message)) {
       fullContent += chunk;
-      chunks.push(`data: ${JSON.stringify({ type: 'delta', content: chunk })}\n\n`);
+      const event = `data: ${JSON.stringify({ type: 'delta', content: chunk })}\n\n`;
+      responseStream.write(event);
     }
 
     // Check if response contains HTML plan
@@ -96,8 +98,20 @@ export async function handler(
 
       // Update conversation with city
       if (city) {
-        await upsertConversation(visitorId, conversationId, `${city} Trip`, city);
+        await upsertConversation(
+          visitorId,
+          conversationId,
+          `${city} Trip`,
+          city
+        );
       }
+
+      // Send plan saved event
+      const planEvent = `data: ${JSON.stringify({
+        type: 'plan_saved',
+        planId: savedPlanId,
+      })}\n\n`;
+      responseStream.write(planEvent);
     }
 
     // Save assistant message
@@ -113,31 +127,38 @@ export async function handler(
     };
     await saveMessage(assistantMessage);
 
-    // Add done event
-    const doneEvent: Record<string, unknown> = {
+    // Send done event
+    const doneEvent = `data: ${JSON.stringify({
       type: 'done',
       conversationId,
       messageId: assistantMessage.id,
-    };
+    })}\n\n`;
+    responseStream.write(doneEvent);
 
-    if (savedPlanId) {
-      doneEvent.planId = savedPlanId;
-      chunks.push(`data: ${JSON.stringify({ type: 'plan_saved', planId: savedPlanId })}\n\n`);
-    }
-
-    chunks.push(`data: ${JSON.stringify(doneEvent)}\n\n`);
-
-    return {
-      statusCode: 200,
-      headers,
-      body: chunks.join(''),
-    };
+    responseStream.end();
   } catch (error) {
     console.error('Chat error:', error);
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Internal server error' }),
-    };
+    responseStream.write(JSON.stringify({ error: 'Internal server error' }));
+    responseStream.end();
   }
 }
+
+// Export handler with AWS Lambda response streaming
+export const handler = awslambda.streamifyResponse(
+  async (event: APIGatewayProxyEventV2, responseStream: any) => {
+    const metadata = {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    };
+
+    const wrappedStream = awslambda.HttpResponseStream.from(responseStream, metadata);
+    await internalHandler(event, wrappedStream);
+  }
+);

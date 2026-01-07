@@ -21,45 +21,72 @@ aws --version
 aws configure
 ```
 
-## Step 1: Build Backend (10 min)
+## Step 1: Configure Environment (2 min)
 
 ```bash
 cd /Users/vladimir/projects/PhotoScout
 
+# Copy environment template
+cp .env.example .env
+
+# Edit .env and add your Anthropic API key
+# Get your key from: https://console.anthropic.com/settings/keys
+nano .env
+```
+
+Update `.env` with:
+```
+ANTHROPIC_API_KEY=sk-ant-your-actual-key-here
+AWS_REGION=eu-central-1
+```
+
+## Step 2: Deploy Everything (10 min)
+
+### Option A: Automated (Recommended)
+
+```bash
+# One command to deploy everything
+./deploy.sh
+```
+
+The script automatically:
+- ✓ Checks all prerequisites
+- ✓ Installs dependencies
+- ✓ Builds all packages
+- ✓ Deploys to AWS
+- ✓ Tests the deployment
+- ✓ Saves deployment URLs
+
+### Option B: Manual Steps
+
+```bash
 # Install dependencies
 pnpm install
 
-# Build shared types first
-pnpm --filter @photoscout/shared build
-
 # Build all packages
 pnpm build
-```
 
-## Step 2: Deploy to AWS (15 min)
-
-```bash
-# 1. Store your Anthropic API key
-aws ssm put-parameter \
-  --name "/photoscout/anthropic-api-key" \
-  --value "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" \
-  --type "SecureString" \
-  --region eu-central-1
-
-# 2. Bootstrap CDK (first time only)
+# Bootstrap CDK (first time only)
 cd infra
 pnpm cdk bootstrap
 
-# 3. Deploy
+# Deploy
 pnpm cdk deploy
-
-# Write down the CloudFront URL from the output!
-# It will look like: https://d1234567890.cloudfront.net
 ```
 
-## Step 3: Test Web App (5 min)
+After deployment, URLs are saved to `deployment-urls.txt`.
 
-Open the CloudFront URL in your browser. You should see:
+## Step 3: Test Deployment (2 min)
+
+```bash
+# Test all API endpoints
+./scripts/test-api.sh
+
+# View chat function logs
+./scripts/logs.sh chat
+```
+
+Or test manually - open the CloudFront URL in your browser. You should see:
 - PhotoScout chat interface
 - Dark theme
 - "Plan Your Photo Trip" welcome screen
@@ -68,6 +95,8 @@ Try chatting:
 > "Photo trip to Hamburg this weekend"
 
 You should get streaming responses from Claude.
+
+**Note:** If you see a credit balance error, add credits to your Anthropic account at https://console.anthropic.com/settings/billing
 
 ## Step 4: Create iOS App (30 min)
 

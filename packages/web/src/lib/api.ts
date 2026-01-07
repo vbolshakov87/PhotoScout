@@ -5,6 +5,8 @@ const API_BASE = import.meta.env.VITE_API_URL || '/api';
 // ============ Chat ============
 
 export async function* streamChat(request: ChatRequest): AsyncGenerator<ChatStreamEvent> {
+  console.log('API: Sending chat request to:', `${API_BASE}/chat`, request);
+
   const response = await fetch(`${API_BASE}/chat`, {
     method: 'POST',
     headers: {
@@ -13,25 +15,36 @@ export async function* streamChat(request: ChatRequest): AsyncGenerator<ChatStre
     body: JSON.stringify(request),
   });
 
+  console.log('API: Response status:', response.status, 'headers:', response.headers);
+
   if (!response.ok) {
-    yield { type: 'error', error: `HTTP ${response.status}` };
+    const errorText = await response.text();
+    console.error('API: Error response:', errorText);
+    yield { type: 'error', error: `HTTP ${response.status}: ${errorText}` };
     return;
   }
 
   const reader = response.body?.getReader();
   if (!reader) {
+    console.error('API: No response body');
     yield { type: 'error', error: 'No response body' };
     return;
   }
 
   const decoder = new TextDecoder();
   let buffer = '';
+  let eventCount = 0;
 
   while (true) {
     const { done, value } = await reader.read();
-    if (done) break;
+    if (done) {
+      console.log('API: Stream done, received', eventCount, 'events');
+      break;
+    }
 
-    buffer += decoder.decode(value, { stream: true });
+    const chunk = decoder.decode(value, { stream: true });
+    console.log('API: Received chunk:', chunk.substring(0, 100));
+    buffer += chunk;
     const lines = buffer.split('\n');
     buffer = lines.pop() || '';
 
@@ -39,9 +52,10 @@ export async function* streamChat(request: ChatRequest): AsyncGenerator<ChatStre
       if (line.startsWith('data: ')) {
         try {
           const event = JSON.parse(line.slice(6)) as ChatStreamEvent;
+          eventCount++;
           yield event;
-        } catch {
-          // Skip invalid JSON
+        } catch (e) {
+          console.error('API: Failed to parse event:', line, e);
         }
       }
     }

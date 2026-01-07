@@ -30,11 +30,15 @@ export function useChat() {
     let assistantContent = '';
 
     try {
+      console.log('Starting chat stream for message:', content);
+
       for await (const event of streamChat({
         visitorId,
         conversationId,
         message: content,
       })) {
+        console.log('Received event:', event);
+
         if (event.type === 'delta' && event.content) {
           assistantContent += event.content;
 
@@ -61,14 +65,46 @@ export function useChat() {
             ];
           });
         } else if (event.type === 'done') {
+          console.log('Stream done, conversationId:', event.conversationId);
           if (event.conversationId) {
             setConversationId(event.conversationId);
           }
         } else if (event.type === 'error') {
+          console.error('Stream error:', event.error);
           setError(event.error || 'Unknown error');
         }
       }
+
+      console.log('Stream completed, total content length:', assistantContent.length);
+
+      // Ensure assistant message exists even if no content was received
+      if (assistantContent.length === 0) {
+        console.warn('No content received from stream');
+        setError('No response received from server');
+      } else {
+        // Make sure the final message is in the list
+        setMessages((prev) => {
+          const existing = prev.find((m) => m.id === assistantMessageId);
+          if (!existing) {
+            console.log('Adding final assistant message to list');
+            return [
+              ...prev,
+              {
+                id: assistantMessageId,
+                visitorId,
+                conversationId,
+                timestamp: Date.now(),
+                role: 'assistant',
+                content: assistantContent,
+                isHtml: assistantContent.includes('<!DOCTYPE html>'),
+              },
+            ];
+          }
+          return prev;
+        });
+      }
     } catch (e) {
+      console.error('Chat error:', e);
       setError(e instanceof Error ? e.message : 'Failed to send message');
     } finally {
       setIsLoading(false);

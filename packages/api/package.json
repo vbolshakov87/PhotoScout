@@ -3,13 +3,12 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "esbuild src/handlers/*.ts --bundle --platform=node --target=node20 --outdir=dist --format=esm --external:@aws-sdk/* && echo '{\"type\":\"module\"}' > dist/package.json",
+    "build": "esbuild src/handlers/*.ts --bundle --platform=node --target=node20 --outdir=dist --format=esm --external:@aws-sdk/* --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\" && echo '{\"type\":\"module\"}' > dist/package.json",
     "dev": "tsx watch src/dev-server.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
     "@aws-sdk/client-dynamodb": "^3.500.0",
-    "@aws-sdk/client-ssm": "^3.500.0",
     "@aws-sdk/lib-dynamodb": "^3.500.0",
     "@photoscout/shared": "workspace:*",
     "uuid": "^9.0.0"

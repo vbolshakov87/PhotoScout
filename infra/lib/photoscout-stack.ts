@@ -5,9 +5,12 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
-import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 import * as path from 'path';
+import * as dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 export class PhotoScoutStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -57,17 +60,19 @@ export class PhotoScoutStack extends cdk.Stack {
       sortKey: { name: 'createdAt', type: dynamodb.AttributeType.NUMBER },
     });
 
-    // ============ SSM Parameter ============
-
-    const apiKeyParameterName = '/photoscout/anthropic-api-key';
-
     // ============ Lambda Functions ============
+
+    // Get API key from environment variable
+    const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+    if (!anthropicApiKey) {
+      throw new Error('ANTHROPIC_API_KEY environment variable is required. Please set it in .env file');
+    }
 
     const lambdaEnvironment = {
       MESSAGES_TABLE: messagesTable.tableName,
       CONVERSATIONS_TABLE: conversationsTable.tableName,
       PLANS_TABLE: plansTable.tableName,
-      ANTHROPIC_API_KEY_PARAMETER: apiKeyParameterName,
+      ANTHROPIC_API_KEY: anthropicApiKey,
     };
 
     // Chat Function (streaming)
@@ -109,14 +114,6 @@ export class PhotoScoutStack extends cdk.Stack {
     conversationsTable.grantReadWriteData(conversationsFunction);
 
     plansTable.grantReadWriteData(plansFunction);
-
-    // Grant SSM read permissions to chat function (needs API key)
-    chatFunction.addToRolePolicy(new cdk.aws_iam.PolicyStatement({
-      actions: ['ssm:GetParameter'],
-      resources: [
-        `arn:aws:ssm:${this.region}:${this.account}:parameter${apiKeyParameterName}`
-      ],
-    }));
 
     // Function URLs
     const chatFunctionUrl = chatFunction.addFunctionUrl({
