@@ -9,7 +9,7 @@ import {
   extractCityFromContent,
   countSpotsInPlan,
 } from '../lib/dynamo';
-import { streamChatResponse } from '../lib/anthropic';
+import { getLLMClient } from '../lib/llm-factory';
 
 // AWS Lambda streaming types
 declare const awslambda: {
@@ -67,8 +67,9 @@ async function internalHandler(
 
     // Stream response
     let fullContent = '';
+    const llmClient = getLLMClient();
 
-    for await (const chunk of streamChatResponse(history, message)) {
+    for await (const chunk of llmClient.streamChatResponse(history, message)) {
       fullContent += chunk;
       const event = `data: ${JSON.stringify({ type: 'delta', content: chunk })}\n\n`;
       responseStream.write(event);

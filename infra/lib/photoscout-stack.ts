@@ -62,18 +62,28 @@ export class PhotoScoutStack extends cdk.Stack {
 
     // ============ Lambda Functions ============
 
-    // Get API key from environment variable
+    // Get API keys from environment variables
     const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
     if (!anthropicApiKey) {
       throw new Error('ANTHROPIC_API_KEY environment variable is required. Please set it in .env file');
     }
 
-    const lambdaEnvironment = {
+    // Optional: DeepSeek API key for development
+    const deepseekApiKey = process.env.DEEPSEEK_API_KEY;
+    const environment = process.env.ENVIRONMENT || 'production';
+
+    const lambdaEnvironment: { [key: string]: string } = {
       MESSAGES_TABLE: messagesTable.tableName,
       CONVERSATIONS_TABLE: conversationsTable.tableName,
       PLANS_TABLE: plansTable.tableName,
       ANTHROPIC_API_KEY: anthropicApiKey,
+      ENVIRONMENT: environment,
     };
+
+    // Add DeepSeek key if available (for development)
+    if (deepseekApiKey) {
+      lambdaEnvironment.DEEPSEEK_API_KEY = deepseekApiKey;
+    }
 
     // Chat Function (streaming)
     const chatFunction = new lambda.Function(this, 'ChatFunction', {

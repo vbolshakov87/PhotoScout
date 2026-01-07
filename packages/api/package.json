@@ -11,6 +11,7 @@
     "@aws-sdk/client-dynamodb": "^3.500.0",
     "@aws-sdk/lib-dynamodb": "^3.500.0",
     "@photoscout/shared": "workspace:*",
+    "openai": "^6.15.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

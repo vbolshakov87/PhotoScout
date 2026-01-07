@@ -60,7 +60,7 @@ export function useChat() {
                 timestamp: Date.now(),
                 role: 'assistant',
                 content: assistantContent,
-                isHtml: assistantContent.includes('<!DOCTYPE html>'),
+                isHtml: assistantContent.includes('<!DOCTYPE html>') || assistantContent.includes('<html'),
               },
             ];
           });
@@ -96,7 +96,7 @@ export function useChat() {
                 timestamp: Date.now(),
                 role: 'assistant',
                 content: assistantContent,
-                isHtml: assistantContent.includes('<!DOCTYPE html>'),
+                isHtml: assistantContent.includes('<!DOCTYPE html>') || assistantContent.includes('<html'),
               },
             ];
           }

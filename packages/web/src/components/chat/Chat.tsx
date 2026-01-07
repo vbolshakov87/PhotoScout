@@ -3,6 +3,8 @@ import { useChat } from '../../hooks/useChat';
 import { useNativeBridge } from '../../hooks/useNativeBridge';
 import { MessageList } from './MessageList';
 import { ChatInput } from './ChatInput';
+import { TabbedView } from './TabbedView';
+import { PreviewTab } from './PreviewTab';
 import { Camera } from 'lucide-react';
 
 export function Chat() {
@@ -22,9 +24,10 @@ export function Chat() {
     sendMessage(message);
   };
 
-  return (
+  // Chat Tab Content
+  const chatContent = (
     <div className="flex flex-col h-full">
-      {/* Header - hidden when embedded in native app with its own header */}
+      {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-white/10">
         <div className="flex items-center gap-2">
           <Camera className="w-6 h-6 text-primary" />
@@ -80,5 +83,16 @@ export function Chat() {
       {/* Input */}
       <ChatInput onSend={handleSend} disabled={isLoading} />
     </div>
+  );
+
+  // Preview Tab Content
+  const previewContent = <PreviewTab messages={messages} />;
+
+  return (
+    <TabbedView
+      chatContent={chatContent}
+      previewContent={previewContent}
+      messages={messages}
+    />
   );
 }

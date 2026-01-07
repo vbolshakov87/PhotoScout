@@ -22,7 +22,7 @@ export async function* streamChatResponse(
 
   const stream = await anthropic.messages.stream({
     model: 'claude-sonnet-4-20250514',
-    max_tokens: 8192,
+    max_tokens: 16384, // Increased for large HTML plans (Claude supports up to 8K but we can request more)
     system: SYSTEM_PROMPT,
     messages: formattedMessages,
   });
