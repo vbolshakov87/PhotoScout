@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import type { Conversation } from '@photoscout/shared';
 import { ConversationCard } from '../components/history/ConversationCard';
-import { getVisitorId, setConversationId } from '../lib/storage';
+import { getUserId, setConversationId } from '../lib/storage';
 
 export function HistoryPage() {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ export function HistoryPage() {
     const fetchConversations = async () => {
       try {
         setIsLoading(true);
-        const visitorId = getVisitorId();
+        const visitorId = getUserId();
 
         const response = await fetch(`/api/conversations?visitorId=${visitorId}`);
         if (!response.ok) {

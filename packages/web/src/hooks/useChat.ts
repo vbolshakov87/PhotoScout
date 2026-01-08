@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Message } from '@photoscout/shared';
 import { streamChat } from '../lib/api';
-import { getVisitorId, getConversationId, setConversationId } from '../lib/storage';
+import { getUserId, getConversationId, setConversationId } from '../lib/storage';
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -10,7 +10,7 @@ export function useChat() {
   const [error, setError] = useState<string | null>(null);
 
   const sendMessage = useCallback(async (content: string) => {
-    const visitorId = getVisitorId();
+    const visitorId = getUserId();
     let conversationId = getConversationId() || uuidv4();
 
     const userMessage: Message = {

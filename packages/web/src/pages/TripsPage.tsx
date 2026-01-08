@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import type { Plan } from '@photoscout/shared';
 import { TripCard } from '../components/trips/TripCard';
 import { TripDetail } from '../components/trips/TripDetail';
-import { getVisitorId } from '../lib/storage';
+import { getUserId } from '../lib/storage';
 
 export function TripsPage() {
   const { planId } = useParams<{ planId?: string }>();
@@ -19,7 +19,7 @@ export function TripsPage() {
     const fetchPlans = async () => {
       try {
         setIsLoading(true);
-        const visitorId = getVisitorId();
+        const visitorId = getUserId();
 
         const response = await fetch(`/api/plans?visitorId=${visitorId}`);
         if (!response.ok) {
@@ -83,9 +83,9 @@ export function TripsPage() {
     if (!selectedPlan) return;
 
     try {
-      const visitorId = getVisitorId();
+      const visitorId = getUserId();
       const response = await fetch(
-        `/api/plans?visitorId=${visitorId}&planId=${selectedPlan.planId}`,
+        `/api/plans/${selectedPlan.planId}?visitorId=${visitorId}`,
         {
           method: 'DELETE',
         }

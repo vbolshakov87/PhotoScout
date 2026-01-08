@@ -2,6 +2,21 @@ import type { ChatRequest, ChatStreamEvent, Conversation, Plan, PaginatedRespons
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
+// Get ID token from localStorage (set by AuthContext)
+function getAuthHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  // Check if user is authenticated (web app)
+  const idToken = localStorage.getItem('photoscout_id_token');
+  if (idToken) {
+    headers['Authorization'] = `Bearer ${idToken}`;
+  }
+
+  return headers;
+}
+
 // ============ Chat ============
 
 export async function* streamChat(request: ChatRequest): AsyncGenerator<ChatStreamEvent> {
@@ -9,9 +24,7 @@ export async function* streamChat(request: ChatRequest): AsyncGenerator<ChatStre
 
   const response = await fetch(`${API_BASE}/chat`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(request),
   });
 
@@ -71,7 +84,9 @@ export async function listConversations(
   const params = new URLSearchParams({ visitorId });
   if (cursor) params.append('cursor', cursor);
 
-  const response = await fetch(`${API_BASE}/conversations?${params}`);
+  const response = await fetch(`${API_BASE}/conversations?${params}`, {
+    headers: getAuthHeaders(),
+  });
   return response.json();
 }
 
@@ -80,7 +95,8 @@ export async function getConversation(
   conversationId: string
 ): Promise<{ conversation: Conversation; messages: Message[] }> {
   const response = await fetch(
-    `${API_BASE}/conversations/${conversationId}?visitorId=${visitorId}`
+    `${API_BASE}/conversations/${conversationId}?visitorId=${visitorId}`,
+    { headers: getAuthHeaders() }
   );
   return response.json();
 }
@@ -94,17 +110,22 @@ export async function listPlans(
   const params = new URLSearchParams({ visitorId });
   if (cursor) params.append('cursor', cursor);
 
-  const response = await fetch(`${API_BASE}/plans?${params}`);
+  const response = await fetch(`${API_BASE}/plans?${params}`, {
+    headers: getAuthHeaders(),
+  });
   return response.json();
 }
 
 export async function getPlan(visitorId: string, planId: string): Promise<Plan> {
-  const response = await fetch(`${API_BASE}/plans/${planId}?visitorId=${visitorId}`);
+  const response = await fetch(`${API_BASE}/plans/${planId}?visitorId=${visitorId}`, {
+    headers: getAuthHeaders(),
+  });
   return response.json();
 }
 
 export async function deletePlan(visitorId: string, planId: string): Promise<void> {
   await fetch(`${API_BASE}/plans/${planId}?visitorId=${visitorId}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
   });
 }

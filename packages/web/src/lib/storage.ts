@@ -1,23 +1,27 @@
-import { v4 as uuidv4 } from 'uuid';
-
-const VISITOR_ID_KEY = 'photoscout_visitor_id';
 const CONVERSATION_ID_KEY = 'photoscout_conversation_id';
 
-export function getVisitorId(): string {
+// Get userId from stored user data (set by AuthContext)
+// For native app, visitorId comes from URL params
+export function getUserId(): string {
   // Check URL params first (for native app)
   const urlParams = new URLSearchParams(window.location.search);
   const urlVisitorId = urlParams.get('visitorId');
   if (urlVisitorId) {
-    localStorage.setItem(VISITOR_ID_KEY, urlVisitorId);
     return urlVisitorId;
   }
 
-  let visitorId = localStorage.getItem(VISITOR_ID_KEY);
-  if (!visitorId) {
-    visitorId = uuidv4();
-    localStorage.setItem(VISITOR_ID_KEY, visitorId);
+  // For web app, get userId from stored user data
+  const storedUser = localStorage.getItem('photoscout_user');
+  if (storedUser) {
+    try {
+      const user = JSON.parse(storedUser);
+      return user.userId;
+    } catch (error) {
+      console.error('Error parsing stored user:', error);
+    }
   }
-  return visitorId;
+
+  throw new Error('User not authenticated');
 }
 
 export function getConversationId(): string | null {

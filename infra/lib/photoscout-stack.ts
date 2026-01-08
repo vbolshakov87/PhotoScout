@@ -277,17 +277,22 @@ export class PhotoScoutStack extends cdk.Stack {
       description: 'Plans Lambda Function URL',
     });
 
-    new cdk.CfnOutput(this, 'HtmlPlansBucket', {
+    new cdk.CfnOutput(this, 'HtmlPlansBucketName', {
       value: htmlPlansBucket.bucketName,
       description: 'S3 Bucket for HTML Plans',
     });
 
-    new cdk.CfnOutput(this, 'HtmlPlansUrl', {
+    new cdk.CfnOutput(this, 'HtmlPlansCloudFrontUrl', {
       value: `https://${distribution.distributionDomainName}/plans/`,
       description: 'CloudFront URL for HTML Plans',
     });
 
-    // Update Lambda environment with CloudFront domain (for generating URLs)
-    chatFunction.addEnvironment('CLOUDFRONT_DOMAIN', distribution.distributionDomainName);
+    new cdk.CfnOutput(this, 'CloudFrontDomain', {
+      value: distribution.distributionDomainName,
+      description: 'CloudFront Distribution Domain (set as CLOUDFRONT_DOMAIN env var in Chat Lambda)',
+    });
+
+    // Note: CLOUDFRONT_DOMAIN must be set manually after deployment to avoid circular dependency
+    // aws lambda update-function-configuration --function-name <name> --environment "Variables={...,CLOUDFRONT_DOMAIN=<domain>}"
   }
 }

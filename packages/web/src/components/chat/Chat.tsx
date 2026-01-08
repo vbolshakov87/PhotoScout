@@ -1,16 +1,19 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useChat } from '../../hooks/useChat';
 import { useNativeBridge } from '../../hooks/useNativeBridge';
+import { useAuth } from '../../contexts/AuthContext';
 import { MessageList } from './MessageList';
 import { ChatInput } from './ChatInput';
 import { TabbedView } from './TabbedView';
 import { PreviewTab } from './PreviewTab';
-import { Camera } from 'lucide-react';
+import { Camera, LogOut, User } from 'lucide-react';
 
 export function Chat() {
   const { messages, isLoading, error, sendMessage, clearChat } = useChat();
+  const { user, logout } = useAuth();
   const { haptic } = useNativeBridge();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -24,6 +27,11 @@ export function Chat() {
     sendMessage(message);
   };
 
+  const handleLogout = () => {
+    haptic('light');
+    logout();
+  };
+
   // Chat Tab Content
   const chatContent = (
     <div className="flex flex-col h-full">
@@ -33,14 +41,50 @@ export function Chat() {
           <Camera className="w-6 h-6 text-primary" />
           <h1 className="text-lg font-semibold">Photo scout</h1>
         </div>
-        {messages.length > 0 && (
-          <button
-            onClick={clearChat}
-            className="text-sm text-gray-400 hover:text-white transition-colors"
-          >
-            New Trip
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {messages.length > 0 && (
+            <button
+              onClick={clearChat}
+              className="text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              New Trip
+            </button>
+          )}
+          {/* User Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+              {user?.picture ? (
+                <img
+                  src={user.picture}
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                  <User className="w-5 h-5 text-primary" />
+                </div>
+              )}
+            </button>
+            {showUserMenu && (
+              <div className="absolute right-0 mt-2 w-56 bg-card border border-white/10 rounded-lg shadow-lg overflow-hidden z-50">
+                <div className="px-4 py-3 border-b border-white/10">
+                  <p className="font-medium truncate">{user?.name}</p>
+                  <p className="text-sm text-gray-400 truncate">{user?.email}</p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full px-4 py-2 text-left flex items-center gap-2 hover:bg-white/5 transition-colors text-red-400"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </header>
 
       {/* Messages */}

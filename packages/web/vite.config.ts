@@ -32,7 +32,7 @@ export default defineConfig({
       '/api/chat': {
         target: chatApiUrl,
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/chat/, ''),
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
         configure: (proxy) => {
           proxy.on('error', (err) => {
             console.log('proxy error', err);
@@ -45,12 +45,12 @@ export default defineConfig({
       '/api/conversations': {
         target: conversationsApiUrl,
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/conversations/, ''),
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
       '/api/plans': {
         target: plansApiUrl,
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/plans/, ''),
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
     },
   },
