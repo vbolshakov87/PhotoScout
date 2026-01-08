@@ -153,12 +153,14 @@ export class PhotoScoutStack extends cdk.Stack {
     conversationsTable.grantReadWriteData(chatFunction);
     plansTable.grantReadWriteData(chatFunction);
     usersTable.grantReadWriteData(chatFunction);
+    htmlPlansBucket.grantReadWrite(chatFunction);
 
     messagesTable.grantReadData(conversationsFunction);
     conversationsTable.grantReadWriteData(conversationsFunction);
     usersTable.grantReadData(conversationsFunction);
 
     plansTable.grantReadWriteData(plansFunction);
+    htmlPlansBucket.grantRead(plansFunction);
     usersTable.grantReadData(plansFunction);
 
     // Function URLs

@@ -18,6 +18,7 @@ export function ConversationPage() {
       if (!conversationId || !visitorId) return;
 
       try {
+        console.log('Loading conversation:', conversationId, visitorId);
         const response = await fetch(
           `${API_BASE}/conversations/${conversationId}?visitorId=${visitorId}`
         );

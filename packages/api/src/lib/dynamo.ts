@@ -216,7 +216,7 @@ export async function listPlans(
       ExpressionAttributeValues: {
         ':vid': visitorId,
       },
-      ProjectionExpression: 'planId, visitorId, conversationId, createdAt, city, title, spotCount',
+      ProjectionExpression: 'planId, visitorId, conversationId, createdAt, city, title, spotCount, htmlUrl, htmlContent',
       ScanIndexForward: false,
       Limit: limit,
       ...(cursor && { ExclusiveStartKey: JSON.parse(Buffer.from(cursor, 'base64').toString()) }),
