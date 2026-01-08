@@ -8,9 +8,11 @@
 import SwiftUI
 
 struct HistoryTab: View {
+    @ObservedObject private var authService = AuthenticationService.shared
     @State private var conversations: [Conversation] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showingSignOutAlert = false
 
     var body: some View {
         NavigationView {
@@ -70,11 +72,40 @@ struct HistoryTab: View {
             }
             .navigationTitle("History")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Menu {
+                        if let userName = authService.userName {
+                            Text(userName)
+                        }
+                        if let userEmail = authService.userEmail {
+                            Text(userEmail)
+                                .font(.caption)
+                        }
+                        Divider()
+                        Button(role: .destructive, action: {
+                            showingSignOutAlert = true
+                        }) {
+                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                        }
+                    } label: {
+                        Image(systemName: "person.circle.fill")
+                            .font(.title3)
+                    }
+                }
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { Task { await loadConversations() } }) {
                         Image(systemName: "arrow.clockwise")
                     }
                 }
+            }
+            .alert("Sign Out", isPresented: $showingSignOutAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Sign Out", role: .destructive) {
+                    authService.signOut()
+                }
+            } message: {
+                Text("Are you sure you want to sign out?")
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())

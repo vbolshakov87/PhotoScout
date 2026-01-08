@@ -17,7 +17,7 @@ struct MainTabView: View {
 
             PlansTab()
                 .tabItem {
-                    Label("Plans", systemImage: "map.fill")
+                    Label("Trips", systemImage: "map.fill")
                 }
 
             HistoryTab()
@@ -25,7 +25,7 @@ struct MainTabView: View {
                     Label("History", systemImage: "clock.fill")
                 }
         }
-        .accentColor(.blue)
+        .tint(.blue)
     }
 }
 

@@ -1,4 +1,4 @@
-import { ArrowLeft, Share2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Share2, Trash2, FileText, ExternalLink } from 'lucide-react';
 import type { Plan } from '@photoscout/shared';
 import { HtmlPreview } from '../shared/HtmlPreview';
 import { useNativeBridge } from '../../hooks/useNativeBridge';
@@ -18,6 +18,31 @@ export function TripDetail({ plan, htmlContent, onBack, onDelete }: TripDetailPr
     share(htmlContent, plan.title);
   };
 
+  const handlePrint = () => {
+    haptic('light');
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      // Wait for assets to load before printing
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
+  };
+
+  const handleOpenNewTab = () => {
+    haptic('light');
+    if (plan.htmlUrl) {
+      window.open(plan.htmlUrl, '_blank');
+    } else {
+      // Fallback: create a blob URL if no S3 URL exists
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }
+  };
+
   const handleDelete = () => {
     haptic('medium');
     if (confirm(`Delete "${plan.title}"?`)) {
@@ -28,34 +53,56 @@ export function TripDetail({ plan, htmlContent, onBack, onDelete }: TripDetailPr
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-white/10 bg-background">
+      <div className="flex items-center gap-2 p-4 border-b border-white/10 bg-background">
         <button
           onClick={onBack}
           className="p-2 hover:bg-white/10 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <div className="flex-1">
-          <h1 className="font-semibold text-lg">{plan.title}</h1>
-          <p className="text-sm text-gray-400">{plan.city}</p>
+        <div className="flex-1 min-w-0">
+          <h1 className="font-semibold text-base md:text-lg truncate">{plan.title}</h1>
+          <p className="text-xs md:text-sm text-gray-400 truncate">{plan.city}</p>
         </div>
-        <button
-          onClick={handleShare}
-          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <Share2 className="w-5 h-5" />
-        </button>
-        <button
-          onClick={handleDelete}
-          className="p-2 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors"
-        >
-          <Trash2 className="w-5 h-5" />
-        </button>
+        
+        <div className="flex items-center gap-1">
+          <button
+            onClick={handlePrint}
+            title="Download PDF"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+          >
+            <FileText className="w-5 h-5" />
+          </button>
+          
+          <button
+            onClick={handleOpenNewTab}
+            title="Open in New Tab"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+          >
+            <ExternalLink className="w-5 h-5" />
+          </button>
+
+          <button
+            onClick={handleShare}
+            title="Share"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+          >
+            <Share2 className="w-5 h-5" />
+          </button>
+          
+          <button
+            onClick={handleDelete}
+            title="Delete"
+            className="p-2 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* HTML Preview */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <HtmlPreview html={htmlContent} />
+      <div className="flex-1 overflow-hidden">
+        <HtmlPreview html={htmlContent} fillContainer />
       </div>
     </div>
   );

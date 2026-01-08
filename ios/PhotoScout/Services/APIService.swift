@@ -12,12 +12,7 @@ class APIService {
 
     private let baseURL = Config.apiBaseURL
     private var visitorId: String {
-        if let stored = UserDefaults.standard.string(forKey: "visitorId") {
-            return stored
-        }
-        let new = UUID().uuidString
-        UserDefaults.standard.set(new, forKey: "visitorId")
-        return new
+        return AuthenticationService.shared.visitorId
     }
 
     // MARK: - Plans
@@ -29,7 +24,7 @@ class APIService {
 
         let (data, _) = try await URLSession.shared.data(from: url)
         let response = try JSONDecoder().decode(PlansResponse.self, from: data)
-        return response.plans
+        return response.items
     }
 
     func fetchPlan(id: String) async throws -> Plan {
@@ -66,7 +61,7 @@ class APIService {
 
         let (data, _) = try await URLSession.shared.data(from: url)
         let response = try JSONDecoder().decode(ConversationsResponse.self, from: data)
-        return response.conversations
+        return response.items
     }
 
     func fetchConversation(id: String) async throws -> ConversationDetail {

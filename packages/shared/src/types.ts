@@ -39,8 +39,10 @@ export interface Plan {
   createdAt: number;
   city: string;
   title: string;
+  dates?: string; // e.g. "Jan 7, 2026" or "Spring 2026"
   htmlUrl: string; // CloudFront URL to HTML file in S3
   htmlContent?: string; // Deprecated - legacy field for backwards compatibility
+  jsonContent?: string; // JSON trip plan for regeneration
   thumbnail?: string; // Base64 or URL for plan preview
   spotCount: number;
 }

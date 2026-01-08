@@ -3,6 +3,7 @@ import type {
   APIGatewayProxyResultV2,
 } from 'aws-lambda';
 import { listPlans, getPlan, deletePlan } from '../lib/dynamo';
+import { downloadHtmlFromS3 } from '../lib/s3';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -60,10 +61,21 @@ export async function handler(
         };
       }
 
+      // Try to get HTML from S3 first
+      let htmlContent = await downloadHtmlFromS3(visitorId, planId);
+      
+      // Fallback to DynamoDB if S3 fails
+      if (!htmlContent && plan.htmlContent) {
+        htmlContent = plan.htmlContent;
+      }
+
       return {
         statusCode: 200,
         headers: corsHeaders,
-        body: JSON.stringify(plan),
+        body: JSON.stringify({
+          ...plan,
+          htmlContent,
+        }),
       };
     }
 
@@ -81,13 +93,29 @@ export async function handler(
         };
       }
 
+      // Try to get HTML from S3 first
+      let htmlContent = await downloadHtmlFromS3(visitorId, planId);
+      
+      // Fallback to DynamoDB if S3 fails
+      if (!htmlContent && plan.htmlContent) {
+        htmlContent = plan.htmlContent;
+      }
+
+      if (!htmlContent) {
+        return {
+          statusCode: 404,
+          headers: { 'Content-Type': 'text/html' },
+          body: '<html><body>Plan content not found</body></html>',
+        };
+      }
+
       return {
         statusCode: 200,
         headers: {
           'Content-Type': 'text/html',
           'Access-Control-Allow-Origin': '*',
         },
-        body: plan.htmlContent,
+        body: htmlContent,
       };
     }
 

@@ -6,7 +6,6 @@ import {
   getRecentMessages,
   upsertConversation,
   savePlan,
-  extractCityFromContent,
   countSpotsInPlan,
 } from '../lib/dynamo';
 import { getLLMClient } from '../lib/llm-factory';
@@ -88,7 +87,7 @@ async function internalHandler(
     // Check if response is JSON trip plan
     let isHtmlPlan = false;
     let savedPlanId: string | undefined;
-    let finalContent = fullContent;
+    let generatedHtml: string | undefined;
 
     // Detect if LLM returned JSON trip plan
     if (fullContent.trim().startsWith('{') && fullContent.includes('"title"') && fullContent.includes('"spots"')) {
@@ -97,19 +96,16 @@ async function internalHandler(
       try {
         // Parse JSON and generate HTML
         const tripPlan: TripPlan = JSON.parse(fullContent);
-        const htmlContent = generateHTML(tripPlan);
-
-        // Replace fullContent with HTML for storage and client
-        finalContent = htmlContent;
+        generatedHtml = generateHTML(tripPlan);
         isHtmlPlan = true;
 
         console.log('[Chat] Successfully converted JSON to HTML', {
           jsonLength: fullContent.length,
-          htmlLength: htmlContent.length
+          htmlLength: generatedHtml.length
         });
 
         // Stream the HTML to client
-        const htmlEvent = `data: ${JSON.stringify({ type: 'html', content: htmlContent })}\n\n`;
+        const htmlEvent = `data: ${JSON.stringify({ type: 'html', content: generatedHtml })}\n\n`;
         responseStream.write(htmlEvent);
       } catch (parseError) {
         console.error('[Chat] Failed to parse JSON trip plan:', parseError);
@@ -118,17 +114,46 @@ async function internalHandler(
     } else {
       // Check if response contains HTML plan (legacy support)
       isHtmlPlan = fullContent.includes('<!DOCTYPE html>');
+      if (isHtmlPlan) {
+        generatedHtml = fullContent;
+      }
     }
 
-    if (isHtmlPlan) {
-      const city = extractCityFromContent(finalContent);
-      const spotCount = countSpotsInPlan(finalContent);
+    if (isHtmlPlan && generatedHtml) {
+      let planCity = 'Unknown';
+      let planTitle = 'Photo Trip Plan';
+      let planDates: string | undefined;
+      let spotCount = 0;
+      let jsonContent: string | undefined;
+
+      try {
+        // Find JSON block even if there's surrounding text
+        const jsonMatch = fullContent.match(/\{[\s\S]*"title"[\s\S]*"spots"[\s\S]*\}/);
+        if (jsonMatch) {
+          jsonContent = jsonMatch[0]; // Store the raw JSON string
+          const tripPlan: TripPlan = JSON.parse(jsonContent);
+          
+          // Extract fields directly from JSON
+          if (tripPlan.city) planCity = tripPlan.city;
+          if (tripPlan.title) planTitle = tripPlan.title;
+          if (tripPlan.dates) planDates = tripPlan.dates;
+          if (tripPlan.spots) spotCount = tripPlan.spots.length;
+        } else {
+          // Fallback: count spots from HTML if JSON not found
+          console.warn('[Chat] JSON not found in response, using HTML fallback');
+          spotCount = countSpotsInPlan(generatedHtml);
+        }
+      } catch (e) {
+        console.error('[Chat] Error extracting metadata from JSON:', e);
+        // Fallback: count spots from HTML
+        spotCount = countSpotsInPlan(generatedHtml);
+      }
 
       const planId = uuidv4();
 
       // Upload HTML to S3
-      console.log('[Chat] Uploading HTML to S3...', { planId, htmlLength: finalContent.length });
-      const htmlUrl = await uploadHtmlToS3(visitorId, planId, finalContent);
+      console.log('[Chat] Uploading HTML to S3...', { planId, htmlLength: generatedHtml.length });
+      const htmlUrl = await uploadHtmlToS3(visitorId, planId, generatedHtml);
       console.log('[Chat] HTML uploaded to S3:', { htmlUrl });
 
       const plan: Plan = {
@@ -136,9 +161,11 @@ async function internalHandler(
         visitorId,
         conversationId,
         createdAt: Date.now(),
-        city: city || 'Unknown',
-        title: city ? `${city} Photo Trip` : 'Photo Trip Plan',
+        city: planCity,
+        title: planTitle,
+        dates: planDates,
         htmlUrl, // CloudFront URL
+        jsonContent, // Store the JSON for future regeneration
         spotCount,
       };
 
@@ -146,12 +173,12 @@ async function internalHandler(
       savedPlanId = plan.planId;
 
       // Update conversation with city
-      if (city) {
+      if (planCity && planCity !== 'Unknown') {
         await upsertConversation(
           visitorId,
           conversationId,
-          `${city} Trip`,
-          city
+          `${planCity} Trip`,
+          planCity
         );
       }
 
@@ -163,14 +190,14 @@ async function internalHandler(
       responseStream.write(planEvent);
     }
 
-    // Save assistant message
+    // Save assistant message (save original JSON, not HTML)
     const assistantMessage: Message = {
       id: uuidv4(),
       visitorId,
       conversationId,
       timestamp: Date.now(),
       role: 'assistant',
-      content: finalContent,
+      content: fullContent, // Save the original JSON content
       isHtml: isHtmlPlan,
       model: 'claude-sonnet-4-20250514',
     };

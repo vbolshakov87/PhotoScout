@@ -51,6 +51,13 @@ export function TripsPage() {
 
   const loadPlanDetail = async (plan: Plan) => {
     try {
+      // For web, if it has a CloudFront URL, open in a new tab for "full webpage" experience
+      // as requested by the user.
+      if (plan.htmlUrl && !window.webkit) {
+        window.open(plan.htmlUrl, '_blank');
+        return;
+      }
+
       setSelectedPlan(plan);
 
       // If plan has htmlUrl, fetch it from S3
@@ -149,7 +156,7 @@ export function TripsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {plans.map((plan) => (
               <TripCard
                 key={plan.planId}

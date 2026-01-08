@@ -71,6 +71,7 @@ struct ConversationDetail: Codable {
 }
 
 struct ConversationsResponse: Codable {
-    let conversations: [Conversation]
-    let cursor: String?
+    let items: [Conversation]
+    let nextCursor: String?
+    let hasMore: Bool
 }

@@ -3,6 +3,7 @@ import { Maximize2, Minimize2 } from 'lucide-react';
 
 interface HtmlPreviewProps {
   html: string;
+  fillContainer?: boolean;
 }
 
 // Extract only the HTML content, removing any text before <!DOCTYPE html> or <html>
@@ -29,7 +30,7 @@ function extractHtml(content: string): { html: string; prefix: string } {
   return { html: content, prefix: '' };
 }
 
-export function HtmlPreview({ html }: HtmlPreviewProps) {
+export function HtmlPreview({ html, fillContainer = false }: HtmlPreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const { html: extractedHtml, prefix } = extractHtml(html);
@@ -52,7 +53,7 @@ export function HtmlPreview({ html }: HtmlPreviewProps) {
   }, [extractedHtml]);
 
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${fillContainer ? 'h-full flex flex-col' : ''}`}>
       {prefix && (
         <div className="px-4 py-2 bg-card/50 rounded-lg text-sm text-foreground/80">
           {prefix}
@@ -60,7 +61,7 @@ export function HtmlPreview({ html }: HtmlPreviewProps) {
       )}
       <div
         className={`relative bg-card rounded-xl overflow-hidden transition-all duration-300 ${
-          isExpanded ? 'fixed inset-4 z-50' : 'h-[400px]'
+          isExpanded ? 'fixed inset-4 z-50' : fillContainer ? 'flex-1' : 'h-[400px]'
         }`}
       >
         <button

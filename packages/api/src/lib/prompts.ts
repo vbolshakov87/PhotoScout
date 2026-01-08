@@ -58,7 +58,8 @@ Your JSON must include all data needed to generate an interactive trip plan.
 Example structure:
 
 {
-  "title": "Trip title with location and duration",
+  "city": "Hamburg",
+  "title": "Hamburg Photo Trip",
   "subtitle": "Brief subtitle (e.g., '4-Day Lighthouse Photography Circuit')",
   "dates": "Date range or description (e.g., 'April 10-13, 2026')",
   "mapCenter": {"lat": 57.7, "lng": 10.5},
@@ -103,6 +104,9 @@ Example structure:
 }
 
 **Important JSON rules:**
+- Include "city" (e.g., "Hamburg", "Tokyo", "North Denmark") - the location being photographed
+- Include "title" (e.g., "Hamburg Photo Trip", "Tokyo Street Photography") - the name of this plan
+- Include "dates" (e.g., "April 10-13, 2026", "Spring 2026") - when this trip is planned for
 - All coordinates must be accurate decimal degrees
 - Priority is 1-3 stars (1=optional, 2=recommended, 3=must-see)
 - Tags should include time (Morning/Golden Hour/Blue Hour/Night) and style (Reflections/Leading Lines/etc)
@@ -213,8 +217,9 @@ Does this plan look good? I can adjust locations, change the order, or generate 
 **You (Phase 3 - Generate JSON - IMMEDIATELY start with JSON, NO introductory text):**
 
 {
+  "city": "North Denmark",
   "title": "North Denmark Lighthouse Photography",
-  "subtitle": "4-Day Dramatic Coastal Circuit",
+  "subtitle": "2-Day Dramatic Coastal Circuit",
   "dates": "April 2026",
   "mapCenter": {"lat": 57.6, "lng": 10.0},
   "mapZoom": 9,

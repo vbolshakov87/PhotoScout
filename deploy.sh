@@ -159,6 +159,46 @@ deploy_infrastructure() {
     log_success "Infrastructure deployed"
 }
 
+# Invalidate CloudFront cache
+invalidate_cloudfront_cache() {
+    log_section "Invalidating CloudFront Cache"
+
+    if [ -f cdk-outputs.json ]; then
+        # Extract CloudFront distribution ID from outputs
+        CLOUDFRONT_URL=$(grep -o '"DistributionUrl": "[^"]*"' cdk-outputs.json | sed 's/"DistributionUrl": "\([^"]*\)"/\1/')
+        
+        if [ -n "$CLOUDFRONT_URL" ]; then
+            # Extract domain from URL
+            CLOUDFRONT_DOMAIN=$(echo "$CLOUDFRONT_URL" | sed 's|https://||' | sed 's|/.*||')
+            
+            # Get distribution ID from domain
+            DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?DomainName=='$CLOUDFRONT_DOMAIN'].Id" --output text)
+            
+            if [ -n "$DISTRIBUTION_ID" ]; then
+                log_info "Invalidating CloudFront cache for distribution: $DISTRIBUTION_ID"
+                
+                # Invalidate all paths
+                INVALIDATION_ID=$(aws cloudfront create-invalidation \
+                    --distribution-id "$DISTRIBUTION_ID" \
+                    --paths "/*" "/plans/*" \
+                    --query 'Invalidation.Id' \
+                    --output text)
+                
+                if [ -n "$INVALIDATION_ID" ]; then
+                    log_success "Cache invalidation created: $INVALIDATION_ID"
+                    log_info "Invalidation may take a few minutes to complete"
+                else
+                    log_warning "Failed to create cache invalidation"
+                fi
+            else
+                log_warning "Could not find CloudFront distribution ID"
+            fi
+        fi
+    else
+        log_warning "Could not find cdk-outputs.json"
+    fi
+}
+
 # Display deployment outputs
 display_outputs() {
     log_section "Deployment Complete!"
@@ -258,6 +298,7 @@ main() {
     install_dependencies
     build_packages
     deploy_infrastructure
+    invalidate_cloudfront_cache
     display_outputs
     test_deployment
 

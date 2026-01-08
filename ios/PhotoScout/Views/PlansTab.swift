@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PlansTab: View {
     @State private var plans: [Plan] = []
+    @State private var selectedPlan: Plan?
     @State private var isLoading = false
     @State private var errorMessage: String?
 
@@ -56,26 +57,44 @@ struct PlansTab: View {
                     }
                     .padding()
                 } else {
-                    List {
-                        ForEach(plans) { plan in
-                            NavigationLink(destination: PlanDetailView(plan: plan)) {
-                                PlanRow(plan: plan)
+                    ScrollView {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible(), spacing: 12),
+                            GridItem(.flexible(), spacing: 12)
+                        ], spacing: 12) {
+                            ForEach(plans) { plan in
+                                Button {
+                                    selectedPlan = plan
+                                } label: {
+                                    PlanRow(plan: plan)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        deletePlan(plan)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                             }
                         }
-                        .onDelete(perform: deletePlans)
+                        .padding()
                     }
                     .refreshable {
                         await loadPlans()
                     }
                 }
             }
-            .navigationTitle("Saved Plans")
+            .navigationTitle("My Trips")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { Task { await loadPlans() } }) {
                         Image(systemName: "arrow.clockwise")
                     }
                 }
+            }
+            .fullScreenCover(item: $selectedPlan) { plan in
+                PlanDetailView(plan: plan)
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
@@ -97,17 +116,20 @@ struct PlansTab: View {
         isLoading = false
     }
 
+    private func deletePlan(_ plan: Plan) {
+        Task {
+            do {
+                try await APIService.shared.deletePlan(id: plan.id)
+                await loadPlans()
+            } catch {
+                errorMessage = "Failed to delete plan: \(error.localizedDescription)"
+            }
+        }
+    }
+
     private func deletePlans(at offsets: IndexSet) {
         for index in offsets {
-            let plan = plans[index]
-            Task {
-                do {
-                    try await APIService.shared.deletePlan(id: plan.id)
-                    await loadPlans()
-                } catch {
-                    errorMessage = "Failed to delete plan: \(error.localizedDescription)"
-                }
-            }
+            deletePlan(plans[index])
         }
     }
 }

@@ -29,10 +29,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function AppContent() {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, isNativeAuth } = useAuth();
 
-  // Hide bottom nav on conversation detail pages and login page
+  // Hide bottom nav on conversation detail pages, login page, or when in native app
   const shouldShowNav = user &&
+                        !isNativeAuth &&
                         !location.pathname.startsWith('/conversation/') &&
                         !location.pathname.match(/^\/trips\/.+/) &&
                         location.pathname !== '/login';

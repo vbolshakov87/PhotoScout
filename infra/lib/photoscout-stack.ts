@@ -217,6 +217,17 @@ export class PhotoScoutStack extends cdk.Stack {
             maxTtl: cdk.Duration.days(365),
             minTtl: cdk.Duration.days(1),
           }),
+          responseHeadersPolicy: new cloudfront.ResponseHeadersPolicy(this, 'HtmlResponseHeadersPolicy', {
+            customHeadersBehavior: {
+              customHeaders: [
+                {
+                  header: 'Content-Type',
+                  value: 'text/html; charset=utf-8',
+                  override: true,
+                },
+              ],
+            },
+          }),
         },
         '/api/chat': {
           origin: new origins.FunctionUrlOrigin(chatFunctionUrl),

@@ -196,7 +196,9 @@ export async function savePlan(plan: Plan): Promise<void> {
         createdAt: plan.createdAt,
         city: plan.city,
         title: plan.title,
-        htmlContent: plan.htmlContent,
+        dates: plan.dates,
+        htmlUrl: plan.htmlUrl,
+        jsonContent: plan.jsonContent,
         spotCount: plan.spotCount,
         expiresAt: getTTL(),
       },
@@ -216,7 +218,7 @@ export async function listPlans(
       ExpressionAttributeValues: {
         ':vid': visitorId,
       },
-      ProjectionExpression: 'planId, visitorId, conversationId, createdAt, city, title, spotCount, htmlUrl, htmlContent',
+      ProjectionExpression: 'planId, visitorId, conversationId, createdAt, city, title, dates, spotCount, htmlUrl, htmlContent, jsonContent',
       ScanIndexForward: false,
       Limit: limit,
       ...(cursor && { ExclusiveStartKey: JSON.parse(Buffer.from(cursor, 'base64').toString()) }),
@@ -268,18 +270,6 @@ export async function deletePlan(
 }
 
 // ============ HELPERS ============
-
-export function extractCityFromContent(content: string): string | undefined {
-  // Try to extract city from HTML title
-  const titleMatch = content.match(/<title>([^<]+)/i);
-  if (titleMatch) {
-    const title = titleMatch[1];
-    // Common patterns: "Hamburg Photo Spots", "Tokyo Photography Guide"
-    const cityMatch = title.match(/^(\w+(?:\s+\w+)?)\s+(?:Photo|Photography)/i);
-    if (cityMatch) return cityMatch[1];
-  }
-  return undefined;
-}
 
 export function countSpotsInPlan(htmlContent: string): number {
   // Count spot cards in the HTML
