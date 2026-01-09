@@ -25,8 +25,8 @@ export async function uploadHtmlToS3(
     throw new Error('CLOUDFRONT_DOMAIN environment variable is not set');
   }
 
-  // S3 key: {visitorId}/{planId}.html
-  const key = `${visitorId}/${planId}.html`;
+  // S3 key: plans/{visitorId}/{planId}.html
+  const key = `plans/${visitorId}/${planId}.html`;
 
   const command = new PutObjectCommand({
     Bucket: bucketName,
@@ -39,8 +39,8 @@ export async function uploadHtmlToS3(
 
   await s3Client.send(command);
 
-  // Return CloudFront URL
-  return `https://${cloudfrontDomain}/plans/${key}`;
+  // Return CloudFront URL (key already includes "plans/")
+  return `https://${cloudfrontDomain}/${key}`;
 }
 
 /**
@@ -59,7 +59,7 @@ export async function downloadHtmlFromS3(
     throw new Error('HTML_PLANS_BUCKET environment variable is not set');
   }
 
-  const key = `${visitorId}/${planId}.html`;
+  const key = `plans/${visitorId}/${planId}.html`;
 
   try {
     const command = new GetObjectCommand({

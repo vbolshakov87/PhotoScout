@@ -86,6 +86,7 @@ export class PhotoScoutStack extends cdk.Stack {
           allowedMethods: [s3.HttpMethods.GET],
           allowedOrigins: ['*'],
           allowedHeaders: ['*'],
+          exposedHeaders: ['Content-Type', 'Content-Length', 'ETag'],
         },
       ],
     });
@@ -218,6 +219,13 @@ export class PhotoScoutStack extends cdk.Stack {
             minTtl: cdk.Duration.days(1),
           }),
           responseHeadersPolicy: new cloudfront.ResponseHeadersPolicy(this, 'HtmlResponseHeadersPolicy', {
+            corsBehavior: {
+              accessControlAllowOrigins: ['*'],
+              accessControlAllowHeaders: ['*'],
+              accessControlAllowMethods: ['GET', 'HEAD', 'OPTIONS'],
+              accessControlAllowCredentials: false,
+              originOverride: true,
+            },
             customHeadersBehavior: {
               customHeaders: [
                 {
