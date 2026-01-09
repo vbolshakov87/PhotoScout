@@ -101,7 +101,7 @@ export function Chat() {
               photography spots, optimal timing, and walking routes. I'll also give you tips on what to shoot and how to get there.
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
-              {['Hamburg', 'Tokyo', 'Lisbon', 'Bergen'].map((city) => (
+              {['Tokyo', 'Lisbon', 'Bergen', 'North Denmark', 'Normandy', 'Amsterdam', 'Brussels', 'Copenhagen', 'Dublin', 'Edinburgh', 'Frankfurt', 'Geneva', 'Hamburg', 'Lisbon', 'Lyon', 'Madrid', 'Marseille', 'Milan', 'Munich', 'Naples', 'Oslo', 'Paris', 'Prague', 'Rome', 'Stockholm', 'Vienna', 'Zurich'].sort((a, b) => Math.random() - 0.5).slice(0, 10).map((city) => (
                 <button
                   key={city}
                   onClick={() => handleSend(`Photo trip to ${city} this weekend, I'm interested in architecture, street, landscapes, night`)}
