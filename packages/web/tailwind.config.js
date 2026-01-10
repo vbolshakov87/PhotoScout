@@ -5,11 +5,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#1a1a2e',
-        foreground: '#eee',
-        card: '#252542',
-        primary: '#3498db',
-        accent: '#f39c12',
+        background: '#0a0a0f',
+        surface: '#111118',
+        card: '#18181f',
+        border: 'rgba(255, 255, 255, 0.08)',
+        foreground: '#f8fafc',
+        muted: '#71717a',
+        primary: '#6366f1',
+        success: '#22c55e',
+        danger: '#ef4444',
+      },
+      fontFamily: {
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
     },
   },

@@ -6,106 +6,118 @@ import { MessageList } from './MessageList';
 import { ChatInput } from './ChatInput';
 import { TabbedView } from './TabbedView';
 import { PreviewTab } from './PreviewTab';
-import { Camera, LogOut, User } from 'lucide-react';
+import { Camera, LogOut, User, Plus, Loader2 } from 'lucide-react';
+
+const CITIES = ['Tokyo', 'Paris', 'New York', 'Lisbon', 'Bergen', 'Copenhagen', 'Rome', 'Amsterdam'];
 
 export function Chat() {
-  const { messages, isLoading, error, sendMessage, clearChat } = useChat();
+  const { messages, isLoading, error, generationProgress, sendMessage, clearChat } = useChat();
   const { user, logout } = useAuth();
   const { haptic } = useNativeBridge();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [displayedCities] = useState(() =>
+    [...CITIES].sort(() => Math.random() - 0.5).slice(0, 6)
+  );
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
       behavior: 'smooth',
     });
-  }, [messages]);
+  }, [messages, generationProgress]);
 
   const handleSend = (message: string) => {
     haptic('light');
     sendMessage(message);
   };
 
-  const handleLogout = () => {
+  const handleCityClick = (city: string) => {
     haptic('light');
-    logout();
+    sendMessage(`Photo trip to ${city}`);
   };
 
-  // Chat Tab Content
   const chatContent = (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <Camera className="w-6 h-6 text-primary" />
-          <h1 className="text-lg font-semibold">Photo scout</h1>
-        </div>
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
         <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
+            <Camera className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold text-foreground">PhotoScout</h1>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
           {messages.length > 0 && (
             <button
-              onClick={clearChat}
-              className="text-sm text-gray-400 hover:text-white transition-colors"
+              onClick={() => { haptic('light'); clearChat(); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted hover:text-foreground transition-colors press"
             >
-              New Trip
+              <Plus className="w-4 h-4" />
+              New
             </button>
           )}
-          {/* User Menu */}
+
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              className="press"
             >
               {user?.picture ? (
-                <img
-                  src={user.picture}
-                  alt={user.name}
-                  className="w-8 h-8 rounded-full"
-                />
+                <img src={user.picture} alt="" className="w-8 h-8 rounded-full" />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                  <User className="w-5 h-5 text-primary" />
+                <div className="w-8 h-8 rounded-full bg-card flex items-center justify-center">
+                  <User className="w-4 h-4 text-muted" />
                 </div>
               )}
             </button>
+
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-card border border-white/10 rounded-lg shadow-lg overflow-hidden z-50">
-                <div className="px-4 py-3 border-b border-white/10">
-                  <p className="font-medium truncate">{user?.name}</p>
-                  <p className="text-sm text-gray-400 truncate">{user?.email}</p>
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-xl overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-border">
+                    <p className="font-medium text-foreground truncate text-sm">{user?.name}</p>
+                    <p className="text-xs text-muted truncate">{user?.email}</p>
+                  </div>
+                  <button
+                    onClick={() => { haptic('light'); logout(); }}
+                    className="w-full px-4 py-3 text-left flex items-center gap-2 text-danger text-sm hover:bg-white/5 press"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="w-full px-4 py-2 text-left flex items-center gap-2 hover:bg-white/5 transition-colors text-red-400"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
-                </button>
-              </div>
+              </>
             )}
           </div>
         </div>
       </header>
 
       {/* Messages */}
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto hide-scrollbar p-4 space-y-4"
-      >
+      <div ref={scrollRef} className="flex-1 overflow-y-auto hide-scrollbar">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center px-8">
-            <Camera className="w-16 h-16 text-primary mb-4 opacity-50" />
-            <h2 className="text-xl font-medium mb-2">Plan Your Photo Trip</h2>
-            <p className="text-gray-400 mb-6">
-              Tell me a city, region, seasite or mountains you want to visit and I'll create an interactive map with the best
-              photography spots, optimal timing, and walking routes. I'll also give you tips on what to shoot and how to get there.
+          <div className="flex flex-col items-center justify-center h-full px-6 py-8">
+            <div className="w-16 h-16 rounded-2xl bg-card flex items-center justify-center mb-6">
+              <Camera className="w-8 h-8 text-muted" />
+            </div>
+
+            <h2 className="text-xl font-semibold text-foreground mb-2 text-center">
+              Plan Your Photo Trip
+            </h2>
+            <p className="text-muted text-sm text-center mb-8 max-w-xs">
+              Tell me a destination and I'll create an interactive guide with the best photography spots.
             </p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {['Tokyo', 'Lisbon', 'Bergen', 'North Denmark', 'Normandy', 'Amsterdam', 'Brussels', 'Copenhagen', 'Dublin', 'Edinburgh', 'Frankfurt', 'Geneva', 'Hamburg', 'Lisbon', 'Lyon', 'Madrid', 'Marseille', 'Milan', 'Munich', 'Naples', 'Oslo', 'Paris', 'Prague', 'Rome', 'Stockholm', 'Vienna', 'Zurich'].sort((a, b) => Math.random() - 0.5).slice(0, 10).map((city) => (
+
+            <div className="flex flex-wrap gap-2 justify-center max-w-sm">
+              {displayedCities.map((city) => (
                 <button
                   key={city}
-                  onClick={() => handleSend(`Photo trip to ${city} this weekend, I'm interested in architecture, street, landscapes, night`)}
-                  className="px-4 py-2 bg-card rounded-full text-sm hover:bg-white/10 transition-colors"
+                  onClick={() => handleCityClick(city)}
+                  className="px-4 py-2 bg-card border border-border rounded-full text-sm text-foreground hover:bg-surface transition-colors press"
                 >
                   {city}
                 </button>
@@ -113,29 +125,51 @@ export function Chat() {
             </div>
           </div>
         ) : (
-          <MessageList messages={messages} />
+          <div className="p-4">
+            <MessageList messages={messages} onSend={handleSend} />
+
+            {/* Processing indicator */}
+            {generationProgress.isGenerating && (
+              <div className="mt-4 p-4 bg-card border border-border rounded-xl">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                    <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Processing...</p>
+                    <p className="text-xs text-muted">{generationProgress.stage}</p>
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-300"
+                    style={{ width: `${generationProgress.progress}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted mt-2 text-right">{generationProgress.progress}%</p>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
       {/* Error */}
       {error && (
-        <div className="px-4 py-2 bg-red-500/20 text-red-300 text-sm">
+        <div className="mx-4 mb-2 px-4 py-3 bg-danger/10 border border-danger/20 rounded-lg text-danger text-sm">
           {error}
         </div>
       )}
 
-      {/* Input */}
       <ChatInput onSend={handleSend} disabled={isLoading} />
     </div>
   );
 
-  // Preview Tab Content
-  const previewContent = <PreviewTab messages={messages} />;
-
   return (
     <TabbedView
       chatContent={chatContent}
-      previewContent={previewContent}
+      previewContent={<PreviewTab messages={messages} />}
       messages={messages}
     />
   );

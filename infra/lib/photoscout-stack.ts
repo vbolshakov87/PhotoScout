@@ -101,6 +101,8 @@ export class PhotoScoutStack extends cdk.Stack {
 
     // Optional: DeepSeek API key for development
     const deepseekApiKey = process.env.DEEPSEEK_API_KEY;
+    // Optional: Google API key for image generation
+    const googleApiKey = process.env.GOOGLE_API_KEY;
     const environment = process.env.ENVIRONMENT || 'production';
 
     // Will add CLOUDFRONT_DOMAIN after distribution is created
@@ -117,6 +119,11 @@ export class PhotoScoutStack extends cdk.Stack {
     // Add DeepSeek key if available (for development)
     if (deepseekApiKey) {
       lambdaEnvironment.DEEPSEEK_API_KEY = deepseekApiKey;
+    }
+
+    // Add Google API key if available (for image generation)
+    if (googleApiKey) {
+      lambdaEnvironment.GOOGLE_API_KEY = googleApiKey;
     }
 
     // Chat Function (streaming)
@@ -149,6 +156,16 @@ export class PhotoScoutStack extends cdk.Stack {
       environment: lambdaEnvironment,
     });
 
+    // Images Function (for city image generation)
+    const imagesFunction = new lambda.Function(this, 'ImagesFunction', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'images.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api/dist')),
+      timeout: cdk.Duration.seconds(120), // Image generation can take time
+      memorySize: 512,
+      environment: lambdaEnvironment,
+    });
+
     // Grant permissions
     messagesTable.grantReadWriteData(chatFunction);
     conversationsTable.grantReadWriteData(chatFunction);
@@ -163,6 +180,8 @@ export class PhotoScoutStack extends cdk.Stack {
     plansTable.grantReadWriteData(plansFunction);
     htmlPlansBucket.grantRead(plansFunction);
     usersTable.grantReadData(plansFunction);
+
+    htmlPlansBucket.grantReadWrite(imagesFunction);
 
     // Function URLs
     const chatFunctionUrl = chatFunction.addFunctionUrl({
@@ -189,6 +208,15 @@ export class PhotoScoutStack extends cdk.Stack {
       cors: {
         allowedOrigins: ['*'],
         allowedMethods: [lambda.HttpMethod.GET, lambda.HttpMethod.DELETE],
+        allowedHeaders: ['Content-Type'],
+      },
+    });
+
+    const imagesFunctionUrl = imagesFunction.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE,
+      cors: {
+        allowedOrigins: ['*'],
+        allowedMethods: [lambda.HttpMethod.GET, lambda.HttpMethod.POST],
         allowedHeaders: ['Content-Type'],
       },
     });
@@ -257,6 +285,22 @@ export class PhotoScoutStack extends cdk.Stack {
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        },
+        '/api/images*': {
+          origin: new origins.FunctionUrlOrigin(imagesFunctionUrl),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        },
+        '/city-images/*': {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(htmlPlansBucket),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: new cloudfront.CachePolicy(this, 'CityImagesCachePolicy', {
+            defaultTtl: cdk.Duration.days(365),
+            maxTtl: cdk.Duration.days(365),
+            minTtl: cdk.Duration.days(30),
+          }),
         },
       },
       defaultRootObject: 'index.html',

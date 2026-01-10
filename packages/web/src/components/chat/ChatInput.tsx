@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -13,7 +13,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
   }, [value]);
 
@@ -32,24 +32,28 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   };
 
   return (
-    <div className="p-4 border-t border-white/10">
-      <div className="flex items-end gap-2 bg-card rounded-2xl px-4 py-2">
+    <div className="p-4 border-t border-border bg-surface">
+      <div className="flex items-end gap-3">
         <textarea
           ref={textareaRef}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Where do you want to shoot?"
+          placeholder="Where do you want to explore?"
           disabled={disabled}
           rows={1}
-          className="flex-1 bg-transparent resize-none outline-none max-h-32 py-2 placeholder:text-gray-500"
+          className="flex-1 bg-card border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted resize-none focus:border-primary/50 transition-colors"
         />
         <button
           onClick={handleSubmit}
           disabled={!value.trim() || disabled}
-          className="p-2 bg-primary rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/80 transition-colors"
+          className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors press ${
+            value.trim() && !disabled
+              ? 'bg-primary text-white'
+              : 'bg-card text-muted'
+          }`}
         >
-          <Send className="w-5 h-5" />
+          {disabled ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
         </button>
       </div>
     </div>

@@ -14,35 +14,27 @@ export function LoginPage() {
     }
   };
 
-  const handleError = () => {
-    console.error('Google Login Failed');
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
-      <div className="max-w-md w-full text-center">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-sm text-center">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <Camera className="w-12 h-12 text-primary" />
-          <h1 className="text-4xl font-bold">PhotoScout</h1>
+        <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-6">
+          <Camera className="w-8 h-8 text-white" />
         </div>
 
-        {/* Subtitle */}
-        <p className="text-lg text-gray-400 mb-8">
-          Plan your perfect photography trip with AI
-        </p>
+        <h1 className="text-2xl font-semibold text-foreground mb-2">PhotoScout</h1>
+        <p className="text-muted text-sm mb-8">Plan your perfect photo trip</p>
 
         {/* Login Card */}
-        <div className="bg-card border border-white/10 rounded-xl p-8 mb-6">
-          <h2 className="text-2xl font-semibold mb-4">Welcome</h2>
-          <p className="text-gray-400 mb-6">
-            Sign in with Google to save your trips and chat history
+        <div className="bg-card border border-border rounded-xl p-6 mb-6">
+          <p className="text-sm text-muted mb-6">
+            Sign in to save your trips and chat history
           </p>
 
           <div className="flex justify-center">
             <GoogleLogin
               onSuccess={handleSuccess}
-              onError={handleError}
+              onError={() => console.error('Login failed')}
               theme="filled_black"
               size="large"
               text="signin_with"
@@ -51,21 +43,9 @@ export function LoginPage() {
           </div>
         </div>
 
-        {/* Features */}
-        <div className="text-left space-y-3">
-          <div className="flex items-start gap-3 text-sm text-gray-400">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-            <p>AI-powered photography location recommendations</p>
-          </div>
-          <div className="flex items-start gap-3 text-sm text-gray-400">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-            <p>Interactive maps with best shooting times</p>
-          </div>
-          <div className="flex items-start gap-3 text-sm text-gray-400">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-            <p>Save and organize all your photo trips</p>
-          </div>
-        </div>
+        <p className="text-xs text-muted/70">
+          By signing in, you agree to our Terms and Privacy Policy
+        </p>
       </div>
     </div>
   );

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,33 +12,64 @@
 
 html, body, #root {
   height: 100%;
-  background: #1a1a2e;
-  color: #eee;
+  background: #0a0a0f;
+  color: #f8fafc;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
-  /* Ensure touch events work in WKWebView */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Ensure buttons and interactive elements respond to touch */
 button, a, input, textarea, [role="button"] {
   touch-action: manipulation;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   cursor: pointer;
 }
 
-/* Hide scrollbar but allow scrolling */
+/* Hide scrollbar */
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Minimal focus styles */
+input:focus, textarea:focus {
+  outline: none;
+}
+
+/* iOS WKWebView input fixes */
+input, textarea {
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+  font-size: 16px; /* Prevents iOS zoom on focus */
+}
+
+/* Prevent iOS from zooming on input focus */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select {
+    font-size: max(16px, 1rem);
+  }
+}
+
+/* Simple card style */
+.card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+/* Active press state */
+.press:active {
+  opacity: 0.7;
 }

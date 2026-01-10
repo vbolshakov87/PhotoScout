@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Map, Loader2 } from 'lucide-react';
 import type { Plan } from '@photoscout/shared';
 import { TripCard } from '../components/trips/TripCard';
 import { TripDetail } from '../components/trips/TripDetail';
@@ -13,69 +14,82 @@ export function TripsPage() {
   const [htmlContent, setHtmlContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cityImages, setCityImages] = useState<Record<string, string | null>>({});
 
-  // Fetch all plans
   useEffect(() => {
     const fetchPlans = async () => {
       try {
         setIsLoading(true);
         const visitorId = getUserId();
-
         const response = await fetch(`/api/plans?visitorId=${visitorId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch plans');
-        }
-
+        if (!response.ok) throw new Error('Failed to fetch plans');
         const data = await response.json();
-        setPlans(data.items || []);
+        const fetchedPlans = data.items || [];
+        setPlans(fetchedPlans);
+
+        // Fetch city images for all unique cities
+        const uniqueCities = [...new Set(fetchedPlans.map((p: Plan) => p.city).filter(Boolean))];
+        if (uniqueCities.length > 0) {
+          try {
+            const imagesResponse = await fetch('/api/images/cities', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ cities: uniqueCities }),
+            });
+            if (imagesResponse.ok) {
+              const imagesData = await imagesResponse.json();
+              const images = imagesData.images || {};
+              setCityImages(images);
+
+              // For any cities without cached images, trigger generation in background
+              const missingCities = (uniqueCities as string[]).filter(city => !images[city]);
+              missingCities.forEach(city => {
+                fetch(`/api/images/city/${encodeURIComponent(city)}`)
+                  .then(res => res.json())
+                  .then(data => {
+                    if (data.imageUrl) {
+                      setCityImages(prev => ({ ...prev, [city]: data.imageUrl }));
+                    }
+                  })
+                  .catch(() => {}); // Silently fail
+              });
+            }
+          } catch {
+            // Silently fail for images - they're not critical
+          }
+        }
       } catch (err) {
-        console.error('Error fetching plans:', err);
         setError(err instanceof Error ? err.message : 'Failed to load trips');
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchPlans();
   }, []);
 
-  // Load specific plan if planId is in URL
   useEffect(() => {
     if (planId && plans.length > 0) {
       const plan = plans.find((p) => p.planId === planId);
-      if (plan) {
-        loadPlanDetail(plan);
-      }
+      if (plan) loadPlanDetail(plan);
     }
   }, [planId, plans]);
 
   const loadPlanDetail = async (plan: Plan) => {
     try {
-      // For web, if it has a CloudFront URL, open in a new tab for "full webpage" experience
-      // as requested by the user.
       if (plan.htmlUrl && !window.webkit) {
         window.open(plan.htmlUrl, '_blank');
         return;
       }
-
       setSelectedPlan(plan);
-
-      // If plan has htmlUrl, fetch it from S3
       if (plan.htmlUrl) {
         const response = await fetch(plan.htmlUrl);
-        if (!response.ok) {
-          throw new Error('Failed to fetch HTML content');
-        }
-        const html = await response.text();
-        setHtmlContent(html);
+        if (!response.ok) throw new Error('Failed to fetch HTML content');
+        setHtmlContent(await response.text());
       } else if (plan.htmlContent) {
-        // Legacy: use stored HTML content
         setHtmlContent(plan.htmlContent);
       }
-
       navigate(`/trips/${plan.planId}`);
     } catch (err) {
-      console.error('Error loading plan detail:', err);
       setError('Failed to load trip details');
     }
   };
@@ -88,80 +102,64 @@ export function TripsPage() {
 
   const handleDelete = async () => {
     if (!selectedPlan) return;
-
     try {
       const visitorId = getUserId();
-      const response = await fetch(
-        `/api/plans/${selectedPlan.planId}?visitorId=${visitorId}`,
-        {
-          method: 'DELETE',
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to delete plan');
-      }
-
-      // Remove from list
+      const response = await fetch(`/api/plans/${selectedPlan.planId}?visitorId=${visitorId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete plan');
       setPlans((prev) => prev.filter((p) => p.planId !== selectedPlan.planId));
-
-      // Go back to list
       handleBack();
     } catch (err) {
-      console.error('Error deleting plan:', err);
       setError('Failed to delete trip');
     }
   };
 
-  // Show detail view if a plan is selected
   if (selectedPlan && htmlContent) {
-    return (
-      <TripDetail
-        plan={selectedPlan}
-        htmlContent={htmlContent}
-        onBack={handleBack}
-        onDelete={handleDelete}
-      />
-    );
+    return <TripDetail plan={selectedPlan} htmlContent={htmlContent} onBack={handleBack} onDelete={handleDelete} />;
   }
 
-  // Show list view
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="p-4 border-b border-white/10 bg-background">
-        <h1 className="text-2xl font-bold">My Trips</h1>
-        <p className="text-sm text-gray-400 mt-1">
-          {plans.length} {plans.length === 1 ? 'trip' : 'trips'} saved
-        </p>
-      </div>
+      <header className="px-4 py-4 border-b border-border bg-surface">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
+            <Map className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold text-foreground">My Trips</h1>
+            <p className="text-xs text-muted">
+              {isLoading ? 'Loading...' : `${plans.length} saved`}
+            </p>
+          </div>
+        </div>
+      </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto hide-scrollbar p-4">
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-4">
-            <p className="text-red-500">{error}</p>
+          <div className="mb-4 px-4 py-3 bg-danger/10 border border-danger/20 rounded-lg text-danger text-sm">
+            {error}
           </div>
         )}
 
         {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-gray-400">Loading trips...</div>
+          <div className="flex items-center justify-center h-48">
+            <Loader2 className="w-6 h-6 text-muted animate-spin" />
           </div>
         ) : plans.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <div className="text-gray-400 mb-2">No trips yet</div>
-            <p className="text-sm text-gray-500">
-              Create your first photo trip plan to see it here
-            </p>
+          <div className="flex flex-col items-center justify-center h-48 text-center">
+            <Map className="w-12 h-12 text-muted/50 mb-4" />
+            <p className="text-muted text-sm">No trips yet</p>
+            <p className="text-muted/70 text-xs mt-1">Start a chat to create your first trip</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {plans.map((plan) => (
               <TripCard
                 key={plan.planId}
                 plan={plan}
                 onClick={() => loadPlanDetail(plan)}
+                imageUrl={cityImages[plan.city]}
               />
             ))}
           </div>

@@ -6,6 +6,9 @@ import { ConversationPage } from './pages/ConversationPage';
 import { TripsPage } from './pages/TripsPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { LoginPage } from './pages/LoginPage';
+import { AboutPage } from './pages/AboutPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { TermsPage } from './pages/TermsPage';
 import { BottomNav } from './components/navigation/BottomNav';
 
 // Protected route wrapper
@@ -83,6 +86,9 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
         </Routes>
       </div>
       {shouldShowNav && <BottomNav />}

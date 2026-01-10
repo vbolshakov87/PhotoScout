@@ -1,4 +1,5 @@
 import { HtmlPreview } from '../shared/HtmlPreview';
+import { FileText } from 'lucide-react';
 import type { Message } from '@photoscout/shared';
 
 interface PreviewTabProps {
@@ -12,31 +13,23 @@ export function PreviewTab({ messages }: PreviewTabProps) {
     .reverse()
     .find((msg) => msg.content.includes('<!DOCTYPE html>') && msg.content.includes('</html>'));
 
-  console.log('[PreviewTab] Checking for HTML message:', {
-    totalMessages: messages.length,
-    messagesWithHtml: messages.filter(m => m.content.includes('<!DOCTYPE html>')).length,
-    messagesWithClosing: messages.filter(m => m.content.includes('</html>')).length,
-    htmlMessageFound: !!htmlMessage,
-    htmlMessageId: htmlMessage?.id,
-    htmlContentLength: htmlMessage?.content.length
-  });
-
   if (!htmlMessage) {
     return (
-      <div className="flex items-center justify-center h-full p-8 text-center">
-        <div>
-          <p className="text-gray-400 mb-2">No trip plan generated yet</p>
-          <p className="text-sm text-gray-500">
-            Chat with the assistant to create your interactive photography trip plan
-          </p>
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-background">
+        <div className="w-16 h-16 rounded-2xl bg-card flex items-center justify-center mb-6">
+          <FileText className="w-8 h-8 text-muted" />
         </div>
+        <p className="text-foreground font-medium mb-2">No trip plan yet</p>
+        <p className="text-sm text-muted max-w-xs">
+          Chat with the assistant to generate your interactive photography trip plan
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="h-full overflow-y-auto p-4">
-      <HtmlPreview html={htmlMessage.content} />
+    <div className="h-full bg-background">
+      <HtmlPreview html={htmlMessage.content} fillContainer />
     </div>
   );
 }
