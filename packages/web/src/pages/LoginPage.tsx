@@ -1,6 +1,6 @@
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Camera } from 'lucide-react';
 
 export function LoginPage() {
@@ -44,7 +44,10 @@ export function LoginPage() {
         </div>
 
         <p className="text-xs text-muted/70">
-          By signing in, you agree to our Terms and Privacy Policy
+          By signing in, you agree to our{' '}
+          <Link to="/terms" className="text-primary/80 hover:text-primary underline">Terms</Link>
+          {' '}and{' '}
+          <Link to="/privacy" className="text-primary/80 hover:text-primary underline">Privacy Policy</Link>
         </p>
       </div>
     </div>

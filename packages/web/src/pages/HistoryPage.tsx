@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Search, History, MessageSquare, Loader2, X } from 'lucide-react';
 import type { Conversation } from '@photoscout/shared';
 import { ConversationCard } from '../components/history/ConversationCard';
@@ -128,6 +128,18 @@ export function HistoryPage() {
           </div>
         )}
       </div>
+
+      {/* Footer with legal links */}
+      <footer className="px-4 py-3 border-t border-border/50 text-center bg-surface">
+        <div className="flex items-center justify-center gap-4 text-xs text-muted/60">
+          <Link to="/about" className="hover:text-muted transition-colors">About</Link>
+          <span>·</span>
+          <Link to="/terms" className="hover:text-muted transition-colors">Terms</Link>
+          <span>·</span>
+          <Link to="/privacy" className="hover:text-muted transition-colors">Privacy</Link>
+        </div>
+        <p className="text-[10px] text-muted/40 mt-1">PhotoScout © 2026</p>
+      </footer>
     </div>
   );
 }

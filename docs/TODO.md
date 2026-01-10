@@ -28,6 +28,10 @@
 - [x] About page
 - [x] Terms of Service page
 - [x] Privacy Policy page
+- **Public URLs** (for App Store submission):
+  - About: https://d2mpt2trz11kx7.cloudfront.net/about
+  - Privacy: https://d2mpt2trz11kx7.cloudfront.net/privacy
+  - Terms: https://d2mpt2trz11kx7.cloudfront.net/terms
 
 ### iOS App
 - [x] WKWebView wrapper with native auth injection
@@ -46,28 +50,50 @@
 - [x] CloudFront SPA routing fix (403/404 → index.html)
 - [x] Vite proxy configuration for local development (`/api/images`, `/city-images`)
 
+### App Assets
+- [x] **App Logo/Icon**: Created app icon for iOS
+  - Generated using Google Imagen 4.0 with minimalist camera/location pin design
+  - All icon sizes generated (16x16 to 1024x1024)
+  - Location: `ios/PhotoScout/Assets.xcassets/AppIcon.appiconset/`
+  - S3: https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png
+
 ## In Progress
 
-### Image Generation
-- [ ] Pre-generate remaining destination images (58/94 done)
+### iOS App Store Preparation
+- [x] Configure app metadata in Xcode (bundle ID, version, build number)
+- [x] Update Info.plist with App Store requirements
+- [x] Privacy Policy URL: https://d2mpt2trz11kx7.cloudfront.net/privacy
+- [x] Terms of Service URL: https://d2mpt2trz11kx7.cloudfront.net/terms
+- [ ] Set up App Store Connect account and app listing
+- [ ] Create App Store screenshots (6.7", 6.5", 5.5" sizes)
+- [ ] Write App Store description and keywords
+- [ ] Set Development Team in Xcode (requires Apple Developer account)
+- [ ] Test on physical device
+- [ ] Archive and upload build to App Store Connect
+- [ ] Submit for App Review
+
+### Image Generation - REGENERATE ALL with New Epic Photography Prompts
+- [ ] Regenerate ALL 94 destination images with new cinematic prompts
   - **Status**: API quota limit reached (70/day on paid tier 1)
   - **Quota resets**: Daily at midnight Pacific Time (9:00 AM CET)
-  - **Remaining**: ~36 images to generate
-  - **New prompts deployed**: Epic cinematic photography style (will apply to new images)
+  - **Next reset**: Jan 11, 2026 at 9:00 AM CET
+  - **Plan**:
+    - Day 1 (Jan 11): Generate 70 images (Tokyo → Big Sur)
+    - Day 2 (Jan 12): Generate remaining 24 images (Hawaii → Namib Desert)
+  - **Script**: `packages/api/scripts/generate-missing-images.ts`
+  - **Commands**:
+    ```bash
+    # Day 1: Start regenerating all (will stop at quota)
+    cd packages/api && npx tsx scripts/generate-missing-images.ts --regenerate-all
+
+    # Day 2: Resume from where it stopped
+    cd packages/api && npx tsx scripts/generate-missing-images.ts --regenerate-all --start-from=Hawaii
+    ```
 
 ## Pending
 
-### App Assets
-- [ ] **App Logo/Icon**: Create app icon for iOS
-  - Style: Minimalist, matches dark theme
-  - Suggested prompt: "Minimalist app icon for PhotoScout travel planning app. Clean geometric design featuring a stylized camera lens combined with a location pin or compass element. Dark background (#0a0a0f) with subtle gradient accents in warm colors. Modern, professional, suitable for iOS App Store. Square format, no text."
-  - Sizes needed: 1024x1024 (App Store), plus iOS icon set
-
-### Optional: Regenerate Images with New Style
-- [ ] Delete existing city images from S3 to regenerate with epic photography style
-  - Bucket: `photoscout-plans-707282829805`
-  - Path: `city-images/*.png`
-  - Will auto-regenerate when users visit trips page
+### UI Updates
+- [ ] Update webapp accent colors from blue to warm gold/orange to match app icon
 
 ### Future Enhancements
 - [ ] Push notifications for trip reminders
@@ -119,12 +145,13 @@ PhotoScout/
 - **Web App**: https://d2mpt2trz11kx7.cloudfront.net
 - **Chat API**: https://ukxa7eu5rks24eoeb445lzzhoi0lsgjj.lambda-url.eu-central-1.on.aws/
 
-## Key Files Modified (Session Jan 10, 2026)
+## Key Files Modified (Session Jan 10-11, 2026)
 
 1. `packages/web/src/pages/TripsPage.tsx` - Auto-generate images for missing cities
 2. `packages/web/vite.config.ts` - Added proxy for `/api/images` and `/city-images`
 3. `packages/api/src/lib/imagen.ts` - City name aliases + epic photography prompts
 4. `infra/lib/photoscout-stack.ts` - CloudFront 403 error handling for SPA routing
+5. `packages/api/scripts/generate-missing-images.ts` - Batch image generation script
 
 ## Destination List (94 total)
 
