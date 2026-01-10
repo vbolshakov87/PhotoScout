@@ -36,7 +36,7 @@ export function HtmlPreview({ html, fillContainer = false }: HtmlPreviewProps) {
     if (iframeRef.current) {
       iframeRef.current.srcdoc = extractedHtml;
     }
-  }, [extractedHtml]);
+  }, [extractedHtml, isExpanded]);
 
   // Fullscreen mode
   if (isExpanded) {
@@ -65,7 +65,7 @@ export function HtmlPreview({ html, fillContainer = false }: HtmlPreviewProps) {
         <div className="relative flex-1 bg-card overflow-hidden">
           <button
             onClick={() => setIsExpanded(true)}
-            className="absolute top-3 right-3 z-10 p-2 bg-black/50 rounded-lg hover:bg-black/70 transition-colors"
+            className="absolute bottom-3 right-3 z-10 p-2 bg-black/50 rounded-lg hover:bg-black/70 transition-colors"
           >
             <Maximize2 className="w-4 h-4 text-white" />
           </button>
@@ -91,7 +91,7 @@ export function HtmlPreview({ html, fillContainer = false }: HtmlPreviewProps) {
       <div className="relative h-[400px] bg-card rounded-xl overflow-hidden">
         <button
           onClick={() => setIsExpanded(true)}
-          className="absolute top-3 right-3 z-10 p-2 bg-black/50 rounded-lg hover:bg-black/70 transition-colors"
+          className="absolute bottom-3 right-3 z-10 p-2 bg-black/50 rounded-lg hover:bg-black/70 transition-colors"
         >
           <Maximize2 className="w-4 h-4 text-white" />
         </button>

@@ -38,13 +38,28 @@ function isNatureDestination(destination: string): boolean {
 
 function getDestinationImagePrompt(destination: string): string {
   if (isNatureDestination(destination)) {
-    return `Present a clear, 45 degree top-down isometric miniature 3D cartoon scene of ${destination}, enclosed within the borders of a simple rounded rectangular shape, featuring the iconic natural landscape - mountains, lakes, forests, cliffs, or coastline as appropriate. Use a pastel color palette with soft gradients. The scene should show the dramatic natural beauty with tiny trees, winding paths, maybe small cabins or viewpoints. Include characteristic elements like waterfalls, snow-capped peaks, or unique rock formations. The background should be transparent or a very light solid color. Style: Pixar-inspired 3D illustration, warm golden hour lighting, miniature tilt-shift effect.`;
+    return `Epic cinematic landscape photograph of ${destination} at golden hour. Dramatic sweeping vista showcasing the iconic natural beauty - majestic mountains, pristine lakes, ancient forests, or dramatic coastline. Shot from an elevated viewpoint with layers of depth. Moody atmospheric lighting with sun rays breaking through clouds. Rich colors with deep shadows and golden highlights. Style: National Geographic award-winning landscape photography, 4K, ultra sharp, professional travel photography that inspires wanderlust.`;
   }
-  return `Present a clear, 45 degree top-down isometric miniature 3D cartoon scene of ${destination}, enclosed within the borders of a simple rounded rectangular shape, featuring famous landmarks and characteristic architecture. Use a pastel color palette with soft gradients. The scene should be detailed but clean, with tiny trees, streets, and recognizable buildings arranged in a charming diorama style. The background should be transparent or a very light solid color. Style: Pixar-inspired 3D illustration, warm lighting, miniature tilt-shift effect.`;
+  return `Stunning cinematic cityscape photograph of ${destination} at blue hour twilight. Iconic skyline and famous landmarks dramatically lit against a gradient sky. Shot from an elevated perspective showing the city's grandeur and scale. Beautiful city lights beginning to glow, reflections on water if applicable. Rich moody tones with vibrant accent colors. Style: Award-winning travel photography, 4K, ultra sharp, professional architectural photography that captures the soul of the city.`;
+}
+
+// Common city name variations mapping to canonical names
+const CITY_NAME_ALIASES: Record<string, string> = {
+  'new york city': 'new york',
+  'nyc': 'new york',
+  'la': 'los angeles',
+  'sf': 'san francisco',
+  'hong kong sar': 'hong kong',
+  'rio': 'rio de janeiro',
+};
+
+function normalizeCityName(city: string): string {
+  const lower = city.toLowerCase().trim();
+  return CITY_NAME_ALIASES[lower] || lower;
 }
 
 function getCityImageKey(city: string): string {
-  const normalizedCity = city.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+  const normalizedCity = normalizeCityName(city).replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
   return `city-images/${normalizedCity}.png`;
 }
 

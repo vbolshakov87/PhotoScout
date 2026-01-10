@@ -7,6 +7,7 @@ import fs from 'fs';
 let chatApiUrl = 'https://ukxa7eu5rks24eoeb445lzzhoi0lsgjj.lambda-url.eu-central-1.on.aws/';
 let conversationsApiUrl = 'https://qsd2li2o2hv64wwypr52br7hqa0zmgrm.lambda-url.eu-central-1.on.aws/';
 let plansApiUrl = 'https://4kjp3ntfoc2hrpzxwy3pmea6fu0kfukt.lambda-url.eu-central-1.on.aws/';
+let cloudfrontUrl = 'https://d2mpt2trz11kx7.cloudfront.net';
 
 try {
   const cdkOutputsPath = path.resolve(__dirname, '../../cdk-outputs.json');
@@ -15,6 +16,7 @@ try {
     chatApiUrl = cdkOutputs.PhotoScoutStack?.ChatApiUrl || chatApiUrl;
     conversationsApiUrl = cdkOutputs.PhotoScoutStack?.ConversationsApiUrl || conversationsApiUrl;
     plansApiUrl = cdkOutputs.PhotoScoutStack?.PlansApiUrl || plansApiUrl;
+    cloudfrontUrl = cdkOutputs.PhotoScoutStack?.DistributionUrl || cloudfrontUrl;
   }
 } catch (e) {
   console.warn('Could not read cdk-outputs.json, using default Lambda URLs');
@@ -49,6 +51,16 @@ export default defineConfig({
       },
       '/api/plans': {
         target: plansApiUrl,
+        changeOrigin: true,
+        rewrite: (path) => path,
+      },
+      '/api/images': {
+        target: cloudfrontUrl,
+        changeOrigin: true,
+        rewrite: (path) => path,
+      },
+      '/city-images': {
+        target: cloudfrontUrl,
         changeOrigin: true,
         rewrite: (path) => path,
       },

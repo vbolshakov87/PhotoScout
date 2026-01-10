@@ -310,6 +310,11 @@ export class PhotoScoutStack extends cdk.Stack {
           responsePagePath: '/index.html',
           responseHttpStatus: 200,
         },
+        {
+          httpStatus: 403,
+          responsePagePath: '/index.html',
+          responseHttpStatus: 200,
+        },
       ],
     });
 

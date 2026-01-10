@@ -95,30 +95,7 @@ export function generateHTML(plan: TripPlan): string {
             line-height: 1.6;
             padding-bottom: 40px;
         }
-        .no-print {
-            display: flex;
-            justify-content: flex-end;
-            padding: 10px 20px;
-            background: rgba(0,0,0,0.2);
-            gap: 10px;
-        }
-        .btn-print {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-        }
-        .btn-print:hover { background: #764ba2; }
-        
         @media print {
-            .no-print { display: none !important; }
             body { background: white !important; color: black !important; padding: 0; }
             .container { max-width: 100% !important; padding: 0 !important; }
             .section, .spot-card, .info-item, .practical { 
@@ -334,11 +311,6 @@ export function generateHTML(plan: TripPlan): string {
     </style>
 </head>
 <body>
-    <div class="no-print">
-        <button class="btn-print" onclick="window.print()">
-            <i class="fas fa-file-pdf"></i> Download PDF / Print
-        </button>
-    </div>
     <div class="container">
         <h1>${plan.title}</h1>
         <div class="subtitle">${plan.subtitle}</div>

@@ -156,7 +156,7 @@ export function Chat() {
       </div>
 
       {/* Error */}
-      {error && (
+      {error && !error.includes('environment variable') && (
         <div className="mx-4 mb-2 px-4 py-3 bg-danger/10 border border-danger/20 rounded-lg text-danger text-sm">
           {error}
         </div>

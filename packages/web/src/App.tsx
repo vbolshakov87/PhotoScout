@@ -42,9 +42,10 @@ function AppContent() {
                         location.pathname !== '/login';
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 overflow-hidden">
-        <Routes>
+    <div className="h-full flex items-center justify-center bg-black">
+      <div className="w-full h-full max-w-md max-h-[900px] flex flex-col bg-[#0a0a0f] overflow-hidden md:rounded-2xl md:shadow-2xl md:border md:border-white/10">
+        <div className="flex-1 overflow-hidden">
+          <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
             path="/"
@@ -90,8 +91,9 @@ function AppContent() {
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
         </Routes>
+        </div>
+        {shouldShowNav && <BottomNav />}
       </div>
-      {shouldShowNav && <BottomNav />}
     </div>
   );
 }

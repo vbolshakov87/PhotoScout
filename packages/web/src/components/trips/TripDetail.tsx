@@ -1,4 +1,4 @@
-import { ArrowLeft, Share2, Trash2, FileText, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Share2, Trash2, ExternalLink } from 'lucide-react';
 import type { Plan } from '@photoscout/shared';
 import { HtmlPreview } from '../shared/HtmlPreview';
 import { useNativeBridge } from '../../hooks/useNativeBridge';
@@ -16,19 +16,6 @@ export function TripDetail({ plan, htmlContent, onBack, onDelete }: TripDetailPr
   const handleShare = () => {
     haptic('light');
     share(htmlContent, plan.title);
-  };
-
-  const handlePrint = () => {
-    haptic('light');
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
-      // Wait for assets to load before printing
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    }
   };
 
   const handleOpenNewTab = () => {
@@ -66,14 +53,6 @@ export function TripDetail({ plan, htmlContent, onBack, onDelete }: TripDetailPr
         </div>
         
         <div className="flex items-center gap-1">
-          <button
-            onClick={handlePrint}
-            title="Download PDF"
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
-          >
-            <FileText className="w-5 h-5" />
-          </button>
-          
           <button
             onClick={handleOpenNewTab}
             title="Open in New Tab"

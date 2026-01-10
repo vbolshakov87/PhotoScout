@@ -21,6 +21,8 @@
 - [x] 40 top city destinations
 - [x] 50 nature/landscape regions (including 10 German destinations)
 - [x] Automatic prompt selection (city vs nature style)
+- [x] Epic cinematic photography prompts for photographers
+- [x] City name alias mapping (e.g., "New York City" → "New York")
 
 ### Legal Pages
 - [x] About page
@@ -37,19 +39,35 @@
 - [x] Fixed text input keyboard issues
 - [x] Full WebView functionality working
 
-## Pending
-
-### Deployment
+### Deployment & Infrastructure
 - [x] Add `GOOGLE_API_KEY` to `.env` file
 - [x] Deploy CDK stack with updated Lambda permissions
-- [ ] Pre-generate remaining 40 destination images (54/94 done)
 - [x] Deploy latest web app with auto-image generation for trips
+- [x] CloudFront SPA routing fix (403/404 → index.html)
+- [x] Vite proxy configuration for local development (`/api/images`, `/city-images`)
+
+## In Progress
+
+### Image Generation
+- [ ] Pre-generate remaining destination images (58/94 done)
+  - **Status**: API quota limit reached (70/day on paid tier 1)
+  - **Quota resets**: Daily at midnight Pacific Time (9:00 AM CET)
+  - **Remaining**: ~36 images to generate
+  - **New prompts deployed**: Epic cinematic photography style (will apply to new images)
+
+## Pending
 
 ### App Assets
 - [ ] **App Logo/Icon**: Create app icon for iOS
   - Style: Minimalist, matches dark theme
   - Suggested prompt: "Minimalist app icon for PhotoScout travel planning app. Clean geometric design featuring a stylized camera lens combined with a location pin or compass element. Dark background (#0a0a0f) with subtle gradient accents in warm colors. Modern, professional, suitable for iOS App Store. Square format, no text."
   - Sizes needed: 1024x1024 (App Store), plus iOS icon set
+
+### Optional: Regenerate Images with New Style
+- [ ] Delete existing city images from S3 to regenerate with epic photography style
+  - Bucket: `photoscout-plans-707282829805`
+  - Path: `city-images/*.png`
+  - Will auto-regenerate when users visit trips page
 
 ### Future Enhancements
 - [ ] Push notifications for trip reminders
@@ -67,6 +85,11 @@
 
 ### Web App
 - None currently identified
+
+### Google Imagen API
+- Daily quota: 70 requests/day (paid tier 1)
+- Quota resets at midnight Pacific Time
+- Request increase: https://forms.gle/ETzX94k8jf7iSotH9
 
 ## Architecture
 
@@ -91,12 +114,24 @@ PhotoScout/
 └── infra/            # AWS CDK infrastructure
 ```
 
-## Destination List (90 total)
+## Deployment URLs
+
+- **Web App**: https://d2mpt2trz11kx7.cloudfront.net
+- **Chat API**: https://ukxa7eu5rks24eoeb445lzzhoi0lsgjj.lambda-url.eu-central-1.on.aws/
+
+## Key Files Modified (Session Jan 10, 2026)
+
+1. `packages/web/src/pages/TripsPage.tsx` - Auto-generate images for missing cities
+2. `packages/web/vite.config.ts` - Added proxy for `/api/images` and `/city-images`
+3. `packages/api/src/lib/imagen.ts` - City name aliases + epic photography prompts
+4. `infra/lib/photoscout-stack.ts` - CloudFront 403 error handling for SPA routing
+
+## Destination List (94 total)
 
 ### Cities (40)
 Tokyo, Paris, New York, London, Rome, Barcelona, Amsterdam, Berlin, Vienna, Prague, Lisbon, Copenhagen, Stockholm, Oslo, Bergen, Dubai, Singapore, Hong Kong, Sydney, Melbourne, San Francisco, Los Angeles, Chicago, Miami, Boston, Vancouver, Toronto, Montreal, Rio de Janeiro, Buenos Aires, Cape Town, Marrakech, Istanbul, Athens, Florence, Venice, Munich, Zurich, Brussels, Dublin
 
-### Nature Regions (50)
+### Nature Regions (54)
 **Europe - Alps & Mountains**: Dolomites, Swiss Alps, Scottish Highlands, Lofoten, Norwegian Fjords, Trolltunga, Faroe Islands
 
 **Europe - Mediterranean & Lakes**: Lake Bled, Tuscany, Amalfi Coast, Cinque Terre, Provence, Santorini, Lake Como, Plitvice Lakes
