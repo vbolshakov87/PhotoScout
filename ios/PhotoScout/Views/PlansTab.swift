@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct PlansTab: View {
+    @ObservedObject private var authService = AuthenticationService.shared
     @State private var plans: [Plan] = []
     @State private var selectedPlan: Plan?
     @State private var isLoading = false
@@ -39,6 +40,43 @@ struct PlansTab: View {
                             }
                         }
                         .buttonStyle(.borderedProminent)
+                    }
+                    .padding()
+                } else if authService.isGuest && plans.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "person.badge.plus")
+                            .font(.system(size: 50))
+                            .foregroundColor(.blue)
+
+                        Text("Sign in to Save Trips")
+                            .font(.headline)
+
+                        Text("Your trips will be saved when you sign in with Google")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+
+                        Button(action: {
+                            authService.signOut()
+                        }) {
+                            HStack {
+                                Text("G")
+                                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                                    .foregroundColor(.blue)
+                                Text("Sign in with Google")
+                                    .fontWeight(.medium)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .background(Color(.systemBackground))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     .padding()
                 } else if plans.isEmpty {

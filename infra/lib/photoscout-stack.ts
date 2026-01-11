@@ -126,6 +126,10 @@ export class PhotoScoutStack extends cdk.Stack {
       lambdaEnvironment.GOOGLE_API_KEY = googleApiKey;
     }
 
+    // Hardcode CloudFront domain to avoid circular dependency
+    // This is the domain for photoscout-plans bucket distribution
+    lambdaEnvironment.CLOUDFRONT_DOMAIN = 'd2mpt2trz11kx7.cloudfront.net';
+
     // Chat Function (streaming)
     const chatFunction = new lambda.Function(this, 'ChatFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,

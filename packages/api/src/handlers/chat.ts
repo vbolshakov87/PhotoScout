@@ -1,3 +1,4 @@
+// Build: 2026-01-11-v2 - Prompt update: one question at a time
 import type { APIGatewayProxyEventV2 } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 import type { ChatRequest, Message, Plan } from '@photoscout/shared';

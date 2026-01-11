@@ -19,29 +19,35 @@ struct SettingsTab: View {
                     if authService.isAuthenticated {
                         HStack(spacing: 12) {
                             // Profile avatar
-                            AsyncImage(url: URL(string: authService.userPhotoURL ?? "")) { phase in
-                                switch phase {
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                case .failure(_), .empty:
-                                    Image(systemName: "person.circle.fill")
-                                        .font(.system(size: 40))
-                                        .foregroundColor(.gray)
-                                @unknown default:
-                                    Image(systemName: "person.circle.fill")
-                                        .font(.system(size: 40))
-                                        .foregroundColor(.gray)
+                            if authService.isGuest {
+                                Image(systemName: "person.circle.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.gray)
+                            } else {
+                                AsyncImage(url: URL(string: authService.userPhotoURL ?? "")) { phase in
+                                    switch phase {
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                    case .failure(_), .empty:
+                                        Image(systemName: "person.circle.fill")
+                                            .font(.system(size: 40))
+                                            .foregroundColor(.gray)
+                                    @unknown default:
+                                        Image(systemName: "person.circle.fill")
+                                            .font(.system(size: 40))
+                                            .foregroundColor(.gray)
+                                    }
                                 }
+                                .frame(width: 50, height: 50)
+                                .clipShape(Circle())
                             }
-                            .frame(width: 50, height: 50)
-                            .clipShape(Circle())
 
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(authService.userName ?? "User")
+                                Text(authService.isGuest ? "Guest" : (authService.userName ?? "User"))
                                     .font(.headline)
-                                Text(authService.userEmail ?? "")
+                                Text(authService.isGuest ? "Not signed in" : (authService.userEmail ?? ""))
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
@@ -106,13 +112,47 @@ struct SettingsTab: View {
                     Text("Legal")
                 }
 
-                // Sign out section
+                // Sign out / Sign in section
                 Section {
-                    Button(action: {
-                        showingSignOutAlert = true
-                    }) {
-                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                            .foregroundColor(.red)
+                    if authService.isGuest {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: "person.badge.plus")
+                                    .foregroundColor(.blue)
+                                Text("Sign in to save your trips")
+                                    .font(.subheadline)
+                            }
+
+                            Button(action: {
+                                // Sign out as guest to show login screen
+                                authService.signOut()
+                            }) {
+                                HStack {
+                                    Text("G")
+                                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                                        .foregroundColor(.blue)
+                                    Text("Sign in with Google")
+                                        .fontWeight(.medium)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color(.systemBackground))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                        .padding(.vertical, 4)
+                    } else {
+                        Button(action: {
+                            showingSignOutAlert = true
+                        }) {
+                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                                .foregroundColor(.red)
+                        }
                     }
                 }
 

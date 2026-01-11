@@ -42,6 +42,43 @@ struct HistoryTab: View {
                         .buttonStyle(.borderedProminent)
                     }
                     .padding()
+                } else if authService.isGuest && conversations.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "person.badge.plus")
+                            .font(.system(size: 50))
+                            .foregroundColor(.blue)
+
+                        Text("Sign in to Save History")
+                            .font(.headline)
+
+                        Text("Your chat history will be saved when you sign in with Google")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+
+                        Button(action: {
+                            authService.signOut()
+                        }) {
+                            HStack {
+                                Text("G")
+                                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                                    .foregroundColor(.blue)
+                                Text("Sign in with Google")
+                                    .fontWeight(.medium)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .background(Color(.systemBackground))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    .padding()
                 } else if conversations.isEmpty {
                     VStack(spacing: 16) {
                         Image(systemName: "clock")
@@ -74,18 +111,24 @@ struct HistoryTab: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Menu {
-                        if let userName = authService.userName {
-                            Text(userName)
-                        }
-                        if let userEmail = authService.userEmail {
+                        Text(authService.isGuest ? "Guest" : (authService.userName ?? "User"))
+                        if !authService.isGuest, let userEmail = authService.userEmail {
                             Text(userEmail)
                                 .font(.caption)
                         }
                         Divider()
-                        Button(role: .destructive, action: {
-                            showingSignOutAlert = true
-                        }) {
-                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                        if authService.isGuest {
+                            Button(action: {
+                                authService.signOut()
+                            }) {
+                                Label("Sign in with Google", systemImage: "person.badge.plus")
+                            }
+                        } else {
+                            Button(role: .destructive, action: {
+                                showingSignOutAlert = true
+                            }) {
+                                Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                            }
                         }
                     } label: {
                         Image(systemName: "person.circle.fill")

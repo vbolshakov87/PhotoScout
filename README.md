@@ -5,16 +5,17 @@ AI-powered photo trip planning assistant with native iOS app and web interface. 
 ## Live Demo
 
 - **Web App**: https://d2mpt2trz11kx7.cloudfront.net
-- **iOS App**: Coming soon to App Store
+- **iOS App**: Available on App Store
 
 ## Features
 
 - 🤖 **AI Trip Planning** - Claude Sonnet 4 generates personalized photography itineraries
 - 🖼️ **AI-Generated Images** - Google Imagen 4.0 creates stunning destination visuals
-- 📱 **Native iOS App** - SwiftUI wrapper with Google Sign-In
+- 📱 **Native iOS App** - SwiftUI wrapper with Google Sign-In and guest mode
 - 🌐 **Responsive Web App** - React PWA accessible from any device
 - 🗺️ **94 Destinations** - 40 cities + 54 nature/landscape locations
-- 💬 **Conversational UI** - Natural language trip planning
+- 💬 **Conversational UI** - Natural language trip planning with guided questions
+- 👤 **Guest Mode** - Try the app without signing in
 - ☁️ **Serverless Backend** - AWS Lambda, DynamoDB, S3, CloudFront
 
 ## Solution Architecture
