@@ -1,4 +1,4 @@
-import { MessageSquare, Map, History } from 'lucide-react';
+import { MessageSquare, Map, History, Settings } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 export function BottomNav() {
@@ -9,6 +9,7 @@ export function BottomNav() {
     { path: '/', icon: MessageSquare, label: 'Chat' },
     { path: '/trips', icon: Map, label: 'Trips' },
     { path: '/history', icon: History, label: 'History' },
+    { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   return (

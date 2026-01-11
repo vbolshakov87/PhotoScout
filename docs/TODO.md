@@ -59,6 +59,63 @@
 
 ## In Progress
 
+### Image Generation - REGENERATING ALL with Epic Photography Prompts
+- [x] Regenerate ALL 94 destination images with new cinematic prompts
+  - **Status**: 70/94 completed (quota limit reached on Jan 11)
+  - **Remaining 24 images**: Cappadocia, Banff, Yosemite, Grand Canyon, Antelope Canyon, Monument Valley, Big Sur, Hawaii, Yellowstone, Patagonia, Torres del Paine, Bali, Ha Long Bay, Zhangjiajie, Maldives, New Zealand, Milford Sound, Mount Fuji, Guilin, Great Barrier Reef, Sahara Desert, Serengeti, Victoria Falls, Namib Desert
+  - **Resume command**: `cd packages/api && npx tsx scripts/generate-missing-images.ts --regenerate-all --start-from=Cappadocia`
+  - **Script**: `packages/api/scripts/generate-missing-images.ts --regenerate-all`
+
+### Login Page Redesign (COMPLETED)
+- [x] Updated iOS login with photo carousel background (using vbolshakov.photo portfolio)
+- [x] Updated web login with matching photo carousel design
+- [x] Added Terms & Privacy links to iOS login screen
+- [x] Added photo credit attribution
+
+### Settings Page (COMPLETED)
+- [x] Added Settings tab to iOS app with About, Terms, Privacy, Sign Out
+- [x] Added Settings page to web app with same functionality
+- [x] User profile display with avatar
+
+### Chat UX Improvements (COMPLETED)
+- [x] Updated prompts to ask questions one-by-one (more conversational)
+- [x] First response: asks duration only
+- [x] Second response: asks photography interests only
+- [x] Feels more natural and less overwhelming
+
+### Trip Plan HTML (COMPLETED - World Class Redesign)
+- [x] Added city hero image to generated HTML trip plans
+- [x] Hero section with gradient overlay and title
+- [x] Falls back gracefully if image not found
+- [x] **Complete world-class redesign** (Jan 11, 2026):
+  - Modern dark theme with CSS variables
+  - Google Fonts: Playfair Display + Inter
+  - 70vh hero with parallax zoom animation
+  - Light schedule with visual sunrise/sunset timeline
+  - Priority badges: "🔥 Must See", "⭐ Recommended", "💡 Optional"
+  - Animated spot cards with staggered fade-in
+  - Custom colored map markers by priority
+  - SVG icon action buttons (Navigate, View Map, See Photos)
+  - Info cards grid for practical info
+  - Pro tips section with checkmarks
+  - PhotoScout branded footer
+  - All 6 existing trip plans regenerated with new design
+- [x] Created CLI tools for rapid iteration:
+  - `scripts/preview-html.ts` - Preview HTML locally without deploy
+  - `scripts/regenerate-html.ts` - Regenerate from DynamoDB JSON
+
+### Guest Mode (COMPLETED)
+- [x] "Try without signing in" option on login page
+- [x] Guest users get temporary ID
+- [x] Limited functionality banner for guests
+- [x] Trips not saved for guests (warning shown)
+
+### Button Styling in Chat (COMPLETED)
+- [x] Better visual affordance for chat buttons
+- [x] "Quick select:" labels above option groups
+- [x] Multi-select for interests with "Send" button
+- [x] Improved shadows and containers
+
 ### iOS App Store Preparation
 - [x] Configure app metadata in Xcode (bundle ID, version, build number)
 - [x] Update Info.plist with App Store requirements
@@ -72,25 +129,18 @@
 - [ ] Archive and upload build to App Store Connect
 - [ ] Submit for App Review
 
-### Image Generation - REGENERATE ALL with New Epic Photography Prompts
-- [ ] Regenerate ALL 94 destination images with new cinematic prompts
-  - **Status**: API quota limit reached (70/day on paid tier 1)
-  - **Quota resets**: Daily at midnight Pacific Time (9:00 AM CET)
-  - **Next reset**: Jan 11, 2026 at 9:00 AM CET
-  - **Plan**:
-    - Day 1 (Jan 11): Generate 70 images (Tokyo → Big Sur)
-    - Day 2 (Jan 12): Generate remaining 24 images (Hawaii → Namib Desert)
-  - **Script**: `packages/api/scripts/generate-missing-images.ts`
-  - **Commands**:
-    ```bash
-    # Day 1: Start regenerating all (will stop at quota)
-    cd packages/api && npx tsx scripts/generate-missing-images.ts --regenerate-all
-
-    # Day 2: Resume from where it stopped
-    cd packages/api && npx tsx scripts/generate-missing-images.ts --regenerate-all --start-from=Hawaii
-    ```
-
 ## Pending
+
+### Remaining Image Generation (Jan 12)
+- [ ] Generate remaining 24 destination images when quota resets
+  - Resume from: Cappadocia
+  - Command: `cd packages/api && npx tsx scripts/generate-missing-images.ts --regenerate-all --start-from=Cappadocia`
+
+### Spot Images in Plans
+- [ ] Plan how to show images of recommended photography spots
+  - Options: Flickr API, Unsplash API, or generate with Imagen
+  - Display in the generated HTML trip plan
+  - Consider bandwidth/loading time for mobile
 
 ### UI Updates
 - [ ] Update webapp accent colors from blue to warm gold/orange to match app icon
@@ -145,8 +195,35 @@ PhotoScout/
 - **Web App**: https://d2mpt2trz11kx7.cloudfront.net
 - **Chat API**: https://ukxa7eu5rks24eoeb445lzzhoi0lsgjj.lambda-url.eu-central-1.on.aws/
 
-## Key Files Modified (Session Jan 10-11, 2026)
+## Key Files Modified (Session Jan 11, 2026)
 
+### Login Page Redesign
+- `ios/PhotoScout/Views/GoogleSignInView.swift` - Photo carousel background with portfolio images
+- `packages/web/src/pages/LoginPage.tsx` - Matching web design with photo carousel
+
+### Settings Pages
+- `ios/PhotoScout/Views/SettingsTab.swift` - New Settings tab with About, Terms, Privacy, Sign Out
+- `packages/web/src/pages/SettingsPage.tsx` - New Settings page for web
+- `ios/PhotoScout/MainTabView.swift` - Added Settings tab to navigation
+- `packages/web/src/components/navigation/BottomNav.tsx` - Added Settings to navigation
+- `packages/web/src/App.tsx` - Added Settings route
+
+### Chat UX
+- `packages/api/src/lib/prompts.ts` - One-by-one question flow (dates first, then interests, then duration)
+
+### Trip Plan HTML - World Class Redesign
+- `packages/api/src/lib/html-template.ts` - Complete modern dark theme redesign
+- `packages/api/scripts/preview-html.ts` - Local HTML preview tool (NEW)
+- `packages/api/scripts/regenerate-html.ts` - Regenerate from DynamoDB (NEW)
+
+### Guest Mode & Auth
+- `packages/web/src/contexts/AuthContext.tsx` - Added guest login, isGuest state
+- `packages/web/src/pages/LoginPage.tsx` - "Try without signing in" button, FedCM disabled for Safari
+
+### Button Styling
+- `packages/web/src/components/chat/MessageBubble.tsx` - Better button affordance, multi-select
+
+### Previous Session (Jan 10-11)
 1. `packages/web/src/pages/TripsPage.tsx` - Auto-generate images for missing cities
 2. `packages/web/vite.config.ts` - Added proxy for `/api/images` and `/city-images`
 3. `packages/api/src/lib/imagen.ts` - City name aliases + epic photography prompts

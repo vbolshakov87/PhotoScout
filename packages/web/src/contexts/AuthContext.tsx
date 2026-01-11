@@ -13,7 +13,9 @@ interface AuthContextType {
   idToken: string | null;
   isLoading: boolean;
   isNativeAuth: boolean;
+  isGuest: boolean;
   login: (credential: string) => void;
+  loginAsGuest: () => void;
   logout: () => void;
 }
 
@@ -69,11 +71,14 @@ function getNativeAuth(): User | null {
   return null;
 }
 
+const GUEST_KEY = 'photoscout_guest';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [idToken, setIdToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isNativeAuth, setIsNativeAuth] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
 
   // Load stored auth on mount
   useEffect(() => {
@@ -87,7 +92,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
       return;
     }
-    
+
+    // Check for guest mode
+    const guestData = localStorage.getItem(GUEST_KEY);
+    if (guestData) {
+      try {
+        const guestUser = JSON.parse(guestData);
+        setUser(guestUser);
+        setIsGuest(true);
+        setIsLoading(false);
+        return;
+      } catch {
+        localStorage.removeItem(GUEST_KEY);
+      }
+    }
+
     // Fall back to web auth (JWT token)
     const storedToken = localStorage.getItem(ID_TOKEN_KEY);
     const storedUser = localStorage.getItem(USER_KEY);
@@ -150,29 +169,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(user);
       setIdToken(credential);
+      setIsGuest(false);
 
       // Store in localStorage
       localStorage.setItem(ID_TOKEN_KEY, credential);
       localStorage.setItem(USER_KEY, JSON.stringify(user));
+      localStorage.removeItem(GUEST_KEY);
     } catch (error) {
       console.error('Error decoding credential:', error);
     }
+  };
+
+  const loginAsGuest = () => {
+    const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const guestUser: User = {
+      userId: guestId,
+      email: '',
+      name: 'Guest',
+      picture: undefined,
+    };
+
+    setUser(guestUser);
+    setIsGuest(true);
+    localStorage.setItem(GUEST_KEY, JSON.stringify(guestUser));
   };
 
   const logout = () => {
     setUser(null);
     setIdToken(null);
     setIsNativeAuth(false);
+    setIsGuest(false);
     localStorage.removeItem(ID_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(NATIVE_AUTH_KEY);
+    localStorage.removeItem(GUEST_KEY);
 
     // Clear conversation ID to start fresh
     localStorage.removeItem('photoscout_conversation_id');
   };
 
   return (
-    <AuthContext.Provider value={{ user, idToken, isLoading, isNativeAuth, login, logout }}>
+    <AuthContext.Provider value={{ user, idToken, isLoading, isNativeAuth, isGuest, login, loginAsGuest, logout }}>
       {children}
     </AuthContext.Provider>
   );

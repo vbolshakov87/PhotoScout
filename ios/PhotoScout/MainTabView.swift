@@ -24,6 +24,11 @@ struct MainTabView: View {
                 .tabItem {
                     Label("History", systemImage: "clock.fill")
                 }
+
+            SettingsTab()
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape.fill")
+                }
         }
         .tint(.blue)
     }

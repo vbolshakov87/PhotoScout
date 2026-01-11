@@ -1,11 +1,28 @@
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Camera } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+// Portfolio photos from vbolshakov.photo
+const portfolioImages = [
+  'https://d2xkwrs8ekvgk2.cloudfront.net/w_1200,h_856,f_webp,q_90,t_r/germany/DSC_4697-Edit.jpg',
+  'https://d2xkwrs8ekvgk2.cloudfront.net/w_1200,h_800,f_webp,q_90,t_r/norway/_DSC5882-Pano-Edit.jpg',
+  'https://d2xkwrs8ekvgk2.cloudfront.net/w_1200,h_800,f_webp,q_90,t_r/japan/DSC_6100.jpg',
+  'https://d2xkwrs8ekvgk2.cloudfront.net/w_1200,h_869,f_webp,q_90,t_r/norway/_DSC6030-Edit.jpg',
+  'https://d2xkwrs8ekvgk2.cloudfront.net/w_1200,h_800,f_webp,q_90,t_r/germany/DSC_4744-Edit.jpg',
+];
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, loginAsGuest } = useAuth();
   const navigate = useNavigate();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % portfolioImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSuccess = (credentialResponse: CredentialResponse) => {
     if (credentialResponse.credential) {
@@ -14,40 +31,91 @@ export function LoginPage() {
     }
   };
 
+  const handleGuestMode = () => {
+    loginAsGuest();
+    navigate('/');
+  };
+
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-sm text-center">
-        {/* Logo */}
-        <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-6">
-          <Camera className="w-8 h-8 text-white" />
+    <div className="min-h-screen relative flex flex-col items-center justify-center p-6 overflow-hidden">
+      {/* Background photo carousel */}
+      {portfolioImages.map((img, index) => (
+        <div
+          key={img}
+          className={`absolute inset-0 transition-opacity duration-1000 ${
+            index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <img
+            src={img}
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        </div>
+      ))}
+
+      {/* Dark gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/60 to-black/85" />
+
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-sm text-center">
+        {/* Logo + Title on one line */}
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <img
+            src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
+            alt="PhotoScout"
+            className="w-12 h-12 rounded-xl shadow-lg"
+          />
+          <h1 className="text-3xl font-semibold text-white">PhotoScout</h1>
         </div>
 
-        <h1 className="text-2xl font-semibold text-foreground mb-2">PhotoScout</h1>
-        <p className="text-muted text-sm mb-8">Plan your perfect photo trip</p>
+        <p className="text-white/80 text-sm mb-8">Plan your perfect photo trip</p>
 
         {/* Login Card */}
-        <div className="bg-card border border-border rounded-xl p-6 mb-6">
-          <p className="text-sm text-muted mb-6">
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 mb-6">
+          <p className="text-sm text-white/70 mb-6">
             Sign in to save your trips and chat history
           </p>
 
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-4">
             <GoogleLogin
               onSuccess={handleSuccess}
               onError={() => console.error('Login failed')}
-              theme="filled_black"
+              theme="outline"
               size="large"
               text="signin_with"
               shape="rectangular"
+              use_fedcm_for_prompt={false}
             />
+
+            <div className="flex items-center gap-3 w-full">
+              <div className="flex-1 h-px bg-white/20" />
+              <span className="text-xs text-white/50">or</span>
+              <div className="flex-1 h-px bg-white/20" />
+            </div>
+
+            <button
+              onClick={handleGuestMode}
+              className="w-full py-3 px-4 rounded-lg border border-white/30 text-white/90 hover:bg-white/10 transition-colors text-sm font-medium"
+            >
+              Try without signing in
+            </button>
+            <p className="text-xs text-white/50">
+              Guest mode: trips won't be saved
+            </p>
           </div>
         </div>
 
-        <p className="text-xs text-muted/70">
+        <p className="text-xs text-white/60">
           By signing in, you agree to our{' '}
-          <Link to="/terms" className="text-primary/80 hover:text-primary underline">Terms</Link>
+          <Link to="/terms" className="text-white/90 hover:text-white underline">Terms</Link>
           {' '}and{' '}
-          <Link to="/privacy" className="text-primary/80 hover:text-primary underline">Privacy Policy</Link>
+          <Link to="/privacy" className="text-white/90 hover:text-white underline">Privacy Policy</Link>
+        </p>
+
+        {/* Photo credit */}
+        <p className="text-xs text-white/40 mt-4">
+          Photos by Vladimir Bolshakov
         </p>
       </div>
     </div>

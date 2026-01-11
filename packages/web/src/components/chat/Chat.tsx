@@ -41,13 +41,13 @@ export function Chat() {
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-            <Camera className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-base font-semibold text-foreground">PhotoScout</h1>
-          </div>
+        <div className="flex items-center gap-2">
+          <img
+            src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
+            alt="PhotoScout"
+            className="w-9 h-9 rounded-lg"
+          />
+          <h1 className="text-base font-semibold text-foreground">PhotoScout</h1>
         </div>
 
         <div className="flex items-center gap-2">
@@ -67,12 +67,20 @@ export function Chat() {
               className="press"
             >
               {user?.picture ? (
-                <img src={user.picture} alt="" className="w-8 h-8 rounded-full" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-card flex items-center justify-center">
-                  <User className="w-4 h-4 text-muted" />
-                </div>
-              )}
+                <img
+                  src={user.picture}
+                  alt=""
+                  className="w-8 h-8 rounded-full"
+                  onError={(e) => {
+                    // Hide broken image and show fallback
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div className={`w-8 h-8 rounded-full bg-card flex items-center justify-center ${user?.picture ? 'hidden' : ''}`}>
+                <User className="w-4 h-4 text-muted" />
+              </div>
             </button>
 
             {showUserMenu && (

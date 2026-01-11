@@ -6,6 +6,7 @@ import { ConversationPage } from './pages/ConversationPage';
 import { TripsPage } from './pages/TripsPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { LoginPage } from './pages/LoginPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { AboutPage } from './pages/AboutPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
@@ -84,6 +85,14 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <HistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
               </ProtectedRoute>
             }
           />

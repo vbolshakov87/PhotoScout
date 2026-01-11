@@ -1,13 +1,14 @@
 import type { Message } from '@photoscout/shared';
 import { HtmlPreview } from '../shared/HtmlPreview';
 import { useNativeBridge } from '../../hooks/useNativeBridge';
-import { Share2, Copy, Check, ArrowRight } from 'lucide-react';
+import { Share2, Copy, Check, ArrowRight, Send } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useState } from 'react';
 
 interface QuickAction {
   label: string;
+  emoji?: string;
   value: string;
 }
 
@@ -20,6 +21,7 @@ interface MessageBubbleProps {
 export function MessageBubble({ message, onSend, isLastMessage }: MessageBubbleProps) {
   const { share, copyToClipboard, haptic } = useNativeBridge();
   const [copied, setCopied] = useState(false);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const isUser = message.role === 'user';
 
   const hasHtmlStart = message.content.includes('<!DOCTYPE html>') || message.content.includes('<html');
@@ -34,6 +36,13 @@ export function MessageBubble({ message, onSend, isLastMessage }: MessageBubbleP
 
   // Detect question patterns for quick action buttons
   const contentLower = message.content.toLowerCase();
+
+  const isDatesQuestion = !isUser && isLastMessage && (
+    contentLower.includes('when are you planning') ||
+    contentLower.includes('what dates') ||
+    contentLower.includes('when do you plan')
+  );
+
   const isDurationQuestion = !isUser && isLastMessage && (
     contentLower.includes('how many days') ||
     contentLower.includes('duration')
@@ -44,7 +53,8 @@ export function MessageBubble({ message, onSend, isLastMessage }: MessageBubbleP
     contentLower.includes('what are you most interested') ||
     contentLower.includes('what type of photography') ||
     contentLower.includes('main interests') ||
-    contentLower.includes('top photography')
+    contentLower.includes('top photography') ||
+    contentLower.includes('pick any that apply')
   );
 
   // Quick action options
@@ -52,19 +62,37 @@ export function MessageBubble({ message, onSend, isLastMessage }: MessageBubbleP
     { label: '2 days', value: '2 days' },
     { label: '3 days', value: '3 days' },
     { label: '5 days', value: '5 days' },
-    { label: '1 week', value: '7 days' },
+    { label: '1 week', value: '1 week' },
   ];
 
   const interestOptions: QuickAction[] = [
-    { label: 'Architecture', value: 'Architecture and urban landscapes' },
-    { label: 'Street', value: 'Street photography' },
-    { label: 'Landscapes', value: 'Landscapes and nature' },
-    { label: 'Golden hour', value: 'Golden hour shots' },
+    { label: 'Architecture', emoji: '🏛️', value: 'Architecture & cityscapes' },
+    { label: 'Golden hour', emoji: '🌅', value: 'Golden hour & landscapes' },
+    { label: 'Street', emoji: '🚶', value: 'Street photography' },
+    { label: 'Night', emoji: '🌃', value: 'Night photography' },
+    { label: 'Food & culture', emoji: '🍽️', value: 'Food & culture' },
   ];
 
   const handleQuickAction = (value: string) => {
     haptic('light');
     onSend?.(value);
+  };
+
+  const toggleInterest = (value: string) => {
+    haptic('light');
+    setSelectedInterests(prev =>
+      prev.includes(value)
+        ? prev.filter(v => v !== value)
+        : [...prev, value]
+    );
+  };
+
+  const sendSelectedInterests = () => {
+    if (selectedInterests.length > 0) {
+      haptic('medium');
+      onSend?.(selectedInterests.join(', '));
+      setSelectedInterests([]);
+    }
   };
 
   const isMarkdown = !isUser && !isCompleteHtml && (
@@ -140,33 +168,74 @@ export function MessageBubble({ message, onSend, isLastMessage }: MessageBubbleP
         )}
       </div>
 
-      {/* Quick action buttons for duration question */}
-      {isDurationQuestion && onSend && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {durationOptions.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => handleQuickAction(option.value)}
-              className="px-4 py-2 bg-card border border-border rounded-xl text-sm text-foreground hover:bg-surface transition-colors press"
-            >
-              {option.label}
-            </button>
-          ))}
+      {/* Quick action buttons for dates question */}
+      {isDatesQuestion && onSend && (
+        <div className="mt-3 p-3 bg-surface/50 rounded-xl border border-border/50">
+          <p className="text-xs text-muted mb-2 font-medium">Quick select:</p>
+          <div className="flex flex-wrap gap-2">
+            {['This weekend', 'Next week', 'In 2 weeks', 'Next month'].map((option) => (
+              <button
+                key={option}
+                onClick={() => handleQuickAction(option)}
+                className="px-4 py-2.5 bg-card hover:bg-primary hover:text-white border-2 border-border hover:border-primary rounded-xl text-sm font-medium text-foreground transition-all shadow-sm active:scale-95"
+              >
+                {option}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Quick action buttons for interests question */}
+      {/* Quick action buttons for duration question */}
+      {isDurationQuestion && onSend && (
+        <div className="mt-3 p-3 bg-surface/50 rounded-xl border border-border/50">
+          <p className="text-xs text-muted mb-2 font-medium">Quick select:</p>
+          <div className="flex flex-wrap gap-2">
+            {durationOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => handleQuickAction(option.value)}
+                className="px-4 py-2.5 bg-card hover:bg-primary hover:text-white border-2 border-border hover:border-primary rounded-xl text-sm font-medium text-foreground transition-all shadow-sm active:scale-95"
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Multi-select buttons for interests question */}
       {isInterestsQuestion && onSend && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {interestOptions.map((option) => (
+        <div className="mt-3 p-3 bg-surface/50 rounded-xl border border-border/50">
+          <p className="text-xs text-muted mb-2 font-medium">Select all that apply:</p>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {interestOptions.map((option) => {
+              const isSelected = selectedInterests.includes(option.value);
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => toggleInterest(option.value)}
+                  className={`px-4 py-2.5 border-2 rounded-xl text-sm font-medium transition-all shadow-sm active:scale-95 ${
+                    isSelected
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-card text-foreground border-border hover:border-primary/50'
+                  }`}
+                >
+                  {option.emoji && <span className="mr-1.5">{option.emoji}</span>}
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+          {selectedInterests.length > 0 && (
             <button
-              key={option.value}
-              onClick={() => handleQuickAction(option.value)}
-              className="px-4 py-2 bg-card border border-border rounded-xl text-sm text-foreground hover:bg-surface transition-colors press"
+              onClick={sendSelectedInterests}
+              className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
             >
-              {option.label}
+              <Send className="w-4 h-4" />
+              Send ({selectedInterests.length} selected)
             </button>
-          ))}
+          )}
         </div>
       )}
 
@@ -174,7 +243,7 @@ export function MessageBubble({ message, onSend, isLastMessage }: MessageBubbleP
       {isPlanReadyMessage && onSend && (
         <button
           onClick={handleQuickReply}
-          className="mt-3 flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl press hover:bg-primary/90 transition-colors"
+          className="mt-3 flex items-center gap-2 px-5 py-3 bg-primary text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95"
         >
           Yes, let's go!
           <ArrowRight className="w-4 h-4" />
