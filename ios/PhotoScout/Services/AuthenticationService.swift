@@ -14,6 +14,7 @@ class AuthenticationService: ObservableObject {
     static let shared = AuthenticationService()
 
     @Published var isAuthenticated = false
+    @Published var isGuest = false
     @Published var userEmail: String?
     @Published var userId: String?
     @Published var userName: String?
@@ -30,6 +31,13 @@ class AuthenticationService: ObservableObject {
             self.userName = UserDefaults.standard.string(forKey: "userName")
             self.userPhotoURL = UserDefaults.standard.string(forKey: "userPhotoURL")
             self.isAuthenticated = true
+            self.isGuest = false
+        } else if UserDefaults.standard.bool(forKey: "isGuest") {
+            // Check for guest mode
+            self.userId = UserDefaults.standard.string(forKey: "guestId")
+            self.userName = "Guest"
+            self.isAuthenticated = true
+            self.isGuest = true
         }
     }
 
@@ -75,8 +83,24 @@ class AuthenticationService: ObservableObject {
         }
     }
 
+    func signInAsGuest() {
+        let guestId = "guest_\(Int(Date().timeIntervalSince1970))_\(UUID().uuidString.prefix(8))"
+
+        self.userId = guestId
+        self.userName = "Guest"
+        self.userEmail = nil
+        self.userPhotoURL = nil
+        self.isAuthenticated = true
+        self.isGuest = true
+
+        // Persist guest mode
+        UserDefaults.standard.set(true, forKey: "isGuest")
+        UserDefaults.standard.set(guestId, forKey: "guestId")
+    }
+
     func signOut() {
         self.isAuthenticated = false
+        self.isGuest = false
         self.userId = nil
         self.userEmail = nil
         self.userName = nil
@@ -87,6 +111,8 @@ class AuthenticationService: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "userEmail")
         UserDefaults.standard.removeObject(forKey: "userName")
         UserDefaults.standard.removeObject(forKey: "userPhotoURL")
+        UserDefaults.standard.removeObject(forKey: "isGuest")
+        UserDefaults.standard.removeObject(forKey: "guestId")
     }
 
     private func decodeJWT(idToken: String) throws -> [String: Any] {

@@ -61,54 +61,59 @@ struct GoogleSignInView: View {
                 }
             }
 
-            // Dark gradient overlay
+            // Dark gradient overlay - transparent in middle to show photos
             LinearGradient(
                 colors: [
-                    Color.black.opacity(0.3),
-                    Color.black.opacity(0.6),
-                    Color.black.opacity(0.85)
+                    Color.black.opacity(0.4),
+                    Color.black.opacity(0.1),
+                    Color.black.opacity(0.9)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
             .ignoresSafeArea()
 
-            // Content
-            VStack(spacing: 32) {
-                Spacer()
-
-                // App icon/logo area
-                VStack(spacing: 16) {
-                    // Logo container
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.blue)
-                        .frame(width: 64, height: 64)
-                        .overlay(
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 32))
-                                .foregroundColor(.white)
-                        )
+            // Content - Logo at top, form at bottom
+            VStack(spacing: 0) {
+                // Top section - Logo & Tagline
+                VStack(spacing: 12) {
+                    HStack(spacing: 12) {
+                        // App icon
+                        AsyncImage(url: URL(string: "https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png")) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.blue)
+                                .overlay(
+                                    Image(systemName: "camera.fill")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.white)
+                                )
+                        }
+                        .frame(width: 48, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                         .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
 
-                    Text("PhotoScout")
-                        .font(.system(size: 28, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white)
+                        Text("PhotoScout")
+                            .font(.system(size: 28, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
+                    }
 
                     Text("Plan your perfect photo trip")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.8))
                 }
+                .padding(.top, 60)
 
+                // Middle spacer - shows the photos
                 Spacer()
 
-                // Sign in card
-                VStack(spacing: 20) {
-                    VStack(spacing: 16) {
-                        Text("Sign in to save your trips and chat history")
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.7))
-                            .multilineTextAlignment(.center)
-
+                // Bottom section - Sign in form
+                VStack(spacing: 16) {
+                    // Sign in card
+                    VStack(spacing: 12) {
                         Button(action: {
                             startGoogleSignIn()
                         }) {
@@ -134,45 +139,70 @@ struct GoogleSignInView: View {
                             )
                         }
                         .disabled(isAuthenticating)
+
+                        // Divider
+                        HStack {
+                            Rectangle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(height: 1)
+                            Text("or")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.5))
+                            Rectangle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(height: 1)
+                        }
+
+                        // Continue as guest button
+                        Button(action: {
+                            authService.signInAsGuest()
+                        }) {
+                            Text("Continue as guest")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(.white.opacity(0.9))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                )
+                        }
                     }
-                    .padding(20)
+                    .padding(16)
                     .background(
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.white.opacity(0.15))
+                            .fill(Color.white.opacity(0.1))
                             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
                     )
-                }
-                .padding(.horizontal, 32)
 
-                Spacer()
-
-                // Terms and Privacy links
-                VStack(spacing: 4) {
-                    Text("By signing in, you agree to our")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.6))
-
-                    HStack(spacing: 4) {
-                        Link("Terms", destination: URL(string: "https://d2mpt2trz11kx7.cloudfront.net/terms")!)
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.9))
-
-                        Text("and")
+                    // Terms and Privacy links
+                    VStack(spacing: 4) {
+                        Text("By signing in, you agree to our")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.6))
 
-                        Link("Privacy Policy", destination: URL(string: "https://d2mpt2trz11kx7.cloudfront.net/privacy")!)
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.9))
+                        HStack(spacing: 4) {
+                            Link("Terms", destination: URL(string: "https://d2mpt2trz11kx7.cloudfront.net/terms")!)
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.9))
+
+                            Text("and")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.6))
+
+                            Link("Privacy Policy", destination: URL(string: "https://d2mpt2trz11kx7.cloudfront.net/privacy")!)
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.9))
+                        }
                     }
 
                     // Photo credit
                     Text("Photos by Vladimir Bolshakov")
                         .font(.caption2)
                         .foregroundColor(.white.opacity(0.4))
-                        .padding(.top, 8)
                 }
-                .padding(.bottom, 32)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 40)
             }
         }
         .alert("Authentication Error", isPresented: $showingError) {
