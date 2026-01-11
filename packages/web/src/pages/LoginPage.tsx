@@ -37,7 +37,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center justify-center p-6 overflow-hidden">
+    <div className="min-h-screen relative flex flex-col items-center justify-between py-12 px-6 overflow-hidden">
       {/* Background photo carousel */}
       {portfolioImages.map((img, index) => (
         <div
@@ -55,11 +55,10 @@ export function LoginPage() {
       ))}
 
       {/* Dark gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/60 to-black/85" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90" />
 
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-sm text-center">
-        {/* Logo + Title on one line */}
+      {/* Top - Logo & Tagline */}
+      <div className="relative z-10 text-center pt-4">
         <div className="flex items-center justify-center gap-3 mb-2">
           <img
             src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
@@ -68,16 +67,17 @@ export function LoginPage() {
           />
           <h1 className="text-3xl font-semibold text-white">PhotoScout</h1>
         </div>
+        <p className="text-white/80 text-sm">Plan your perfect photo trip</p>
+      </div>
 
-        <p className="text-white/80 text-sm mb-8">Plan your perfect photo trip</p>
+      {/* Middle spacer */}
+      <div className="flex-1" />
 
-        {/* Login Card */}
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 mb-6">
-          <p className="text-sm text-white/70 mb-6">
-            Sign in to save your trips and chat history
-          </p>
-
-          <div className="flex flex-col items-center gap-4">
+      {/* Bottom - Login Form */}
+      <div className="relative z-10 w-full max-w-sm text-center">
+        {/* Login Card - Compact */}
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 mb-4">
+          <div className="flex flex-col items-center gap-3">
             <GoogleLogin
               onSuccess={handleSuccess}
               onError={() => console.error('Login failed')}
@@ -96,13 +96,10 @@ export function LoginPage() {
 
             <button
               onClick={handleGuestMode}
-              className="w-full py-3 px-4 rounded-lg border border-white/30 text-white/90 hover:bg-white/10 transition-colors text-sm font-medium"
+              className="w-full py-2.5 px-4 rounded-lg border border-white/30 text-white/90 hover:bg-white/10 transition-colors text-sm font-medium"
             >
-              Try without signing in
+              Continue as guest
             </button>
-            <p className="text-xs text-white/50">
-              Guest mode: trips won't be saved
-            </p>
           </div>
         </div>
 

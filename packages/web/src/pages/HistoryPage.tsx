@@ -1,12 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, History, MessageSquare, Loader2, X } from 'lucide-react';
+import { Search, History, MessageSquare, Loader2, X, LogIn } from 'lucide-react';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import type { Conversation } from '@photoscout/shared';
 import { ConversationCard } from '../components/history/ConversationCard';
 import { getUserId, setConversationId } from '../lib/storage';
+import { useAuth } from '../contexts/AuthContext';
 
 export function HistoryPage() {
   const navigate = useNavigate();
+  const { isGuest, login } = useAuth();
+
+  const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
+    if (credentialResponse.credential) {
+      login(credentialResponse.credential);
+    }
+  };
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -102,7 +111,22 @@ export function HistoryPage() {
           </div>
         )}
 
-        {isLoading ? (
+        {isGuest ? (
+          <div className="flex flex-col items-center justify-center h-48 text-center">
+            <LogIn className="w-12 h-12 text-muted/50 mb-4" />
+            <p className="text-foreground text-sm font-medium">Sign in to see your history</p>
+            <p className="text-muted/70 text-xs mt-1 mb-4">Your conversations will be saved when you sign in</p>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => console.error('Login failed')}
+              theme="outline"
+              size="large"
+              text="signin_with"
+              shape="rectangular"
+              use_fedcm_for_prompt={false}
+            />
+          </div>
+        ) : isLoading ? (
           <div className="flex items-center justify-center h-48">
             <Loader2 className="w-6 h-6 text-muted animate-spin" />
           </div>

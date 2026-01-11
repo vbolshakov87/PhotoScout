@@ -1,5 +1,13 @@
-import { Camera, ArrowLeft, ExternalLink, Mail, Shield, FileText } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Mail, Shield, FileText, Camera } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+
+// Portfolio photos from vbolshakov.photo
+const portfolioImages = [
+  'https://d2xkwrs8ekvgk2.cloudfront.net/w_600,h_400,f_webp,q_90,t_r/germany/DSC_4697-Edit.jpg',
+  'https://d2xkwrs8ekvgk2.cloudfront.net/w_600,h_400,f_webp,q_90,t_r/norway/_DSC5882-Pano-Edit.jpg',
+  'https://d2xkwrs8ekvgk2.cloudfront.net/w_600,h_400,f_webp,q_90,t_r/japan/DSC_6100.jpg',
+  'https://d2xkwrs8ekvgk2.cloudfront.net/w_600,h_400,f_webp,q_90,t_r/norway/_DSC6030-Edit.jpg',
+];
 
 export function AboutPage() {
   const navigate = useNavigate();
@@ -11,15 +19,22 @@ export function AboutPage() {
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 press">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
+        <img
+          src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
+          alt="PhotoScout"
+          className="w-8 h-8 rounded-lg"
+        />
         <h1 className="text-lg font-semibold text-foreground">About</h1>
       </header>
 
       <div className="p-4 space-y-6">
         {/* App Info */}
-        <div className="flex flex-col items-center py-6">
-          <div className="w-20 h-20 rounded-2xl bg-primary flex items-center justify-center mb-4">
-            <Camera className="w-10 h-10 text-white" />
-          </div>
+        <div className="flex flex-col items-center py-4">
+          <img
+            src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
+            alt="PhotoScout"
+            className="w-20 h-20 rounded-2xl shadow-lg mb-4"
+          />
           <h2 className="text-xl font-bold text-foreground">PhotoScout</h2>
           <p className="text-muted text-sm">Version 1.0.0</p>
         </div>
@@ -30,6 +45,24 @@ export function AboutPage() {
             PhotoScout is your AI-powered photography trip planner. Tell us where you want to go,
             and we'll create a personalized itinerary with the best photography spots, optimal
             times for lighting, and interactive maps to guide your journey.
+          </p>
+        </div>
+
+        {/* Photo Gallery */}
+        <div>
+          <h3 className="text-sm font-medium text-muted mb-3">Sample Photography</h3>
+          <div className="grid grid-cols-2 gap-2 rounded-xl overflow-hidden">
+            {portfolioImages.map((img, index) => (
+              <img
+                key={index}
+                src={img}
+                alt={`Sample photo ${index + 1}`}
+                className="w-full h-24 object-cover"
+              />
+            ))}
+          </div>
+          <p className="text-xs text-muted/60 text-center mt-2">
+            Photos by Vladimir Bolshakov
           </p>
         </div>
 
@@ -69,13 +102,33 @@ export function AboutPage() {
           </a>
         </div>
 
+        {/* Creator */}
+        <div className="bg-card border border-border rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <Camera className="w-8 h-8 text-primary" />
+            <div className="flex-1">
+              <p className="text-foreground font-medium text-sm">Created by Vladimir Bolshakov</p>
+              <p className="text-muted text-xs">Landscape & Travel Photographer</p>
+            </div>
+          </div>
+          <a
+            href="https://vbolshakov.photo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex items-center justify-center gap-2 py-2 px-4 bg-primary/10 text-primary rounded-lg text-sm font-medium"
+          >
+            View Portfolio
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        </div>
+
         {/* Credits */}
         <div className="text-center py-4">
           <p className="text-muted text-xs">
             Made with ❤️ for photographers
           </p>
           <p className="text-muted text-xs mt-1">
-            © 2024 PhotoScout. All rights reserved.
+            © 2026 PhotoScout. All rights reserved.
           </p>
         </div>
       </div>

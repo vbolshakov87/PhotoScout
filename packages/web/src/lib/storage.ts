@@ -37,6 +37,17 @@ export function getUserId(): string {
     }
   }
 
+  // Check for guest user
+  const guestUser = localStorage.getItem('photoscout_guest');
+  if (guestUser) {
+    try {
+      const user = JSON.parse(guestUser);
+      return user.userId;
+    } catch (error) {
+      console.error('Error parsing guest user:', error);
+    }
+  }
+
   throw new Error('User not authenticated');
 }
 

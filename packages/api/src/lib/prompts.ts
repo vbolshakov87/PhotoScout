@@ -105,7 +105,8 @@ Example structure:
       "distanceFromPrevious": "0 km (starting point)",
       "parkingInfo": "Free parking at...",
       "crowdLevel": "Low in early morning",
-      "accessibility": "Easy access, flat terrain"
+      "accessibility": "Easy access, flat terrain",
+      "day": 1
     }
   ],
   "route": [
@@ -130,6 +131,8 @@ Example structure:
 - Tags should include time (Morning/Golden Hour/Blue Hour/Night) and style (Reflections/Leading Lines/etc)
 - Route array shows polyline path on map
 - Keep descriptions concise but informative (2-4 sentences per spot)
+- **IMPORTANT:** Each spot MUST have a "day" field (1, 2, 3, etc.) indicating which day of the trip it belongs to
+- bestTime values: "Sunrise", "Golden Hour", "Morning", "Midday", "Afternoon", "Sunset", "Blue Hour", "Night"
 
 ## Photography Expertise
 
@@ -284,7 +287,8 @@ Does this plan look good? I can adjust locations or change the order. Just say '
       "distanceFromPrevious": "0 km (starting point)",
       "parkingInfo": "Free parking, 800m walk",
       "crowdLevel": "Moderate",
-      "accessibility": "Steep sandy path"
+      "accessibility": "Steep sandy path",
+      "day": 1
     },
     {
       "number": 2,
@@ -298,7 +302,8 @@ Does this plan look good? I can adjust locations or change the order. Just say '
       "distanceFromPrevious": "60 km",
       "parkingInfo": "Main parking area",
       "crowdLevel": "Low in early morning",
-      "accessibility": "Easy walk"
+      "accessibility": "Easy walk",
+      "day": 2
     }
   ],
   "route": [

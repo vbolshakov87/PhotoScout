@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useChat } from '../../hooks/useChat';
 import { useNativeBridge } from '../../hooks/useNativeBridge';
 import { useAuth } from '../../contexts/AuthContext';
@@ -6,14 +7,23 @@ import { MessageList } from './MessageList';
 import { ChatInput } from './ChatInput';
 import { TabbedView } from './TabbedView';
 import { PreviewTab } from './PreviewTab';
-import { Camera, LogOut, User, Plus, Loader2 } from 'lucide-react';
+import { Camera, LogOut, User, Plus, Loader2, LogIn } from 'lucide-react';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
 const CITIES = ['Tokyo', 'Paris', 'New York', 'Lisbon', 'Bergen', 'Copenhagen', 'Rome', 'Amsterdam'];
 
 export function Chat() {
+  const navigate = useNavigate();
   const { messages, isLoading, error, generationProgress, sendMessage, clearChat } = useChat();
-  const { user, logout } = useAuth();
+  const { user, logout, isGuest, login } = useAuth();
   const { haptic } = useNativeBridge();
+
+  const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
+    if (credentialResponse.credential) {
+      login(credentialResponse.credential);
+      setShowUserMenu(false);
+    }
+  };
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [displayedCities] = useState(() =>
@@ -41,7 +51,10 @@ export function Chat() {
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
-        <div className="flex items-center gap-2">
+        <div
+          className={`flex items-center gap-2 ${isGuest ? 'cursor-pointer' : ''}`}
+          onClick={() => isGuest && navigate('/login')}
+        >
           <img
             src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
             alt="PhotoScout"
@@ -66,7 +79,7 @@ export function Chat() {
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="press"
             >
-              {user?.picture ? (
+              {user?.picture && !isGuest ? (
                 <img
                   src={user.picture}
                   alt=""
@@ -78,7 +91,7 @@ export function Chat() {
                   }}
                 />
               ) : null}
-              <div className={`w-8 h-8 rounded-full bg-card flex items-center justify-center ${user?.picture ? 'hidden' : ''}`}>
+              <div className={`w-8 h-8 rounded-full bg-card flex items-center justify-center ${user?.picture && !isGuest ? 'hidden' : ''}`}>
                 <User className="w-4 h-4 text-muted" />
               </div>
             </button>
@@ -88,16 +101,33 @@ export function Chat() {
                 <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
                 <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-xl overflow-hidden z-50">
                   <div className="px-4 py-3 border-b border-border">
-                    <p className="font-medium text-foreground truncate text-sm">{user?.name}</p>
-                    <p className="text-xs text-muted truncate">{user?.email}</p>
+                    <p className="font-medium text-foreground truncate text-sm">{isGuest ? 'Guest' : user?.name}</p>
+                    <p className="text-xs text-muted truncate">{isGuest ? 'Not signed in' : user?.email}</p>
                   </div>
-                  <button
-                    onClick={() => { haptic('light'); logout(); }}
-                    className="w-full px-4 py-3 text-left flex items-center gap-2 text-danger text-sm hover:bg-white/5 press"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Sign Out
-                  </button>
+                  {isGuest ? (
+                    <div className="p-3">
+                      <p className="text-xs text-muted mb-2 flex items-center gap-1">
+                        <LogIn className="w-3 h-3" /> Sign in to save trips
+                      </p>
+                      <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => console.error('Login failed')}
+                        theme="outline"
+                        size="medium"
+                        text="signin_with"
+                        shape="rectangular"
+                        use_fedcm_for_prompt={false}
+                      />
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => { haptic('light'); logout(); }}
+                      className="w-full px-4 py-3 text-left flex items-center gap-2 text-danger text-sm hover:bg-white/5 press"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </button>
+                  )}
                 </div>
               </>
             )}

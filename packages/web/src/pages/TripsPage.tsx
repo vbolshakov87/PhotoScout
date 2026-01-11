@@ -1,20 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Map, Loader2 } from 'lucide-react';
+import { Map, Loader2, LogIn } from 'lucide-react';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import type { Plan } from '@photoscout/shared';
 import { TripCard } from '../components/trips/TripCard';
 import { TripDetail } from '../components/trips/TripDetail';
 import { getUserId } from '../lib/storage';
+import { useAuth } from '../contexts/AuthContext';
 
 export function TripsPage() {
   const { planId } = useParams<{ planId?: string }>();
   const navigate = useNavigate();
+  const { isGuest, login } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [htmlContent, setHtmlContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cityImages, setCityImages] = useState<Record<string, string | null>>({});
+
+  const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
+    if (credentialResponse.credential) {
+      login(credentialResponse.credential);
+    }
+  };
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -142,7 +151,22 @@ export function TripsPage() {
           </div>
         )}
 
-        {isLoading ? (
+        {isGuest ? (
+          <div className="flex flex-col items-center justify-center h-48 text-center">
+            <LogIn className="w-12 h-12 text-muted/50 mb-4" />
+            <p className="text-foreground text-sm font-medium">Sign in to see your trips</p>
+            <p className="text-muted/70 text-xs mt-1 mb-4">Your trips will be saved when you sign in</p>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => console.error('Login failed')}
+              theme="outline"
+              size="large"
+              text="signin_with"
+              shape="rectangular"
+              use_fedcm_for_prompt={false}
+            />
+          </div>
+        ) : isLoading ? (
           <div className="flex items-center justify-center h-48">
             <Loader2 className="w-6 h-6 text-muted animate-spin" />
           </div>

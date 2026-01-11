@@ -91,46 +91,14 @@ function getSuggestedTime(bestTime: string, sunrise: string, sunset: string): st
   return sunrise;
 }
 
-function getFlickrSearchUrl(spotName: string, city: string): string {
+function getPhotoLinks(spotName: string, city: string) {
   const query = encodeURIComponent(`${spotName} ${city} photography`);
-  return `https://www.flickr.com/search/?text=${query}&sort=interestingness-desc`;
-}
-
-function getGoogleImagesUrl(spotName: string, city: string): string {
-  const query = encodeURIComponent(`${spotName} ${city} photography`);
-  return `https://www.google.com/search?tbm=isch&q=${query}`;
-}
-
-function getInstagramUrl(spotName: string): string {
-  // Create hashtag from spot name: "Senso-ji Temple" -> "sensojitemple"
   const hashtag = spotName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  return `https://www.instagram.com/explore/tags/${hashtag}/`;
-}
-
-function getGearSuggestions(tags: string[]): string[] {
-  const gear: string[] = [];
-  const tagStr = tags.join(' ').toLowerCase();
-
-  if (tagStr.includes('wide') || tagStr.includes('architecture') || tagStr.includes('landscape')) {
-    gear.push('Wide angle lens (16-35mm)');
-  }
-  if (tagStr.includes('portrait') || tagStr.includes('street')) {
-    gear.push('Portrait lens (50-85mm)');
-  }
-  if (tagStr.includes('night') || tagStr.includes('long exposure') || tagStr.includes('blue hour')) {
-    gear.push('Tripod');
-  }
-  if (tagStr.includes('night') || tagStr.includes('low light')) {
-    gear.push('Fast lens (f/1.4-2.8)');
-  }
-  if (tagStr.includes('wildlife') || tagStr.includes('birds')) {
-    gear.push('Telephoto lens (100-400mm)');
-  }
-  if (tagStr.includes('long exposure') || tagStr.includes('waterfall')) {
-    gear.push('ND filters');
-  }
-
-  return gear.length > 0 ? gear : ['Standard zoom lens'];
+  return {
+    flickr: `https://www.flickr.com/search/?text=${query}&sort=interestingness-desc`,
+    google: `https://www.google.com/search?tbm=isch&q=${query}`,
+    instagram: `https://www.instagram.com/explore/tags/${hashtag}/`
+  };
 }
 
 function groupSpotsByDay(spots: TripPlan['spots']): Map<number, TripPlan['spots']> {
@@ -144,1294 +112,1464 @@ function groupSpotsByDay(spots: TripPlan['spots']): Map<number, TripPlan['spots'
 }
 
 export function generateHTML(plan: TripPlan): string {
-  const priorityLabel = (priority: number) => {
-    switch (priority) {
-      case 3: return { text: 'Must See', class: 'priority-high', icon: '🔥' };
-      case 2: return { text: 'Recommended', class: 'priority-medium', icon: '⭐' };
-      default: return { text: 'Optional', class: 'priority-low', icon: '💡' };
-    }
-  };
-
   const lightHours = calculateLightHours(plan.sunriseSunset.sunrise, plan.sunriseSunset.sunset);
   const spotsByDay = groupSpotsByDay(plan.spots);
   const days = Array.from(spotsByDay.keys()).sort((a, b) => a - b);
   const hasMultipleDays = days.length > 1;
 
-  // Collect all unique gear
-  const allGear = new Set<string>();
-  plan.spots.forEach(spot => {
-    getGearSuggestions(spot.tags).forEach(g => allGear.add(g));
-  });
+  const priorityBadge = (p: number) => {
+    if (p === 3) return { icon: '🔥', text: 'MUST SEE', vertical: 'MUST SEE', class: 'priority-must' };
+    if (p === 2) return { icon: '⭐', text: 'RECOMMENDED', vertical: 'RECOMMENDED', class: 'priority-rec' };
+    return { icon: '', text: '', vertical: '', class: 'priority-opt' };
+  };
+
+  // Calculate arrival and leaving times (30-45 min per spot depending on priority)
+  const getScheduleTimes = (arrivalTime: string, priority: number) => {
+    const toMinutes = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const toTime = (mins: number) => {
+      const h = Math.floor(mins / 60) % 24;
+      const m = mins % 60;
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    };
+    const duration = priority === 3 ? 45 : priority === 2 ? 35 : 25;
+    const arrivalMins = toMinutes(arrivalTime);
+    return {
+      arrival: arrivalTime,
+      leaving: toTime(arrivalMins + duration),
+      duration
+    };
+  };
+
+  const generateSpotCard = (spot: TripPlan['spots'][0], index: number, totalSpots: number) => {
+    const suggestedTime = getSuggestedTime(spot.bestTime, plan.sunriseSunset.sunrise, plan.sunriseSunset.sunset);
+    const photos = getPhotoLinks(spot.name, plan.city);
+    const badge = priorityBadge(spot.priority);
+    const schedule = getScheduleTimes(suggestedTime, spot.priority);
+    const showSchedule = totalSpots > 1;
+
+    return `
+    <article class="spot ${badge.class}" id="spot-${spot.number}" data-num="${spot.number}" style="--delay: ${index * 0.05}s">
+      <div class="spot-side">
+        <div class="spot-number">${spot.number}</div>
+        ${badge.vertical ? `<div class="spot-priority-vertical">${badge.vertical}</div>` : ''}
+      </div>
+      <div class="spot-body">
+        <header class="spot-head">
+          <div class="spot-info">
+            <h3>${spot.name}</h3>
+            ${showSchedule ? `
+            <div class="spot-schedule">
+              <span class="schedule-time">🕐 ${schedule.arrival}</span>
+              <span class="schedule-arrow">→</span>
+              <span class="schedule-time">${schedule.leaving}</span>
+              <span class="schedule-duration">(${schedule.duration} min)</span>
+            </div>
+            ` : `<div class="spot-meta"><span class="spot-time">⏰ ${suggestedTime}</span></div>`}
+          </div>
+          <label class="check-btn">
+            <input type="checkbox" data-spot="${spot.number}">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          </label>
+        </header>
+
+        <p class="spot-desc">${spot.description}</p>
+
+        <div class="spot-details">
+          <div class="detail"><span class="detail-icon">📸</span><span>${spot.bestTime}</span></div>
+          <div class="detail"><span class="detail-icon">📍</span><span>${spot.distanceFromPrevious}</span></div>
+          <div class="detail"><span class="detail-icon">👥</span><span>${spot.crowdLevel}</span></div>
+          <div class="detail"><span class="detail-icon">🅿️</span><span>${spot.parkingInfo}</span></div>
+        </div>
+
+        <div class="spot-tags">
+          ${spot.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+        </div>
+
+        <div class="spot-actions">
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}" target="_blank" class="action-btn primary">
+            Navigate
+          </a>
+          <a href="${photos.flickr}" target="_blank" class="action-btn">Flickr</a>
+          <a href="${photos.google}" target="_blank" class="action-btn">Google</a>
+          <a href="${photos.instagram}" target="_blank" class="action-btn">IG</a>
+        </div>
+      </div>
+    </article>`;
+  };
 
   const dayTabsHTML = hasMultipleDays ? `
-    <div class="day-tabs">
+    <nav class="day-nav">
       ${days.map((day, idx) => `
-        <button class="day-tab ${idx === 0 ? 'active' : ''}" data-day="${day}">
+        <button class="day-btn ${idx === 0 ? 'active' : ''}" data-day="${day}">
           Day ${day}
-          <span class="day-tab-count">${spotsByDay.get(day)!.length} spots</span>
         </button>
       `).join('')}
-    </div>
+    </nav>
   ` : '';
 
-  const generateDayTimeline = (daySpots: TripPlan['spots'], day: number) => {
-    const timelineItems = daySpots.map((spot) => {
-      const suggestedTime = getSuggestedTime(spot.bestTime, plan.sunriseSunset.sunrise, plan.sunriseSunset.sunset);
-      const priority = priorityLabel(spot.priority);
-      return `
-      <div class="timeline-item" data-spot="${spot.number}" data-time="${suggestedTime}">
-        <div class="timeline-time">${suggestedTime}</div>
-        <div class="timeline-dot ${spot.priority === 3 ? 'high' : spot.priority === 2 ? 'medium' : 'low'}"></div>
-        <div class="timeline-content">
-          <div class="timeline-name">${priority.icon} ${spot.name}</div>
-          <div class="timeline-meta">${spot.bestTime}</div>
+  const lightScheduleHTML = `
+    <div class="light-schedule">
+      <div class="light-header">
+        <span>🌅 ${plan.sunriseSunset.sunrise}</span>
+        <span>🌇 ${plan.sunriseSunset.sunset}</span>
+      </div>
+      <div class="light-grid">
+        <div class="light-item blue">
+          <div class="label">Blue AM</div>
+          <div class="time">${lightHours.blueHourMorningStart}-${lightHours.blueHourMorningEnd}</div>
         </div>
-        <label class="timeline-check">
-          <input type="checkbox" data-spot-check="${spot.number}">
-          <span class="checkmark">✓</span>
-        </label>
-      </div>`;
-    }).join('\n');
-
-    return `
-    <div class="day-schedule" data-day="${day}" ${hasMultipleDays && day !== days[0] ? 'style="display:none"' : ''}>
-      <details class="collapsible" open>
-        <summary class="collapsible-header">
-          <span>📅 ${hasMultipleDays ? `Day ${day}` : 'Schedule'}</span>
-          <span class="collapse-icon">▼</span>
-        </summary>
-        <div class="collapsible-content">
-          ${timelineItems}
+        <div class="light-item golden">
+          <div class="label">Golden AM</div>
+          <div class="time">${lightHours.goldenHourMorningStart}-${lightHours.goldenHourMorningEnd}</div>
         </div>
-      </details>
+        <div class="light-item golden">
+          <div class="label">Golden PM</div>
+          <div class="time">${lightHours.goldenHourEveningStart}-${lightHours.goldenHourEveningEnd}</div>
+        </div>
+        <div class="light-item blue">
+          <div class="label">Blue PM</div>
+          <div class="time">${lightHours.blueHourEveningStart}-${lightHours.blueHourEveningEnd}</div>
+        </div>
+      </div>
     </div>`;
+
+  // Sort spots by suggested time
+  const sortByTime = (spots: TripPlan['spots']) => {
+    return [...spots].sort((a, b) => {
+      const timeA = getSuggestedTime(a.bestTime, plan.sunriseSunset.sunrise, plan.sunriseSunset.sunset);
+      const timeB = getSuggestedTime(b.bestTime, plan.sunriseSunset.sunrise, plan.sunriseSunset.sunset);
+      return timeA.localeCompare(timeB);
+    });
   };
 
-  const timelinesHTML = days.map(day => generateDayTimeline(spotsByDay.get(day)!, day)).join('\n');
+  // Generate global spots overview for ALL spots with day grouping
+  const generateAllSpotsOverview = () => {
+    return days.map(day => {
+      const daySpots = sortByTime(spotsByDay.get(day)!);
+      const spotsHtml = daySpots.map(spot => {
+        const time = getSuggestedTime(spot.bestTime, plan.sunriseSunset.sunrise, plan.sunriseSunset.sunset);
+        const badge = priorityBadge(spot.priority);
+        return `<a href="#spot-${spot.number}" class="overview-spot ${badge.class}" data-day="${day}" onclick="goToSpot(${spot.number}, ${day})">
+          <span class="overview-num">${spot.number}</span>
+          <span class="overview-time">${time}</span>
+          <span class="overview-name">${spot.name}</span>
+          ${badge.text ? `<span class="overview-badge ${badge.class}">${badge.icon}</span>` : ''}
+        </a>`;
+      }).join('');
 
-  const generateSpotCard = (spot: TripPlan['spots'][0]) => {
-    const priority = priorityLabel(spot.priority);
-    const suggestedTime = getSuggestedTime(spot.bestTime, plan.sunriseSunset.sunrise, plan.sunriseSunset.sunset);
-    const flickrUrl = getFlickrSearchUrl(spot.name, plan.city);
-    const googleImagesUrl = getGoogleImagesUrl(spot.name, plan.city);
-    const instagramUrl = getInstagramUrl(spot.name);
-    const day = spot.day || 1;
-    const gear = getGearSuggestions(spot.tags);
-
-    return `
-    <div class="spot" id="spot-${spot.number}" data-day="${day}" data-time="${suggestedTime}">
-      <details class="collapsible" open>
-        <summary class="spot-header">
-          <label class="spot-check" onclick="event.stopPropagation()">
-            <input type="checkbox" data-spot-check="${spot.number}">
-            <span class="checkmark">✓</span>
-          </label>
-          <div class="spot-title">
-            <h3>${priority.icon} ${spot.name}</h3>
-            <div class="spot-badges">
-              <span class="badge ${priority.class}">${priority.text}</span>
-              <span class="badge time-badge">🕐 ${suggestedTime}</span>
-            </div>
-          </div>
-          <span class="collapse-icon">▼</span>
-        </summary>
-        <div class="collapsible-content">
-          <div class="photo-links">
-            <a href="${flickrUrl}" target="_blank" class="photo-link">
-              <span class="photo-link-icon">📷</span>
-              <span>Flickr</span>
-            </a>
-            <a href="${googleImagesUrl}" target="_blank" class="photo-link">
-              <span class="photo-link-icon">🔍</span>
-              <span>Google</span>
-            </a>
-            <a href="${instagramUrl}" target="_blank" class="photo-link">
-              <span class="photo-link-icon">📸</span>
-              <span>Instagram</span>
-            </a>
-          </div>
-
-          <p class="spot-desc">${spot.description}</p>
-
-          <div class="spot-meta-grid">
-            <div class="meta-item">
-              <span class="meta-icon">🕐</span>
-              <span class="meta-label">Best Time</span>
-              <span class="meta-value">${spot.bestTime}</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-icon">📍</span>
-              <span class="meta-label">Distance</span>
-              <span class="meta-value">${spot.distanceFromPrevious}</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-icon">👥</span>
-              <span class="meta-label">Crowds</span>
-              <span class="meta-value">${spot.crowdLevel}</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-icon">🅿️</span>
-              <span class="meta-label">Parking</span>
-              <span class="meta-value">${spot.parkingInfo}</span>
-            </div>
-          </div>
-
-          <div class="gear-section">
-            <div class="gear-title">📷 Suggested Gear</div>
-            <div class="gear-list">
-              ${gear.map(g => `<span class="gear-tag">${g}</span>`).join('')}
-            </div>
-          </div>
-
-          <div class="spot-tags">${spot.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
-
-          <div class="spot-actions">
-            <a href="https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}" target="_blank" class="btn btn-primary">
-              <span>📍</span> Navigate
-            </a>
-            <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lng}" target="_blank" class="btn">
-              <span>🗺️</span> View Map
-            </a>
-          </div>
-        </div>
-      </details>
-    </div>`;
+      return hasMultipleDays
+        ? `<div class="overview-day">
+            <div class="overview-day-title">Day ${day}</div>
+            ${spotsHtml}
+          </div>`
+        : spotsHtml;
+    }).join('');
   };
+
+  const hintsHTML = `
+    <div class="hints">
+      <div class="hint">💡 Arrive 15-30 min early for best light</div>
+      <div class="hint">📱 Download offline maps before your trip</div>
+      <div class="hint">🎒 Check gear list before leaving</div>
+    </div>`;
+
+  const allSpotsOverviewHTML = `
+    <div class="all-spots-overview">
+      <div class="overview-header">
+        <span class="overview-title">📍 All ${plan.spots.length} Spots</span>
+      </div>
+      <div class="overview-days">
+        ${generateAllSpotsOverview()}
+      </div>
+    </div>`;
 
   const spotsHTML = hasMultipleDays
-    ? days.map(day => `
-        <div class="day-spots" data-day="${day}" ${day !== days[0] ? 'style="display:none"' : ''}>
-          ${spotsByDay.get(day)!.map(generateSpotCard).join('\n')}
-        </div>
-      `).join('\n')
-    : plan.spots.map(generateSpotCard).join('\n');
+    ? days.map(day => {
+        const daySpots = sortByTime(spotsByDay.get(day)!);
+        return `
+        <div class="day-content" data-day="${day}" ${day !== days[0] ? 'hidden' : ''}>
+          ${lightScheduleHTML}
+          ${daySpots.map((spot, i) => generateSpotCard(spot, i, daySpots.length)).join('')}
+        </div>`;
+      }).join('')
+    : `${lightScheduleHTML}
+       ${sortByTime(plan.spots).map((spot, i) => generateSpotCard(spot, i, plan.spots.length)).join('')}`;
 
   const routeCoords = plan.route.map(r => `[${r.lat}, ${r.lng}]`).join(',');
   const markerData = plan.spots.map(s =>
-    `{lat:${s.lat},lng:${s.lng},num:${s.number},name:"${s.name.replace(/"/g, '\\"')}",priority:${s.priority},day:${s.day || 1}}`
+    `{lat:${s.lat},lng:${s.lng},num:${s.number},name:"${s.name.replace(/"/g, '\\"')}",p:${s.priority}}`
   ).join(',');
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#ffffff">
-    <title>${plan.title} | PhotoScout</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        :root {
-            --bg: #ffffff;
-            --bg-secondary: #f8f9fa;
-            --bg-card: #ffffff;
-            --text: #1a1a1a;
-            --text-secondary: #666;
-            --text-muted: #999;
-            --border: #e5e5e5;
-            --accent: #1a1a1a;
-            --accent-light: #f5f5f5;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #dc2626;
-            --blue: #3b82f6;
-            --gold: #d97706;
-        }
-
-        .dark {
-            --bg: #0f0f0f;
-            --bg-secondary: #1a1a1a;
-            --bg-card: #1f1f1f;
-            --text: #ffffff;
-            --text-secondary: #a0a0a0;
-            --text-muted: #666;
-            --border: #333;
-            --accent: #ffffff;
-            --accent-light: #2a2a2a;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.5;
-            font-size: 15px;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        /* Sticky Light Bar */
-        .light-bar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            padding: 8px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .dark .light-bar {
-            background: linear-gradient(135deg, #78350f, #92400e);
-            color: #fef3c7;
-        }
-
-        .light-bar-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .light-bar-time {
-            font-weight: 700;
-        }
-
-        .current-time {
-            background: var(--accent);
-            color: var(--bg);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-
-        /* Header */
-        .header {
-            padding: 16px 12px;
-            background: var(--bg);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .header h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-            color: var(--text);
-        }
-
-        .header-sub {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        /* Controls */
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 12px;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .control-btn {
-            padding: 6px 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: var(--text);
-        }
-
-        .control-btn:hover {
-            background: var(--accent-light);
-        }
-
-        .progress-bar {
-            flex: 1;
-            margin: 0 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .progress-track {
-            flex: 1;
-            height: 6px;
-            background: var(--border);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--success);
-            width: 0%;
-            transition: width 0.3s;
-        }
-
-        .progress-text {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            white-space: nowrap;
-        }
-
-        /* Main */
-        .main {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 12px;
-        }
-
-        /* Quick Info */
-        .quick-info {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .quick-info-item {
-            text-align: center;
-            padding: 10px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-        }
-
-        .quick-info-item strong {
-            display: block;
-            font-size: 1.1rem;
-        }
-
-        .quick-info-item span {
-            font-size: 0.65rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-        }
-
-        /* Light Card */
-        .light-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin-bottom: 12px;
-            overflow: hidden;
-        }
-
-        .light-hours {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1px;
-            background: var(--border);
-        }
-
-        .light-hour {
-            padding: 10px;
-            background: var(--bg-card);
-            text-align: center;
-        }
-
-        .light-hour .name {
-            font-size: 0.6rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 2px;
-        }
-
-        .light-hour .time {
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        .light-hour.blue { background: #eff6ff; }
-        .light-hour.blue .time { color: var(--blue); }
-        .light-hour.golden { background: #fffbeb; }
-        .light-hour.golden .time { color: var(--gold); }
-
-        .dark .light-hour.blue { background: #1e3a5f; }
-        .dark .light-hour.golden { background: #78350f; }
-
-        /* Day Tabs */
-        .day-tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 12px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 4px;
-        }
-
-        .day-tab {
-            flex: 1;
-            min-width: 70px;
-            padding: 8px 10px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: var(--bg-card);
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            color: var(--text);
-        }
-
-        .day-tab.active {
-            background: var(--accent);
-            color: var(--bg);
-            border-color: var(--accent);
-        }
-
-        .day-tab-count {
-            display: block;
-            font-size: 0.6rem;
-            font-weight: 400;
-            opacity: 0.7;
-        }
-
-        /* Collapsible */
-        .collapsible { border: none; }
-        .collapsible summary { list-style: none; cursor: pointer; }
-        .collapsible summary::-webkit-details-marker { display: none; }
-
-        .collapsible-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 12px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        .collapse-icon {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            transition: transform 0.2s;
-        }
-
-        .collapsible[open] .collapse-icon { transform: rotate(180deg); }
-        .collapsible-content { padding-top: 8px; }
-
-        /* Timeline */
-        .day-schedule { margin-bottom: 12px; }
-
-        .timeline-item {
-            display: grid;
-            grid-template-columns: 45px 14px 1fr 30px;
-            gap: 8px;
-            align-items: center;
-            padding: 8px 4px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .timeline-item:hover { background: var(--accent-light); }
-        .timeline-item.now { background: #fef3c7; }
-        .dark .timeline-item.now { background: #78350f; }
-        .timeline-item.done { opacity: 0.5; }
-        .timeline-item.done .timeline-name { text-decoration: line-through; }
-
-        .timeline-time {
-            font-weight: 600;
-            font-size: 0.75rem;
-            text-align: right;
-        }
-
-        .timeline-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--text-muted);
-        }
-
-        .timeline-dot.high { background: var(--danger); }
-        .timeline-dot.medium { background: var(--warning); }
-
-        .timeline-content { min-width: 0; }
-        .timeline-name { font-size: 0.8rem; font-weight: 500; }
-        .timeline-meta { font-size: 0.65rem; color: var(--text-secondary); }
-
-        .timeline-check, .spot-check {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .timeline-check input, .spot-check input {
-            display: none;
-        }
-
-        .checkmark {
-            width: 22px;
-            height: 22px;
-            border: 2px solid var(--border);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            color: transparent;
-            transition: all 0.2s;
-        }
-
-        input:checked + .checkmark {
-            background: var(--success);
-            border-color: var(--success);
-            color: white;
-        }
-
-        /* Section */
-        .section { margin-bottom: 16px; }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .section-title {
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .section-actions {
-            display: flex;
-            gap: 6px;
-        }
-
-        .small-btn {
-            padding: 4px 8px;
-            font-size: 0.65rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            cursor: pointer;
-            color: var(--text);
-        }
-
-        /* Map */
-        #map {
-            height: 200px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-        }
-
-        .map-link {
-            display: block;
-            text-align: center;
-            padding: 10px;
-            background: var(--accent);
-            color: var(--bg);
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.8rem;
-        }
-
-        /* Spots */
-        .spot {
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin-bottom: 10px;
-            overflow: hidden;
-            background: var(--bg-card);
-        }
-
-        .spot.done { opacity: 0.6; }
-        .spot.now { border-color: var(--warning); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2); }
-
-        .spot-header {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            padding: 10px;
-            background: var(--bg-card);
-        }
-
-        .spot-header:hover { background: var(--accent-light); }
-
-        .spot-title { flex: 1; min-width: 0; }
-
-        .spot-title h3 {
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-
-        .spot-badges { display: flex; flex-wrap: wrap; gap: 4px; }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.55rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .priority-high { background: #fee2e2; color: var(--danger); }
-        .priority-medium { background: #fef3c7; color: var(--gold); }
-        .priority-low { background: var(--bg-secondary); color: var(--text-muted); }
-        .time-badge { background: #dbeafe; color: var(--blue); }
-
-        .dark .priority-high { background: #7f1d1d; }
-        .dark .priority-medium { background: #78350f; }
-        .dark .time-badge { background: #1e3a5f; }
-
-        .spot .collapsible-content { padding: 0 10px 10px; }
-        .spot .collapse-icon { flex-shrink: 0; }
-
-        /* Photo Links */
-        .photo-links {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
-
-        .photo-link {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            padding: 10px 6px;
-            background: var(--bg-secondary);
-            border-radius: 6px;
-            text-decoration: none;
-            color: var(--text-secondary);
-            font-size: 0.65rem;
-            transition: background 0.2s;
-        }
-
-        .photo-link:hover {
-            background: var(--accent-light);
-            color: var(--text);
-        }
-
-        .photo-link-icon { font-size: 1rem; }
-
-        .spot-desc {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            line-height: 1.5;
-        }
-
-        /* Meta Grid */
-        .spot-meta-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
-
-        .meta-item {
-            padding: 8px;
-            background: var(--bg-secondary);
-            border-radius: 6px;
-        }
-
-        .meta-icon { font-size: 0.9rem; }
-        .meta-label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; display: block; }
-        .meta-value { font-size: 0.7rem; font-weight: 500; }
-
-        /* Gear Section */
-        .gear-section {
-            margin-bottom: 10px;
-            padding: 8px;
-            background: var(--bg-secondary);
-            border-radius: 6px;
-        }
-
-        .gear-title {
-            font-size: 0.65rem;
-            font-weight: 600;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-        }
-
-        .gear-list { display: flex; flex-wrap: wrap; gap: 4px; }
-
-        .gear-tag {
-            padding: 3px 8px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-size: 0.65rem;
-        }
-
-        .spot-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
-
-        .tag {
-            padding: 2px 6px;
-            background: var(--accent-light);
-            border-radius: 4px;
-            font-size: 0.65rem;
-            color: var(--text-secondary);
-        }
-
-        .spot-actions { display: flex; gap: 6px; }
-
-        .btn {
-            flex: 1;
-            padding: 10px;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 0.75rem;
-            border: 1px solid var(--border);
-            color: var(--text);
-            background: var(--bg-card);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: var(--bg);
-            border-color: var(--accent);
-        }
-
-        /* Tips & Info */
-        .tips-list { list-style: none; }
-
-        .tips-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.8rem;
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-        }
-
-        .tips-list li:last-child { border-bottom: none; }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-        }
-
-        .info-item {
-            padding: 10px;
-            background: var(--bg-secondary);
-            border-radius: 6px;
-        }
-
-        .info-item .label {
-            font-size: 0.6rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .info-item .value {
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        /* Gear Checklist */
-        .gear-checklist {
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
-        }
-
-        .gear-checklist-title {
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .gear-checklist-items {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .gear-checklist-item {
-            padding: 6px 10px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.7rem;
-            cursor: pointer;
-        }
-
-        .gear-checklist-item.checked {
-            background: var(--success);
-            color: white;
-            border-color: var(--success);
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 16px;
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border);
-            margin-top: 16px;
-        }
-
-        .footer a { color: var(--text-secondary); }
-
-        /* FAB */
-        .fab {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 48px;
-            height: 48px;
-            background: var(--accent);
-            color: var(--bg);
-            border: none;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .fab-menu {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: none;
-        }
-
-        .fab-menu.show { display: block; }
-
-        .fab-menu-item {
-            display: block;
-            padding: 8px 12px;
-            font-size: 0.75rem;
-            color: var(--text);
-            text-decoration: none;
-            border-radius: 4px;
-            white-space: nowrap;
-        }
-
-        .fab-menu-item:hover { background: var(--accent-light); }
-
-        /* Map Markers */
-        .marker {
-            background: var(--accent);
-            border: 2px solid var(--bg);
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 11px;
-            color: var(--bg);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .marker.high { background: var(--danger); }
-        .marker.medium { background: var(--warning); }
-        .marker.low { background: var(--text-muted); }
-
-        /* Print */
-        @media print {
-            .light-bar, .controls, .fab, .fab-menu { display: none !important; }
-            .spot details { open: true; }
-            .spot { break-inside: avoid; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="${plan.subtitle} - ${plan.spots.length} photography spots in ${plan.city}">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="${plan.title}">
+  <meta property="og:description" content="${plan.subtitle} - ${plan.spots.length} photography spots with golden hour times">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="PhotoScout">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${plan.title}">
+  <meta name="twitter:description" content="${plan.subtitle} - ${plan.spots.length} photography spots">
+
+  <title>${plan.title} | PhotoScout</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root {
+      --bg: #fafafa;
+      --card: #ffffff;
+      --text: #111827;
+      --text2: #6b7280;
+      --text3: #9ca3af;
+      --border: #e5e7eb;
+      --accent: #111827;
+      --blue: #3b82f6;
+      --gold: #f59e0b;
+      --red: #ef4444;
+      --green: #10b981;
+      --radius: 16px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0a0a0a;
+      --card: #141414;
+      --text: #f9fafb;
+      --text2: #9ca3af;
+      --text3: #6b7280;
+      --border: #262626;
+      --accent: #ffffff;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-lg: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 80px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes confetti {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+    }
+
+    .fade-up {
+      animation: fadeUp 0.5s ease-out backwards;
+      animation-delay: var(--delay, 0s);
+    }
+
+    /* Top Bar */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .light-times {
+      display: flex;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .light-time {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .light-time strong {
+      font-weight: 600;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+      background: var(--border);
+    }
+
+    /* Header */
+    .header {
+      padding: 24px 0 20px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .header-meta {
+      color: var(--text2);
+      font-size: 14px;
+    }
+
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Light Schedule */
+    .light-schedule {
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    [data-theme="dark"] .light-schedule {
+      background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+    }
+
+    .light-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .light-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .light-item {
+      background: rgba(255,255,255,0.6);
+      border-radius: 8px;
+      padding: 8px 4px;
+      text-align: center;
+    }
+
+    [data-theme="dark"] .light-item {
+      background: rgba(0,0,0,0.2);
+    }
+
+    .light-item .label {
+      font-size: 9px;
+      text-transform: uppercase;
+      opacity: 0.7;
+      margin-bottom: 2px;
+    }
+
+    .light-item .time {
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .light-item.blue { border-bottom: 2px solid #3b82f6; }
+    .light-item.golden { border-bottom: 2px solid #f59e0b; }
+
+    /* All Spots Overview - Compact */
+    .all-spots-overview {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+    }
+
+    .overview-header {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .overview-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+    }
+
+    .overview-days {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .overview-day {
+      display: contents;
+    }
+
+    .overview-day-title {
+      display: none;
+    }
+
+    .overview-spot {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: var(--bg);
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 11px;
+      transition: all 0.2s;
+      border-left: 2px solid var(--border);
+      cursor: pointer;
+    }
+
+    .overview-spot:hover {
+      background: var(--border);
+    }
+
+    .overview-spot.priority-must {
+      border-left-color: #dc2626;
+      background: #fef2f2;
+    }
+
+    .overview-spot.priority-rec {
+      border-left-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    [data-theme="dark"] .overview-spot.priority-must {
+      background: rgba(220, 38, 38, 0.1);
+    }
+
+    [data-theme="dark"] .overview-spot.priority-rec {
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .overview-num {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--bg);
+      font-size: 9px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .overview-spot.priority-must .overview-num {
+      background: #dc2626;
+    }
+
+    .overview-spot.priority-rec .overview-num {
+      background: #f59e0b;
+    }
+
+    .overview-time {
+      font-weight: 500;
+      font-size: 10px;
+      color: var(--text3);
+    }
+
+    .overview-name {
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100px;
+    }
+
+    .overview-badge {
+      font-size: 10px;
+    }
+
+    /* Hints */
+    .hints {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .hint {
+      padding: 8px 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text2);
+    }
+
+    /* Day Navigation */
+    .day-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .day-btn {
+      padding: 10px 20px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+
+    .day-btn.active {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+
+    /* Spots */
+    .spots-section {
+      /* padding handled by container */
+    }
+
+    .spot {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      display: flex;
+      overflow: hidden;
+      animation: fadeUp 0.5s ease-out backwards;
+      animation-delay: var(--delay);
+      transition: all 0.3s;
+    }
+
+    .spot:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .spot.done {
+      opacity: 0.5;
+    }
+
+    .spot.now {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+    }
+
+    .spot-side {
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      background: var(--accent);
+    }
+
+    .spot.priority-must .spot-side {
+      background: #dc2626;
+    }
+
+    .spot.priority-rec .spot-side {
+      background: #f59e0b;
+    }
+
+    .spot-number {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .spot-priority-vertical {
+      flex: 1;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.9);
+      padding: 8px 0;
+      min-height: 60px;
+    }
+
+    .spot-body {
+      flex: 1;
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .spot-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .spot-info h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .spot-schedule {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .schedule-time {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .schedule-arrow {
+      color: var(--text3);
+    }
+
+    .schedule-duration {
+      color: var(--text3);
+      font-size: 11px;
+    }
+
+    .spot-meta {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .spot-time {
+      color: var(--text2);
+    }
+
+    .check-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .check-btn input { display: none; }
+
+    .check-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: transparent;
+      transition: fill 0.2s;
+    }
+
+    .check-btn:has(input:checked) {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .check-btn:has(input:checked) svg {
+      fill: white;
+    }
+
+    .spot-desc {
+      font-size: 14px;
+      color: var(--text2);
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .spot-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .detail {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text2);
+    }
+
+    .detail-icon {
+      font-size: 14px;
+    }
+
+    .spot-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .tag {
+      padding: 4px 10px;
+      background: var(--bg);
+      border-radius: 100px;
+      font-size: 11px;
+      color: var(--text2);
+    }
+
+    .spot-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      text-align: center;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+      background: var(--bg);
+    }
+
+    .action-btn.primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+
+    /* Map Section */
+    .map-section {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    #map {
+      height: 220px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .map-btn {
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px;
+      background: var(--accent);
+      color: var(--bg);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    /* Tips */
+    .tips-section {
+      margin: 20px 0;
+    }
+
+    .tip {
+      display: flex;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .tip:last-child { border-bottom: none; }
+
+    .tip-icon {
+      color: var(--green);
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      padding: 8px 16px;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .bottom-nav-inner {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-ring {
+      width: 44px;
+      height: 44px;
+      position: relative;
+    }
+
+    .progress-ring svg {
+      transform: rotate(-90deg);
+    }
+
+    .progress-ring circle {
+      fill: none;
+      stroke-width: 4;
+    }
+
+    .progress-ring .bg {
+      stroke: var(--border);
+    }
+
+    .progress-ring .fill {
+      stroke: var(--green);
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s ease;
+    }
+
+    .progress-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .nav-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .nav-current {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-next {
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    .nav-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Confetti */
+    .confetti {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      animation: confetti 3s ease-out forwards;
+    }
+
+    /* Map Markers */
+    .marker {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      border: 2px solid white;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 24px 16px;
+      font-size: 12px;
+      color: var(--text3);
+    }
+
+    .footer a {
+      color: var(--text2);
+    }
+
+    /* Share Modal */
+    .share-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .share-overlay.show {
+      display: flex;
+    }
+
+    .share-modal {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      max-width: 320px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .share-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .share-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .share-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 8px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 11px;
+      transition: all 0.2s;
+    }
+
+    .share-btn:hover {
+      background: var(--border);
+    }
+
+    .share-btn .icon {
+      font-size: 24px;
+    }
+
+    .share-copy {
+      display: flex;
+      gap: 8px;
+    }
+
+    .share-copy input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12px;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .share-copy button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: var(--bg);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .share-close {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--text);
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    /* Print */
+    @media print {
+      .top-bar, .bottom-nav, .share-overlay { display: none !important; }
+      body { padding-bottom: 0; }
+    }
+  </style>
 </head>
 <body>
-    <!-- Sticky Light Bar -->
-    <div class="light-bar">
-        <div class="light-bar-item">
-            <span>🌅</span>
-            <span class="light-bar-time">${plan.sunriseSunset.sunrise}</span>
-        </div>
-        <div class="light-bar-item">
-            <span>🌇</span>
-            <span class="light-bar-time">${plan.sunriseSunset.sunset}</span>
-        </div>
-        <div class="current-time" id="currentTime">--:--</div>
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="light-times">
+      <div class="light-time">
+        <span>🌅</span>
+        <strong>${plan.sunriseSunset.sunrise}</strong>
+      </div>
+      <div class="light-time">
+        <span>🌇</span>
+        <strong>${plan.sunriseSunset.sunset}</strong>
+      </div>
     </div>
+    <div class="top-actions">
+      <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+      <button class="icon-btn" onclick="window.print()">🖨️</button>
+      <button class="icon-btn" onclick="openShareMenu()">↗️</button>
+    </div>
+  </div>
 
-    <header class="header">
-        <h1>${plan.title}</h1>
-        <p class="header-sub">${plan.subtitle} · ${plan.dates}</p>
+  <div class="container">
+    <!-- Header -->
+    <header class="header fade-up">
+      <h1>${plan.title}</h1>
+      <p class="header-meta">${plan.subtitle} · ${plan.dates}</p>
     </header>
 
-    <!-- Controls -->
-    <div class="controls">
-        <button class="control-btn" onclick="toggleDarkMode()">
-            <span id="darkModeIcon">🌙</span>
-        </button>
-        <div class="progress-bar">
-            <div class="progress-track">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <span class="progress-text" id="progressText">0/${plan.spots.length}</span>
-        </div>
-        <button class="control-btn" onclick="window.print()">🖨️</button>
+    <!-- Map (at top) -->
+    <section class="map-section fade-up" style="--delay: 0.1s">
+      <div id="map"></div>
+      <a href="https://www.google.com/maps/dir/${plan.spots.map(s => `${s.lat},${s.lng}`).join('/')}" target="_blank" class="map-btn">
+        Open in Google Maps
+      </a>
+    </section>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat fade-up" style="--delay: 0.15s">
+        <div class="stat-value">${plan.spots.length}</div>
+        <div class="stat-label">Spots</div>
+      </div>
+      <div class="stat fade-up" style="--delay: 0.2s">
+        <div class="stat-value" style="color: var(--red)">${plan.spots.filter(s => s.priority === 3).length}</div>
+        <div class="stat-label">Must See</div>
+      </div>
+      <div class="stat fade-up" style="--delay: 0.25s">
+        <div class="stat-value">${plan.practicalInfo.estimatedTime}</div>
+        <div class="stat-label">Duration</div>
+      </div>
     </div>
 
-    <main class="main">
-        <!-- Quick Info -->
-        <div class="quick-info">
-            <div class="quick-info-item">
-                <strong>${plan.spots.length}</strong>
-                <span>Spots</span>
-            </div>
-            <div class="quick-info-item">
-                <strong>${plan.practicalInfo.estimatedTime}</strong>
-                <span>Duration</span>
-            </div>
-            <div class="quick-info-item">
-                <strong>${plan.spots.filter(s => s.priority === 3).length}</strong>
-                <span>Must-See</span>
-            </div>
+    <!-- All Spots Overview -->
+    ${allSpotsOverviewHTML}
+
+    <!-- Hints -->
+    ${hintsHTML}
+
+    <!-- Day Tabs -->
+    ${dayTabsHTML}
+
+    <!-- Spots -->
+    <section class="spots-section">
+      ${spotsHTML}
+    </section>
+
+    <!-- Tips -->
+    <section class="tips-section">
+      <h2 class="section-title">Pro Tips</h2>
+      ${plan.shootingStrategy.map(tip => `
+        <div class="tip">
+          <span class="tip-icon">✓</span>
+          <span>${tip}</span>
         </div>
-
-        <!-- Light Times -->
-        <div class="light-card">
-            <div class="light-hours">
-                <div class="light-hour blue">
-                    <div class="name">Blue AM</div>
-                    <div class="time">${lightHours.blueHourMorningStart}-${lightHours.blueHourMorningEnd}</div>
-                </div>
-                <div class="light-hour golden">
-                    <div class="name">Golden AM</div>
-                    <div class="time">${lightHours.goldenHourMorningStart}-${lightHours.goldenHourMorningEnd}</div>
-                </div>
-                <div class="light-hour golden">
-                    <div class="name">Golden PM</div>
-                    <div class="time">${lightHours.goldenHourEveningStart}-${lightHours.goldenHourEveningEnd}</div>
-                </div>
-                <div class="light-hour blue">
-                    <div class="name">Blue PM</div>
-                    <div class="time">${lightHours.blueHourEveningStart}-${lightHours.blueHourEveningEnd}</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Gear Checklist -->
-        <div class="gear-checklist">
-            <div class="gear-checklist-title">📷 Gear Checklist</div>
-            <div class="gear-checklist-items">
-                ${Array.from(allGear).map(g => `<div class="gear-checklist-item" onclick="this.classList.toggle('checked')">${g}</div>`).join('')}
-            </div>
-        </div>
-
-        <!-- Day Tabs -->
-        ${dayTabsHTML}
-
-        <!-- Schedule -->
-        ${timelinesHTML}
-
-        <!-- Map -->
-        <section class="section">
-            <div class="section-header">
-                <h2 class="section-title">📍 Route</h2>
-            </div>
-            <div id="map"></div>
-            <a href="https://www.google.com/maps/dir/${plan.spots.map(s => `${s.lat},${s.lng}`).join('/')}" target="_blank" class="map-link">
-                Open in Google Maps
-            </a>
-        </section>
-
-        <!-- Spots -->
-        <section class="section">
-            <div class="section-header">
-                <h2 class="section-title">📸 Photo Spots</h2>
-                <div class="section-actions">
-                    <button class="small-btn" onclick="expandAll()">Expand</button>
-                    <button class="small-btn" onclick="collapseAll()">Collapse</button>
-                </div>
-            </div>
-            ${spotsHTML}
-        </section>
-
-        <!-- Tips -->
-        <section class="section">
-            <h2 class="section-title" style="margin-bottom: 10px;">💡 Pro Tips</h2>
-            <ul class="tips-list">
-                ${plan.shootingStrategy.map(tip => `<li><span>✓</span> ${tip}</li>`).join('')}
-            </ul>
-        </section>
-
-        <!-- Practical Info -->
-        <section class="section">
-            <h2 class="section-title" style="margin-bottom: 10px;">📋 Practical Info</h2>
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="label">Distance</div>
-                    <div class="value">${plan.practicalInfo.totalDistance}</div>
-                </div>
-                <div class="info-item">
-                    <div class="label">Transport</div>
-                    <div class="value">${plan.practicalInfo.transportation}</div>
-                </div>
-                <div class="info-item">
-                    <div class="label">Stay</div>
-                    <div class="value">${plan.practicalInfo.accommodation}</div>
-                </div>
-                <div class="info-item">
-                    <div class="label">Rain Plan</div>
-                    <div class="value">${plan.practicalInfo.weatherBackup}</div>
-                </div>
-            </div>
-        </section>
-    </main>
+      `).join('')}
+    </section>
 
     <footer class="footer">
-        Created with <a href="https://d2mpt2trz11kx7.cloudfront.net">PhotoScout</a>
+      Created with <a href="https://d2mpt2trz11kx7.cloudfront.net">PhotoScout</a>
     </footer>
+  </div>
 
-    <!-- FAB -->
-    <button class="fab" onclick="toggleFabMenu()">☰</button>
-    <div class="fab-menu" id="fabMenu">
-        <a href="#" class="fab-menu-item" onclick="scrollToTop()">⬆️ Top</a>
-        <a href="#map" class="fab-menu-item">🗺️ Map</a>
-        <a href="#" class="fab-menu-item" onclick="scrollToNextSpot()">➡️ Next Spot</a>
-        <a href="#" class="fab-menu-item" onclick="resetProgress()">🔄 Reset</a>
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <div class="progress-ring">
+        <svg width="44" height="44">
+          <circle class="bg" cx="22" cy="22" r="18"></circle>
+          <circle class="fill" cx="22" cy="22" r="18"
+            stroke-dasharray="113.1"
+            stroke-dashoffset="113.1"
+            id="progressCircle"></circle>
+        </svg>
+        <div class="progress-text" id="progressText">0/${plan.spots.length}</div>
+      </div>
+      <div class="nav-info">
+        <div class="nav-current" id="navCurrent">Tap spots to mark done</div>
+        <div class="nav-next" id="navNext"></div>
+      </div>
+      <button class="nav-btn" onclick="scrollToNext()">→</button>
     </div>
+  </nav>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // State
-        const STORAGE_KEY = 'photoscout-${plan.city.toLowerCase().replace(/\\s+/g, '-')}';
-        let checkedSpots = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        let fabOpen = false;
+  <!-- Share Modal -->
+  <div class="share-overlay" id="shareOverlay" onclick="if(event.target===this)closeShareMenu()">
+    <div class="share-modal">
+      <div class="share-title">Share Trip Plan</div>
+      <div class="share-grid">
+        <a href="#" class="share-btn" onclick="shareTwitter(event)">
+          <span class="icon">𝕏</span>
+          <span>Twitter</span>
+        </a>
+        <a href="#" class="share-btn" onclick="shareTelegram(event)">
+          <span class="icon">✈️</span>
+          <span>Telegram</span>
+        </a>
+        <a href="#" class="share-btn" onclick="shareWhatsApp(event)">
+          <span class="icon">💬</span>
+          <span>WhatsApp</span>
+        </a>
+        <a href="#" class="share-btn" onclick="sharePinterest(event)">
+          <span class="icon">📌</span>
+          <span>Pinterest</span>
+        </a>
+        <a href="#" class="share-btn" onclick="copyInstagram(event)">
+          <span class="icon">📷</span>
+          <span>Instagram</span>
+        </a>
+        <a href="#" class="share-btn" onclick="nativeShare(event)">
+          <span class="icon">📤</span>
+          <span>More...</span>
+        </a>
+      </div>
+      <div class="share-copy">
+        <input type="text" id="shareUrl" value="" readonly onclick="this.select()">
+        <button onclick="copyLink()">Copy</button>
+      </div>
+      <button class="share-close" onclick="closeShareMenu()">Close</button>
+    </div>
+  </div>
 
-        // Init
-        function init() {
-            updateClock();
-            setInterval(updateClock, 1000);
-            loadProgress();
-            updateProgress();
-            highlightCurrentSpot();
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // State
+    const TOTAL = ${plan.spots.length};
+    const STORAGE = 'ps-${plan.city.toLowerCase().replace(/[^a-z0-9]/g, '')}';
+    let checked = new Set(JSON.parse(localStorage.getItem(STORAGE) || '[]'));
 
-            // Restore dark mode
-            if (localStorage.getItem('darkMode') === 'true') {
-                document.body.classList.add('dark');
-                document.getElementById('darkModeIcon').textContent = '☀️';
-            }
-        }
+    // Theme
+    function toggleTheme() {
+      const isDark = document.body.dataset.theme === 'dark';
+      document.body.dataset.theme = isDark ? 'light' : 'dark';
+      document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
+      localStorage.setItem('theme', document.body.dataset.theme);
+    }
 
-        // Clock
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('currentTime').textContent =
-                now.getHours().toString().padStart(2, '0') + ':' +
-                now.getMinutes().toString().padStart(2, '0');
-        }
+    // Init theme
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.dataset.theme = 'dark';
+      document.getElementById('themeBtn').textContent = '☀️';
+    }
 
-        // Dark mode
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark');
-            const isDark = document.body.classList.contains('dark');
-            localStorage.setItem('darkMode', isDark);
-            document.getElementById('darkModeIcon').textContent = isDark ? '☀️' : '🌙';
-        }
+    // Go to spot (switch tab if needed and scroll)
+    function goToSpot(spotNum, day) {
+      event.preventDefault();
 
-        // Progress
-        function loadProgress() {
-            checkedSpots.forEach(num => {
-                document.querySelectorAll(\`[data-spot-check="\${num}"]\`).forEach(cb => {
-                    cb.checked = true;
-                });
-                const spot = document.getElementById('spot-' + num);
-                if (spot) spot.classList.add('done');
-                document.querySelectorAll(\`.timeline-item[data-spot="\${num}"]\`).forEach(item => {
-                    item.classList.add('done');
-                });
-            });
-        }
-
-        function updateProgress() {
-            const total = ${plan.spots.length};
-            const done = checkedSpots.length;
-            document.getElementById('progressFill').style.width = (done / total * 100) + '%';
-            document.getElementById('progressText').textContent = done + '/' + total;
-        }
-
-        function saveProgress() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(checkedSpots));
-        }
-
-        function resetProgress() {
-            checkedSpots = [];
-            saveProgress();
-            location.reload();
-        }
-
-        // Checkbox handlers
-        document.querySelectorAll('[data-spot-check]').forEach(cb => {
-            cb.addEventListener('change', (e) => {
-                const num = parseInt(e.target.dataset.spotCheck);
-                if (e.target.checked) {
-                    if (!checkedSpots.includes(num)) checkedSpots.push(num);
-                } else {
-                    checkedSpots = checkedSpots.filter(n => n !== num);
-                }
-
-                // Sync all checkboxes for this spot
-                document.querySelectorAll(\`[data-spot-check="\${num}"]\`).forEach(other => {
-                    other.checked = e.target.checked;
-                });
-
-                // Update visual state
-                const spot = document.getElementById('spot-' + num);
-                if (spot) spot.classList.toggle('done', e.target.checked);
-                document.querySelectorAll(\`.timeline-item[data-spot="\${num}"]\`).forEach(item => {
-                    item.classList.toggle('done', e.target.checked);
-                });
-
-                saveProgress();
-                updateProgress();
-            });
+      // Switch to correct day tab if multi-day
+      const dayBtn = document.querySelector('.day-btn[data-day="' + day + '"]');
+      if (dayBtn && !dayBtn.classList.contains('active')) {
+        document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+        dayBtn.classList.add('active');
+        document.querySelectorAll('.day-content').forEach(c => {
+          c.hidden = c.dataset.day !== String(day);
         });
+      }
 
-        // Highlight current spot
-        function highlightCurrentSpot() {
-            const now = new Date();
-            const currentMins = now.getHours() * 60 + now.getMinutes();
-
-            let nextSpot = null;
-            let minDiff = Infinity;
-
-            document.querySelectorAll('.timeline-item').forEach(item => {
-                const time = item.dataset.time;
-                if (!time) return;
-                const [h, m] = time.split(':').map(Number);
-                const spotMins = h * 60 + m;
-                const diff = spotMins - currentMins;
-
-                if (diff >= -30 && diff < minDiff) {
-                    minDiff = diff;
-                    nextSpot = item.dataset.spot;
-                }
-            });
-
-            if (nextSpot) {
-                document.querySelectorAll(\`.timeline-item[data-spot="\${nextSpot}"]\`).forEach(item => {
-                    item.classList.add('now');
-                });
-                const spot = document.getElementById('spot-' + nextSpot);
-                if (spot) spot.classList.add('now');
-            }
+      // Scroll to spot
+      setTimeout(() => {
+        const spot = document.getElementById('spot-' + spotNum);
+        if (spot) {
+          spot.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+      }, 100);
+    }
 
-        // Day tabs
-        document.querySelectorAll('.day-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                const day = tab.dataset.day;
-                document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                document.querySelectorAll('.day-schedule').forEach(s => {
-                    s.style.display = s.dataset.day === day ? 'block' : 'none';
-                });
-                document.querySelectorAll('.day-spots').forEach(s => {
-                    s.style.display = s.dataset.day === day ? 'block' : 'none';
-                });
-            });
+    // Progress
+    function updateProgress() {
+      const done = checked.size;
+      const pct = done / TOTAL;
+      const offset = 113.1 * (1 - pct);
+      document.getElementById('progressCircle').style.strokeDashoffset = offset;
+      document.getElementById('progressText').textContent = done + '/' + TOTAL;
+
+      // Update nav info
+      const nextNum = ${JSON.stringify(plan.spots.map(s => s.number))}.find(n => !checked.has(n));
+      if (nextNum) {
+        const spot = document.getElementById('spot-' + nextNum);
+        if (spot) {
+          document.getElementById('navCurrent').textContent = 'Next: ' + spot.querySelector('h3').textContent;
+        }
+      } else {
+        document.getElementById('navCurrent').textContent = 'All spots complete! 🎉';
+      }
+
+      // Confetti on complete
+      if (done === TOTAL && !window.confettiDone) {
+        window.confettiDone = true;
+        celebrate();
+      }
+    }
+
+    function celebrate() {
+      const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'];
+      for (let i = 0; i < 50; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + 'vw';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = Math.random() * 0.5 + 's';
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 3500);
+      }
+    }
+
+    // Checkbox handlers
+    document.querySelectorAll('[data-spot]').forEach(cb => {
+      const num = parseInt(cb.dataset.spot);
+      cb.checked = checked.has(num);
+      if (checked.has(num)) {
+        cb.closest('.spot').classList.add('done');
+      }
+
+      cb.addEventListener('change', () => {
+        if (cb.checked) {
+          checked.add(num);
+        } else {
+          checked.delete(num);
+          window.confettiDone = false;
+        }
+        cb.closest('.spot').classList.toggle('done', cb.checked);
+        localStorage.setItem(STORAGE, JSON.stringify([...checked]));
+        updateProgress();
+      });
+    });
+
+    // Scroll to next
+    function scrollToNext() {
+      const nextNum = ${JSON.stringify(plan.spots.map(s => s.number))}.find(n => !checked.has(n));
+      if (nextNum) {
+        document.getElementById('spot-' + nextNum).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    // Day tabs
+    document.querySelectorAll('.day-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.day-content').forEach(c => {
+          c.hidden = c.dataset.day !== btn.dataset.day;
         });
+      });
+    });
 
-        // Timeline click
-        document.querySelectorAll('.timeline-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                if (e.target.type === 'checkbox' || e.target.classList.contains('checkmark')) return;
-                const spotNum = item.dataset.spot;
-                const spotEl = document.getElementById('spot-' + spotNum);
-                if (spotEl) {
-                    spotEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    const details = spotEl.querySelector('details');
-                    if (details) details.open = true;
-                }
-            });
-        });
+    // Map
+    const map = L.map('map', { scrollWheelZoom: false })
+      .setView([${plan.mapCenter.lat}, ${plan.mapCenter.lng}], ${plan.mapZoom});
 
-        // Expand/Collapse
-        function expandAll() {
-            document.querySelectorAll('.spot details').forEach(d => d.open = true);
-        }
-        function collapseAll() {
-            document.querySelectorAll('.spot details').forEach(d => d.open = false);
-        }
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap © CARTO',
+      maxZoom: 19
+    }).addTo(map);
 
-        // FAB
-        function toggleFabMenu() {
-            fabOpen = !fabOpen;
-            document.getElementById('fabMenu').classList.toggle('show', fabOpen);
-        }
+    const markers = [${markerData}];
+    const colors = { 3: '#ef4444', 2: '#f59e0b', 1: '#94a3b8' };
 
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            toggleFabMenu();
-        }
+    markers.forEach(m => {
+      const icon = L.divIcon({
+        className: 'marker',
+        html: '<div style="background:' + colors[m.p] + '" class="marker">' + m.num + '</div>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+      L.marker([m.lat, m.lng], { icon })
+        .addTo(map)
+        .bindPopup('<b>' + m.name + '</b>');
+    });
 
-        function scrollToNextSpot() {
-            const unchecked = ${JSON.stringify(plan.spots.map(s => s.number))}.find(n => !checkedSpots.includes(n));
-            if (unchecked) {
-                const el = document.getElementById('spot-' + unchecked);
-                if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    el.querySelector('details').open = true;
-                }
-            }
-            toggleFabMenu();
-        }
+    const route = [${routeCoords}];
+    L.polyline(route, { color: '#111', weight: 2, opacity: 0.5, dashArray: '8,8' }).addTo(map);
+    if (route.length > 0) map.fitBounds(route, { padding: [40, 40] });
 
-        // Map
-        const map = L.map('map', { scrollWheelZoom: false })
-            .setView([${plan.mapCenter.lat}, ${plan.mapCenter.lng}], ${plan.mapZoom});
+    // Init
+    updateProgress();
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OSM',
-            maxZoom: 19
-        }).addTo(map);
+    // Share functions
+    const shareTitle = ${JSON.stringify(plan.title)};
+    const shareText = ${JSON.stringify(`${plan.title} - ${plan.subtitle}`)};
 
-        const markers = [${markerData}];
-        markers.forEach(m => {
-            const cls = m.priority === 3 ? 'high' : m.priority === 2 ? 'medium' : 'low';
-            const icon = L.divIcon({
-                className: 'marker ' + cls,
-                html: m.num,
-                iconSize: [24, 24],
-                iconAnchor: [12, 12]
-            });
-            L.marker([m.lat, m.lng], { icon })
-                .addTo(map)
-                .bindPopup('<b>' + m.name + '</b><br><a href="#spot-' + m.num + '">View</a>');
-        });
+    function openShareMenu() {
+      document.getElementById('shareUrl').value = window.location.href;
+      document.getElementById('shareOverlay').classList.add('show');
+    }
 
-        const route = [${routeCoords}];
-        L.polyline(route, { color: '#1a1a1a', weight: 2, opacity: 0.6, dashArray: '6,6' }).addTo(map);
-        if (route.length > 0) map.fitBounds(route, { padding: [30, 30] });
+    function closeShareMenu() {
+      document.getElementById('shareOverlay').classList.remove('show');
+    }
 
-        // Close FAB on outside click
-        document.addEventListener('click', (e) => {
-            if (fabOpen && !e.target.closest('.fab') && !e.target.closest('.fab-menu')) {
-                fabOpen = false;
-                document.getElementById('fabMenu').classList.remove('show');
-            }
-        });
+    function copyLink() {
+      const input = document.getElementById('shareUrl');
+      input.select();
+      document.execCommand('copy');
+      const btn = input.nextElementSibling;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    }
 
-        init();
-    </script>
+    function shareTwitter(e) {
+      e.preventDefault();
+      const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText + ' via @PhotoScoutApp') + '&url=' + encodeURIComponent(window.location.href);
+      window.open(url, '_blank', 'width=550,height=420');
+    }
+
+    function shareTelegram(e) {
+      e.preventDefault();
+      const url = 'https://t.me/share/url?url=' + encodeURIComponent(window.location.href) + '&text=' + encodeURIComponent(shareText);
+      window.open(url, '_blank', 'width=550,height=420');
+    }
+
+    function shareWhatsApp(e) {
+      e.preventDefault();
+      const url = 'https://wa.me/?text=' + encodeURIComponent(shareText + ' ' + window.location.href);
+      window.open(url, '_blank', 'width=550,height=420');
+    }
+
+    function sharePinterest(e) {
+      e.preventDefault();
+      const url = 'https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(window.location.href) + '&description=' + encodeURIComponent(shareText);
+      window.open(url, '_blank', 'width=550,height=520');
+    }
+
+    function copyInstagram(e) {
+      e.preventDefault();
+      navigator.clipboard.writeText(shareText + '\\n\\n' + window.location.href);
+      alert('Link copied! Open Instagram and paste in your story or post.');
+    }
+
+    function nativeShare(e) {
+      e.preventDefault();
+      if (navigator.share) {
+        navigator.share({ title: shareTitle, text: shareText, url: window.location.href });
+      } else {
+        copyLink();
+      }
+    }
+  </script>
 </body>
 </html>`;
 }

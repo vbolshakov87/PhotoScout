@@ -1,9 +1,10 @@
 import { useAuth } from '../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Info, FileText, Shield, LogOut, ExternalLink, Camera } from 'lucide-react';
+import { User, Info, FileText, Shield, LogOut, ExternalLink, Camera, LogIn } from 'lucide-react';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
 export function SettingsPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, isGuest, login } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = () => {
@@ -13,10 +14,21 @@ export function SettingsPage() {
     }
   };
 
+  const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
+    if (credentialResponse.credential) {
+      login(credentialResponse.credential);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-border">
+      <div className="px-4 py-3 border-b border-border flex items-center gap-3">
+        <img
+          src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
+          alt="PhotoScout"
+          className="w-9 h-9 rounded-lg"
+        />
         <h1 className="text-lg font-semibold text-foreground">Settings</h1>
       </div>
 
@@ -26,7 +38,7 @@ export function SettingsPage() {
           <h2 className="text-xs font-medium text-muted uppercase tracking-wide mb-3">Account</h2>
           <div className="bg-card border border-border rounded-xl p-4">
             <div className="flex items-center gap-3">
-              {user?.picture ? (
+              {user?.picture && !isGuest ? (
                 <img
                   src={user.picture}
                   alt={user.name}
@@ -38,8 +50,12 @@ export function SettingsPage() {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-foreground truncate">{user?.name}</p>
-                <p className="text-sm text-muted truncate">{user?.email}</p>
+                <p className="font-medium text-foreground truncate">
+                  {isGuest ? 'Guest' : user?.name}
+                </p>
+                <p className="text-sm text-muted truncate">
+                  {isGuest ? 'Not signed in' : user?.email}
+                </p>
               </div>
             </div>
           </div>
@@ -95,15 +111,35 @@ export function SettingsPage() {
           </div>
         </div>
 
-        {/* Sign Out */}
+        {/* Sign Out / Sign In */}
         <div className="p-4 pt-0">
-          <button
-            onClick={handleSignOut}
-            className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:bg-red-500/10 transition-colors"
-          >
-            <LogOut className="w-5 h-5 text-red-500" />
-            <span className="text-red-500">Sign Out</span>
-          </button>
+          {isGuest ? (
+            <div className="bg-card border border-border rounded-xl p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <LogIn className="w-5 h-5 text-primary" />
+                <span className="text-foreground">Sign in to save your data</span>
+              </div>
+              <div className="flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => console.error('Login failed')}
+                  theme="outline"
+                  size="large"
+                  text="signin_with"
+                  shape="rectangular"
+                  use_fedcm_for_prompt={false}
+                />
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleSignOut}
+              className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:bg-red-500/10 transition-colors"
+            >
+              <LogOut className="w-5 h-5 text-red-500" />
+              <span className="text-red-500">Sign Out</span>
+            </button>
+          )}
         </div>
 
         {/* App Info */}
