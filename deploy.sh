@@ -2,8 +2,25 @@
 
 # PhotoScout Deployment Script
 # Deploys CDK infrastructure, backend Lambda functions, and web frontend
+#
+# Usage:
+#   ./deploy.sh              Run full deployment with tests
+#   ./deploy.sh --skip-tests Skip integration tests
 
 set -e  # Exit on error
+
+# Handle --help
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    echo "PhotoScout Deployment Script"
+    echo ""
+    echo "Usage: ./deploy.sh [options]"
+    echo ""
+    echo "Options:"
+    echo "  --skip-tests    Skip running integration tests before deployment"
+    echo "  --help, -h      Show this help message"
+    echo ""
+    exit 0
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -116,6 +133,30 @@ install_dependencies() {
     pnpm install
 
     log_success "Dependencies installed"
+}
+
+# Run integration tests
+run_integration_tests() {
+    log_section "Running Integration Tests"
+
+    # Check if --skip-tests flag is passed
+    if [[ "$*" == *"--skip-tests"* ]]; then
+        log_warning "Skipping integration tests (--skip-tests flag)"
+        return 0
+    fi
+
+    log_info "Running prompt integration tests..."
+
+    cd packages/api
+    if pnpm test:prompt; then
+        log_success "All integration tests passed!"
+    else
+        log_error "Integration tests failed!"
+        log_error "Fix the failing tests before deploying."
+        log_info "Run 'cd packages/api && pnpm test:prompt' to debug."
+        exit 1
+    fi
+    cd ../..
 }
 
 # Build all packages
@@ -296,6 +337,7 @@ main() {
     check_env_file
     check_prerequisites
     install_dependencies
+    run_integration_tests "$@"
     build_packages
     deploy_infrastructure
     invalidate_cloudfront_cache
@@ -307,5 +349,5 @@ main() {
     echo ""
 }
 
-# Run main function
-main
+# Run main function with all arguments
+main "$@"

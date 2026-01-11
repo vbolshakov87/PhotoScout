@@ -4,7 +4,10 @@
   "type": "module",
   "scripts": {
     "build": "esbuild src/handlers/*.ts --bundle --platform=node --target=node20 --outdir=dist --format=esm --external:@aws-sdk/* --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\" && echo '{\"type\":\"module\"}' > dist/package.json",
-    "dev": "tsx watch src/dev-server.ts"
+    "dev": "tsx watch src/dev-server.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:prompt": "vitest run src/tests/prompt.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
@@ -22,6 +25,7 @@
     "@types/uuid": "^9.0.0",
     "esbuild": "^0.19.0",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vitest": "^4.0.16"
   }
 }
