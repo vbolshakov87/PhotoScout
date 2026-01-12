@@ -1,4 +1,4 @@
-// Build: 2026-01-11-v2 - Prompt update: one question at a time
+// Build: 2026-01-11-v3 - Add plan caching
 import type { APIGatewayProxyEventV2 } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 import type { ChatRequest, Message, Plan } from '@photoscout/shared';
@@ -8,10 +8,14 @@ import {
   upsertConversation,
   savePlan,
   countSpotsInPlan,
+  getCachedPlan,
+  saveCachedPlan,
+  generateCacheKey,
 } from '../lib/dynamo';
 import { getLLMClient } from '../lib/llm-factory';
 import { generateHTML, type TripPlan } from '../lib/html-template';
 import { uploadHtmlToS3 } from '../lib/s3';
+import { extractPlanParams, mergeParams, type PlanParams } from '../lib/plan-params';
 
 // AWS Lambda streaming types
 declare const awslambda: {
@@ -126,6 +130,8 @@ async function internalHandler(
       let planDates: string | undefined;
       let spotCount = 0;
       let jsonContent: string | undefined;
+      let planInterests = '';
+      let planDuration = '';
 
       try {
         // Find JSON block even if there's surrounding text
@@ -133,12 +139,38 @@ async function internalHandler(
         if (jsonMatch) {
           jsonContent = jsonMatch[0]; // Store the raw JSON string
           const tripPlan: TripPlan = JSON.parse(jsonContent);
-          
+
           // Extract fields directly from JSON
           if (tripPlan.city) planCity = tripPlan.city;
           if (tripPlan.title) planTitle = tripPlan.title;
           if (tripPlan.dates) planDates = tripPlan.dates;
           if (tripPlan.spots) spotCount = tripPlan.spots.length;
+
+          // Extract interests and duration from conversation for caching
+          const allMessages = [...history, { content: message }];
+          let params: PlanParams = { city: null, interests: null, duration: null };
+          for (const msg of allMessages) {
+            if (msg.content) {
+              params = mergeParams(params, extractPlanParams(msg.content));
+            }
+          }
+
+          // Use extracted or fallback values
+          planInterests = params.interests || tripPlan.spots?.[0]?.tags?.join('-') || 'general';
+          planDuration = params.duration || String(Math.max(...(tripPlan.spots?.map(s => s.day) || [1])));
+
+          // Save to cache for future requests
+          const cacheKey = generateCacheKey(planCity, planInterests, planDuration);
+          console.log('[Cache] Saving plan to cache:', { cacheKey, city: planCity, interests: planInterests, duration: planDuration });
+
+          await saveCachedPlan(
+            cacheKey,
+            planCity,
+            planInterests,
+            planDuration,
+            jsonContent,
+            generatedHtml
+          );
         } else {
           // Fallback: count spots from HTML if JSON not found
           console.warn('[Chat] JSON not found in response, using HTML fallback');

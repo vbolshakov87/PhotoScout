@@ -15,8 +15,10 @@ const docClient = DynamoDBDocumentClient.from(client);
 const MESSAGES_TABLE = process.env.MESSAGES_TABLE || 'photoscout-messages';
 const CONVERSATIONS_TABLE = process.env.CONVERSATIONS_TABLE || 'photoscout-conversations';
 const PLANS_TABLE = process.env.PLANS_TABLE || 'photoscout-plans';
+const CACHE_TABLE = process.env.CACHE_TABLE || 'photoscout-cache';
 
 const TTL_DAYS = 90;
+const CACHE_TTL_DAYS = 30; // Cache plans for 30 days
 
 function getTTL(): number {
   return Math.floor(Date.now() / 1000) + TTL_DAYS * 24 * 60 * 60;
@@ -267,6 +269,102 @@ export async function deletePlan(
       },
     })
   );
+}
+
+// ============ PLAN CACHE ============
+
+export interface CachedPlan {
+  cacheKey: string;        // city-interest-duration hash
+  jsonContent: string;     // The JSON plan
+  htmlContent: string;     // Generated HTML
+  city: string;
+  interests: string;
+  duration: string;
+  createdAt: number;
+  hitCount: number;        // Track popularity
+  expiresAt: number;
+}
+
+/**
+ * Generate a cache key from plan parameters
+ * Format: city-interest-duration (normalized, lowercase)
+ */
+export function generateCacheKey(city: string, interests: string, duration: string): string {
+  const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  return `${normalize(city)}-${normalize(interests)}-${normalize(duration)}`;
+}
+
+/**
+ * Check if a cached plan exists for the given parameters
+ */
+export async function getCachedPlan(cacheKey: string): Promise<CachedPlan | null> {
+  try {
+    const result = await docClient.send(
+      new GetCommand({
+        TableName: CACHE_TABLE,
+        Key: { cacheKey },
+      })
+    );
+
+    if (result.Item) {
+      // Increment hit count asynchronously (fire and forget)
+      docClient.send(
+        new UpdateCommand({
+          TableName: CACHE_TABLE,
+          Key: { cacheKey },
+          UpdateExpression: 'SET hitCount = hitCount + :one',
+          ExpressionAttributeValues: { ':one': 1 },
+        })
+      ).catch(() => {}); // Ignore errors on hit count update
+
+      console.log(`[Cache] HIT for key: ${cacheKey}`);
+      return result.Item as CachedPlan;
+    }
+
+    console.log(`[Cache] MISS for key: ${cacheKey}`);
+    return null;
+  } catch (error) {
+    console.error('[Cache] Error checking cache:', error);
+    return null;
+  }
+}
+
+/**
+ * Save a plan to the cache
+ */
+export async function saveCachedPlan(
+  cacheKey: string,
+  city: string,
+  interests: string,
+  duration: string,
+  jsonContent: string,
+  htmlContent: string
+): Promise<void> {
+  try {
+    const ttl = Math.floor(Date.now() / 1000) + CACHE_TTL_DAYS * 24 * 60 * 60;
+
+    await docClient.send(
+      new PutCommand({
+        TableName: CACHE_TABLE,
+        Item: {
+          cacheKey,
+          city,
+          interests,
+          duration,
+          jsonContent,
+          htmlContent,
+          createdAt: Date.now(),
+          hitCount: 0,
+          expiresAt: ttl,
+        },
+      })
+    );
+
+    console.log(`[Cache] SAVED key: ${cacheKey}`);
+  } catch (error) {
+    console.error('[Cache] Error saving to cache:', error);
+    // Don't throw - caching failure shouldn't break the main flow
+  }
 }
 
 // ============ HELPERS ============

@@ -73,6 +73,15 @@ export class PhotoScoutStack extends cdk.Stack {
       partitionKey: { name: 'email', type: dynamodb.AttributeType.STRING },
     });
 
+    // Cache Table - for caching generated trip plans
+    const cacheTable = new dynamodb.Table(this, 'CacheTable', {
+      tableName: 'photoscout-cache',
+      partitionKey: { name: 'cacheKey', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      timeToLiveAttribute: 'expiresAt',
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     // ============ S3 Buckets ============
 
     // S3 Bucket for HTML Plans
@@ -111,6 +120,7 @@ export class PhotoScoutStack extends cdk.Stack {
       CONVERSATIONS_TABLE: conversationsTable.tableName,
       PLANS_TABLE: plansTable.tableName,
       USERS_TABLE: usersTable.tableName,
+      CACHE_TABLE: cacheTable.tableName,
       HTML_PLANS_BUCKET: htmlPlansBucket.bucketName,
       ANTHROPIC_API_KEY: anthropicApiKey,
       ENVIRONMENT: environment,
@@ -175,6 +185,7 @@ export class PhotoScoutStack extends cdk.Stack {
     conversationsTable.grantReadWriteData(chatFunction);
     plansTable.grantReadWriteData(chatFunction);
     usersTable.grantReadWriteData(chatFunction);
+    cacheTable.grantReadWriteData(chatFunction);
     htmlPlansBucket.grantReadWrite(chatFunction);
 
     messagesTable.grantReadData(conversationsFunction);
