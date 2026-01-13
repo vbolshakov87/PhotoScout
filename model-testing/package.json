@@ -1,0 +1,25 @@
+{
+  "name": "photoscout-model-testing",
+  "version": "1.0.0",
+  "description": "LLM model comparison testing for PhotoScout",
+  "type": "module",
+  "scripts": {
+    "test": "tsx src/runner.ts",
+    "test:all": "tsx src/runner.ts --all",
+    "test:model": "tsx src/runner.ts --model",
+    "test:case": "tsx src/runner.ts --case",
+    "report": "tsx src/report.ts",
+    "view": "open results/report.html"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@google/generative-ai": "^0.21.0",
+    "dotenv": "^17.2.3",
+    "openai": "^4.77.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
