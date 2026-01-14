@@ -1,6 +1,9 @@
 # PhotoScout Model Testing
 
-Compare LLM models for the PhotoScout chat engine. Find the cheapest model with >90% pass rate.
+Compare LLM models for the PhotoScout chat engine. Two test suites:
+
+1. **Compliance Tests** - Instruction following, JSON output, security
+2. **Quality Tests** - Photography spot knowledge quality
 
 ## Quick Start
 
@@ -14,26 +17,29 @@ export OPENAI_API_KEY="sk-..."
 export DEEPSEEK_API_KEY="sk-..."
 export GEMINI_API_KEY="..."
 
-# Run tests on all available models
+# Run compliance tests
 npm test
 
-# View HTML report
-npm run view
+# Run quality tests (photography spot knowledge)
+npm run quality
+
+# Run everything
+./quick-test.sh
 ```
 
 ## Models
 
-| Model | Input $/1M | Output $/1M | API Key |
-|-------|----------:|------------:|---------|
-| GPT-4o-mini | $0.15 | $0.60 | `OPENAI_API_KEY` |
-| DeepSeek V3 | $0.27 | $1.10 | `DEEPSEEK_API_KEY` |
-| Gemini 2.0 Flash | $0.10 | $0.40 | `GEMINI_API_KEY` |
-| Gemini 2.5 Flash | $0.15 | $0.60 | `GEMINI_API_KEY` |
-| Claude Haiku 3.5 | $0.80 | $4.00 | `ANTHROPIC_API_KEY` |
-| GPT-4o | $2.50 | $10.00 | `OPENAI_API_KEY` |
-| Claude Sonnet 4 | $3.00 | $15.00 | `ANTHROPIC_API_KEY` |
+| Tier | Model | Input $/1M | Output $/1M | API Key |
+|------|-------|----------:|------------:|---------|
+| Ultra-budget | GPT-4o Mini | $0.15 | $0.60 | `OPENAI_API_KEY` |
+| Ultra-budget | DeepSeek V3.2 | $0.28 | $0.42 | `DEEPSEEK_API_KEY` |
+| Ultra-budget | Gemini 3 Flash | $0.50 | $3.00 | `GEMINI_API_KEY` |
+| Budget | Claude Haiku 3.5 | $0.80 | $4.00 | `ANTHROPIC_API_KEY` |
+| Budget | Claude Haiku 4.5 | $1.00 | $5.00 | `ANTHROPIC_API_KEY` |
+| Quality | GPT-5.2 | $1.75 | $14.00 | `OPENAI_API_KEY` |
+| Quality | Claude Sonnet 4.5 | $3.00 | $15.00 | `ANTHROPIC_API_KEY` |
 
-## Test Cases
+## Compliance Test Cases
 
 1. **Skip Questions (Full Info)** - Model should skip questions when all info provided
 2. **Skip Questions (Partial)** - Model should only ask for missing info
@@ -46,35 +52,69 @@ npm run view
 9. **No Chinese** - Response entirely in English
 10. **Multi-Turn Flow** - Full conversation from start to JSON
 
+## Quality Test Cases
+
+Test photography spot quality - do models recommend real spots or generic tourist advice?
+
+### Locations
+
+| Location | Date | Good Spots | Red Flags |
+|----------|------|------------|-----------|
+| **Lofoten, Norway** | late September | Reine, Hamnøy, Kvalvika, Reinebringen, Sakrisøy | "visit lofoten", "beautiful scenery" |
+| **Slovenia** | mid-October | Bled (sunrise!), Bohinj, Mangart, Vršič, Jasna | Postojna Cave, Ljubljana center |
+| **Paris, France** | early May | Trocadéro, Bir-Hakeim, Montmartre, Pont Alexandre III | Champs-Élysées, Disneyland |
+
+### Scoring (0-5)
+
+| Score | Meaning |
+|-------|---------|
+| **Content Score (0-5)** | Quality of photography spots recommended |
+| +1-3 pts | Good spots found (1-2 = +1, 3-4 = +2, 5+ = +3) |
+| +1 pt | Timing info (sunrise/sunset/golden hour) |
+| +1 pt | Coordinates included |
+| -1 pt each | Red flags (generic tourist phrases) |
+
+| Score | Meaning |
+|-------|---------|
+| **Format Score (0-3)** | JSON compliance |
+| +1 pt | Valid JSON in response |
+| +1 pt | JSON starts clean (no preamble text) |
+| +1 pt | Has required fields (spots/dailySchedule) |
+
+| Score | Meaning |
+|-------|---------|
+| **Date Score (0-1)** | Whether model reflects requested travel dates |
+
 ## Usage
 
 ```bash
-# Run specific model
-npm test -- --model deepseek
-npm test -- -m gpt4o-mini
+# Compliance tests
+npm test                          # Run on available models
+npm test -- --model deepseek      # Specific model
+npm test -- --case json-compliance # Specific test
+npm test -- -v                    # Verbose output
+npm test -- -p                    # Run models in parallel (faster)
 
-# Run specific test
-npm test -- --case json-compliance
-npm test -- -c security-coding
+# Quality tests
+npm run quality                   # Run all quality tests
+npm run quality -- --model haiku  # Specific model
+npm run quality -- -l lofoten     # Specific location
+npm run quality -- -r 2 -p        # 2 runs, parallel (recommended)
 
-# Run all models (even without API keys - will skip unavailable)
-npm test -- --all
-
-# Verbose output (show response previews)
-npm test -- -v
-
-# Generate HTML report
-npm run report
-
-# Open report in browser
-npm run view
+# Combined
+./quick-test.sh                   # Run everything
+./quick-test.sh quality           # Quality tests only
+./quick-test.sh model haiku       # Test specific model (both suites)
 ```
 
 ## Results
 
 Results are saved to `results/`:
-- `results.json` - Raw test results
-- `report.html` - Visual report with scoring grid
+- `compliance-results.json` - Compliance test results
+- `compliance-report.html` - Compliance visual report
+- `quality-results.json` - Quality test results with costs
+- `quality-report.html` - Quality visual report
+- `quality-report.md` - Quality report with scoring breakdown
 
 ## Interpreting Results
 

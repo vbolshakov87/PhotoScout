@@ -35,7 +35,7 @@ function generateHTML(results: TestSuiteResult): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PhotoScout Model Testing Results</title>
+  <title>PhotoScout Compliance Test Results</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -223,7 +223,7 @@ function generateHTML(results: TestSuiteResult): string {
 </head>
 <body>
   <div class="container">
-    <h1>PhotoScout Model Testing Results</h1>
+    <h1>PhotoScout Compliance Test Results</h1>
     <p class="subtitle">
       Generated: ${new Date(timestamp).toLocaleString()} |
       Duration: ${(duration / 1000).toFixed(1)}s |
@@ -384,8 +384,8 @@ function getRecommendation(models: ModelSummary[]): string {
 }
 
 async function main() {
-  const resultsPath = new URL('../results/results.json', import.meta.url).pathname;
-  const reportPath = new URL('../results/report.html', import.meta.url).pathname;
+  const resultsPath = new URL('../results/compliance-results.json', import.meta.url).pathname;
+  const reportPath = new URL('../results/compliance-report.html', import.meta.url).pathname;
 
   if (!existsSync(resultsPath)) {
     console.error('No results found. Run tests first: npm test');

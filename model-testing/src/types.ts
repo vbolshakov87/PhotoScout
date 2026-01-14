@@ -3,10 +3,13 @@
 export interface ModelConfig {
   id: string;
   name: string;
-  provider: 'anthropic' | 'openai' | 'deepseek' | 'google';
+  provider: 'openai' | 'anthropic' | 'google' | 'deepseek';
   apiModel: string;
   inputCostPer1M: number;
   outputCostPer1M: number;
+  tier: 'ultra-budget' | 'budget' | 'quality';
+  notes?: string;
+  enabled?: boolean; // default true, set false to skip in tests
 }
 
 export interface Message {

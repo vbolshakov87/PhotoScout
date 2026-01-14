@@ -60,11 +60,12 @@ function logHeader(msg: string) {
 }
 
 // Parse CLI arguments
-function parseArgs(): { models: string[]; tests: string[]; verbose: boolean } {
+function parseArgs(): { models: string[]; tests: string[]; verbose: boolean; parallel: boolean } {
   const args = process.argv.slice(2);
   let models: string[] = [];
   let tests: string[] = [];
   let verbose = false;
+  let parallel = false;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -78,15 +79,17 @@ function parseArgs(): { models: string[]; tests: string[]; verbose: boolean } {
       models = MODELS.map(m => m.id);
     } else if (arg === '--verbose' || arg === '-v') {
       verbose = true;
+    } else if (arg === '--parallel' || arg === '-p') {
+      parallel = true;
     } else if (arg === '--help' || arg === '-h') {
       printHelp();
       process.exit(0);
     }
   }
 
-  // Default: run all available models if none specified
+  // Default: run all enabled and available models if none specified
   if (models.length === 0) {
-    models = MODELS.filter(m => isModelAvailable(m)).map(m => m.id);
+    models = MODELS.filter(m => m.enabled !== false && isModelAvailable(m)).map(m => m.id);
   }
 
   // Default: run all tests if none specified
@@ -94,12 +97,12 @@ function parseArgs(): { models: string[]; tests: string[]; verbose: boolean } {
     tests = TEST_CASES.map(t => t.id);
   }
 
-  return { models, tests, verbose };
+  return { models, tests, verbose, parallel };
 }
 
 function printHelp() {
   console.log(`
-PhotoScout Model Testing
+PhotoScout Compliance Testing
 
 Usage:
   npm test                    Run all tests on available models
@@ -107,6 +110,14 @@ Usage:
   npm test -- --model deepseek Run tests on specific model
   npm test -- --case json-compliance Run specific test
   npm test -- -v              Verbose output
+  npm test -- -p              Run models in parallel (faster)
+
+Options:
+  -m, --model <id>      Test specific model
+  -c, --case <id>       Run specific test case
+  -a, --all             Run all models (even without API keys)
+  -v, --verbose         Show response previews
+  -p, --parallel        Run models in parallel
 
 Models:
   ${MODELS.map(m => `${m.id.padEnd(15)} ${m.name}`).join('\n  ')}
@@ -311,7 +322,7 @@ function saveResults(result: TestSuiteResult) {
   }
 
   // Save JSON results
-  const jsonPath = `${resultsDir}/results.json`;
+  const jsonPath = `${resultsDir}/compliance-results.json`;
   writeFileSync(jsonPath, JSON.stringify(result, null, 2));
   logInfo(`Results saved to ${jsonPath}`);
 
@@ -320,12 +331,32 @@ function saveResults(result: TestSuiteResult) {
   writeFileSync(latestPath, result.timestamp);
 }
 
+// Run all tests for a model (for parallel execution - no logging)
+async function runModelTestsQuiet(
+  model: ModelConfig,
+  tests: TestCase[],
+  verbose: boolean
+): Promise<ModelTestResult[]> {
+  const results: ModelTestResult[] = [];
+
+  if (!isModelAvailable(model)) {
+    return results;
+  }
+
+  for (const test of tests) {
+    const result = await runTest(model, test, verbose);
+    results.push(result);
+  }
+
+  return results;
+}
+
 // Main
 async function main() {
-  const { models, tests, verbose } = parseArgs();
+  const { models, tests, verbose, parallel } = parseArgs();
 
-  log(`\n${colors.bold}PhotoScout Model Testing${colors.reset}`);
-  log(`${colors.dim}Testing ${models.length} model(s) with ${tests.length} test(s)${colors.reset}\n`);
+  log(`\n${colors.bold}PhotoScout Compliance Testing${colors.reset}`);
+  log(`${colors.dim}Testing ${models.length} model(s) with ${tests.length} test(s)${parallel ? ' (parallel)' : ''}${colors.reset}\n`);
 
   // Check available API keys
   const availableModels = MODELS.filter(m => models.includes(m.id));
@@ -336,21 +367,58 @@ async function main() {
   }
 
   const startTime = Date.now();
-  const allResults: ModelTestResult[] = [];
+  let allResults: ModelTestResult[] = [];
 
   // Get test cases
   const testCases = tests.map(id => getTestById(id)).filter((t): t is TestCase => t !== undefined);
 
-  // Run tests for each model
-  for (const modelId of models) {
-    const model = MODELS.find(m => m.id === modelId);
-    if (!model) {
-      logInfo(`Unknown model: ${modelId}`);
-      continue;
-    }
+  // Get available models to test
+  const modelsToTest = models
+    .map(id => MODELS.find(m => m.id === id))
+    .filter((m): m is ModelConfig => m !== undefined && isModelAvailable(m));
 
-    const results = await runModelTests(model, testCases, verbose);
-    allResults.push(...results);
+  if (parallel) {
+    // Run all models in parallel
+    log(`${colors.cyan}ℹ${colors.reset} Running ${modelsToTest.length} models in parallel...`);
+
+    const allPromises = modelsToTest.map(async (model) => {
+      const results = await runModelTestsQuiet(model, testCases, verbose);
+      return { model, results };
+    });
+
+    const parallelResults = await Promise.all(allPromises);
+
+    // Print results after all complete
+    for (const { model, results } of parallelResults) {
+      logHeader(`${model.name}`);
+      for (const result of results) {
+        if (result.error) {
+          log(`  ${result.testName}: ${colors.red}ERROR${colors.reset} - ${result.error}`);
+        } else if (result.passed) {
+          log(`  ${result.testName}: ${colors.green}✓${colors.reset} ${(result.score * 100).toFixed(0)}% (${result.latencyMs}ms)`);
+        } else {
+          log(`  ${result.testName}: ${colors.red}✗${colors.reset} ${(result.score * 100).toFixed(0)}% (${result.latencyMs}ms)`);
+          for (const check of result.checks) {
+            if (!check.passed) {
+              log(`    ${colors.red}✗${colors.reset} ${check.name}${check.details ? ` - ${check.details}` : ''}`);
+            }
+          }
+        }
+      }
+      allResults.push(...results);
+    }
+  } else {
+    // Run sequentially
+    for (const modelId of models) {
+      const model = MODELS.find(m => m.id === modelId);
+      if (!model) {
+        logInfo(`Unknown model: ${modelId}`);
+        continue;
+      }
+
+      const results = await runModelTests(model, testCases, verbose);
+      allResults.push(...results);
+    }
   }
 
   // Calculate summaries

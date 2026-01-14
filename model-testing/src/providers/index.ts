@@ -55,19 +55,21 @@ function getGoogleClient(): GoogleGenerativeAI {
 
 export async function queryModel(
   model: ModelConfig,
-  messages: Message[]
+  messages: Message[],
+  customSystemPrompt?: string
 ): Promise<LLMResponse> {
   const start = Date.now();
+  const systemPrompt = customSystemPrompt ?? SYSTEM_PROMPT;
 
   switch (model.provider) {
     case 'anthropic':
-      return queryAnthropic(model, messages, start);
+      return queryAnthropic(model, messages, start, systemPrompt);
     case 'openai':
-      return queryOpenAI(model, messages, start);
+      return queryOpenAI(model, messages, start, systemPrompt);
     case 'deepseek':
-      return queryDeepSeek(model, messages, start);
+      return queryDeepSeek(model, messages, start, systemPrompt);
     case 'google':
-      return queryGoogle(model, messages, start);
+      return queryGoogle(model, messages, start, systemPrompt);
     default:
       throw new Error(`Unknown provider: ${model.provider}`);
   }
@@ -76,14 +78,15 @@ export async function queryModel(
 async function queryAnthropic(
   model: ModelConfig,
   messages: Message[],
-  start: number
+  start: number,
+  systemPrompt: string
 ): Promise<LLMResponse> {
   const client = getAnthropicClient();
 
   const response = await client.messages.create({
     model: model.apiModel,
     max_tokens: 4096,
-    system: SYSTEM_PROMPT,
+    system: systemPrompt,
     messages: messages.map((m) => ({
       role: m.role,
       content: m.content,
@@ -105,15 +108,19 @@ async function queryAnthropic(
 async function queryOpenAI(
   model: ModelConfig,
   messages: Message[],
-  start: number
+  start: number,
+  systemPrompt: string
 ): Promise<LLMResponse> {
   const client = getOpenAIClient();
 
+  // GPT-5.x models require max_completion_tokens instead of max_tokens
+  const isGpt5 = model.apiModel.startsWith('gpt-5');
+
   const response = await client.chat.completions.create({
     model: model.apiModel,
-    max_tokens: 4096,
+    ...(isGpt5 ? { max_completion_tokens: 4096 } : { max_tokens: 4096 }),
     messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: systemPrompt },
       ...messages.map((m) => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
@@ -135,7 +142,8 @@ async function queryOpenAI(
 async function queryDeepSeek(
   model: ModelConfig,
   messages: Message[],
-  start: number
+  start: number,
+  systemPrompt: string
 ): Promise<LLMResponse> {
   const client = getDeepSeekClient();
 
@@ -144,7 +152,7 @@ async function queryDeepSeek(
     max_tokens: 4096,
     temperature: 0.7,
     messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: systemPrompt },
       ...messages.map((m) => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
@@ -166,12 +174,13 @@ async function queryDeepSeek(
 async function queryGoogle(
   model: ModelConfig,
   messages: Message[],
-  start: number
+  start: number,
+  systemPrompt: string
 ): Promise<LLMResponse> {
   const client = getGoogleClient();
   const genModel = client.getGenerativeModel({
     model: model.apiModel,
-    systemInstruction: SYSTEM_PROMPT,
+    systemInstruction: systemPrompt,
   });
 
   // Convert messages to Gemini format
