@@ -24,8 +24,7 @@ export async function verifyGoogleToken(idToken: string): Promise<{
   try {
     const ticket = await googleClient.verifyIdToken({
       idToken,
-      // Note: In production, you should specify your Google Client ID here
-      // audience: process.env.GOOGLE_CLIENT_ID,
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();

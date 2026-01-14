@@ -4,17 +4,13 @@ import type {
 } from 'aws-lambda';
 import { listPlans, getPlan, deletePlan } from '../lib/dynamo';
 import { downloadHtmlFromS3 } from '../lib/s3';
-
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+import { getCorsHeaders } from '../lib/cors';
 
 export async function handler(
   event: APIGatewayProxyEventV2
 ): Promise<APIGatewayProxyResultV2> {
+  const corsHeaders = getCorsHeaders(event.headers.origin, 'GET, DELETE, OPTIONS');
+
   if (event.requestContext.http.method === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
@@ -35,7 +31,7 @@ export async function handler(
 
     // GET /plans - List all plans (without HTML content)
     if (path === '/api/plans' && method === 'GET') {
-      const limit = parseInt(event.queryStringParameters?.limit || '20');
+      const limit = Math.min(Math.max(parseInt(event.queryStringParameters?.limit || '20') || 20, 1), 100);
       const cursor = event.queryStringParameters?.cursor;
 
       const result = await listPlans(visitorId, limit, cursor);
@@ -113,7 +109,7 @@ export async function handler(
         statusCode: 200,
         headers: {
           'Content-Type': 'text/html',
-          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Origin': corsHeaders['Access-Control-Allow-Origin'],
         },
         body: htmlContent,
       };

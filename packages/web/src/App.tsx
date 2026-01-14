@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { ChatPage } from './pages/ChatPage';
 import { ConversationPage } from './pages/ConversationPage';
 import { TripsPage } from './pages/TripsPage';
@@ -131,7 +132,9 @@ function App() {
     <GoogleOAuthProvider clientId={googleClientId}>
       <AuthProvider>
         <BrowserRouter>
-          <AppContent />
+          <ErrorBoundary>
+            <AppContent />
+          </ErrorBoundary>
         </BrowserRouter>
       </AuthProvider>
     </GoogleOAuthProvider>

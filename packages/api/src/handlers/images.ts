@@ -3,17 +3,15 @@ import type {
   APIGatewayProxyResultV2,
 } from 'aws-lambda';
 import { getCityImageUrl, getCachedCityImages, preGenerateAllCityImages, TOP_DESTINATIONS, TOP_CITIES, TOP_NATURE_REGIONS } from '../lib/imagen';
+import { getCorsHeaders } from '../lib/cors';
 
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
 
 export async function handler(
   event: APIGatewayProxyEventV2
 ): Promise<APIGatewayProxyResultV2> {
+  const corsHeaders = getCorsHeaders(event.headers.origin, 'GET, POST, OPTIONS');
+
   if (event.requestContext.http.method === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
@@ -82,7 +80,16 @@ export async function handler(
 
     // POST /api/images/generate-all - Pre-generate all city images (admin endpoint)
     if (path === '/api/images/generate-all' && method === 'POST') {
-      // This should be protected in production
+      // Verify admin API key
+      const providedKey = event.headers['x-admin-key'] || event.headers['X-Admin-Key'];
+      if (!ADMIN_API_KEY || providedKey !== ADMIN_API_KEY) {
+        return {
+          statusCode: 403,
+          headers: corsHeaders,
+          body: JSON.stringify({ error: 'Forbidden: Invalid or missing admin key' }),
+        };
+      }
+
       const result = await preGenerateAllCityImages();
       return {
         statusCode: 200,

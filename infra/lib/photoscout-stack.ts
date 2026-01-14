@@ -112,6 +112,10 @@ export class PhotoScoutStack extends cdk.Stack {
     const deepseekApiKey = process.env.DEEPSEEK_API_KEY;
     // Optional: Google API key for image generation
     const googleApiKey = process.env.GOOGLE_API_KEY;
+    // Google OAuth Client ID (for token validation)
+    const googleClientId = process.env.GOOGLE_CLIENT_ID;
+    // Admin API key (for protected endpoints like image generation)
+    const adminApiKey = process.env.ADMIN_API_KEY;
     const environment = process.env.ENVIRONMENT || 'production';
 
     // Will add CLOUDFRONT_DOMAIN after distribution is created
@@ -134,6 +138,16 @@ export class PhotoScoutStack extends cdk.Stack {
     // Add Google API key if available (for image generation)
     if (googleApiKey) {
       lambdaEnvironment.GOOGLE_API_KEY = googleApiKey;
+    }
+
+    // Add Google Client ID if available (for OAuth token validation)
+    if (googleClientId) {
+      lambdaEnvironment.GOOGLE_CLIENT_ID = googleClientId;
+    }
+
+    // Add Admin API key if available (for protected admin endpoints)
+    if (adminApiKey) {
+      lambdaEnvironment.ADMIN_API_KEY = adminApiKey;
     }
 
     // Hardcode CloudFront domain to avoid circular dependency

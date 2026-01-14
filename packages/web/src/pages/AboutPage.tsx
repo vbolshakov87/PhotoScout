@@ -1,13 +1,5 @@
-import { ArrowLeft, ExternalLink, Mail, Shield, FileText, Camera } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Mail, Shield, FileText, Camera, Sparkles, MapPin, Sun, Route } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-
-// Portfolio photos from vbolshakov.photo
-const portfolioImages = [
-  'https://d2xkwrs8ekvgk2.cloudfront.net/w_600,h_400,f_webp,q_90,t_r/germany/DSC_4697-Edit.jpg',
-  'https://d2xkwrs8ekvgk2.cloudfront.net/w_600,h_400,f_webp,q_90,t_r/norway/_DSC5882-Pano-Edit.jpg',
-  'https://d2xkwrs8ekvgk2.cloudfront.net/w_600,h_400,f_webp,q_90,t_r/japan/DSC_6100.jpg',
-  'https://d2xkwrs8ekvgk2.cloudfront.net/w_600,h_400,f_webp,q_90,t_r/norway/_DSC6030-Edit.jpg',
-];
 
 export function AboutPage() {
   const navigate = useNavigate();
@@ -19,16 +11,11 @@ export function AboutPage() {
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 press">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
-        <img
-          src="https://aiscout.photo/city-images/appicon.png"
-          alt="PhotoScout"
-          className="w-8 h-8 rounded-lg"
-        />
         <h1 className="text-lg font-semibold text-foreground">About</h1>
       </header>
 
       <div className="p-4 space-y-6">
-        {/* App Info */}
+        {/* App Info with Beta Badge */}
         <div className="flex items-center justify-center gap-4 py-4">
           <img
             src="https://aiscout.photo/city-images/appicon.png"
@@ -36,9 +23,29 @@ export function AboutPage() {
             className="w-16 h-16 rounded-2xl shadow-lg"
           />
           <div>
-            <h2 className="text-xl font-bold text-foreground">PhotoScout</h2>
-            <p className="text-muted text-sm">Version 1.0.0</p>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-foreground">PhotoScout</h2>
+              <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs font-semibold rounded-full">
+                BETA
+              </span>
+            </div>
+            <p className="text-muted text-sm">AI Photo Trip Planner</p>
           </div>
+        </div>
+
+        {/* Beta Notice */}
+        <div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
+          <p className="text-foreground text-sm leading-relaxed">
+            <strong>Welcome to the PhotoScout beta!</strong> We're actively developing new features
+            and improving the experience. Your feedback helps us build a better app for photographers.
+          </p>
+          <a
+            href="mailto:feedback@aiscout.photo"
+            className="inline-flex items-center gap-1 text-primary text-sm font-medium mt-2"
+          >
+            <Mail className="w-4 h-4" />
+            Send Feedback
+          </a>
         </div>
 
         {/* Description */}
@@ -50,22 +57,31 @@ export function AboutPage() {
           </p>
         </div>
 
-        {/* Photo Gallery */}
+        {/* Key Features */}
         <div>
-          <h3 className="text-sm font-medium text-muted mb-3">Sample Photography</h3>
-          <div className="grid grid-cols-2 gap-2 rounded-xl overflow-hidden">
-            {portfolioImages.map((img, index) => (
-              <img
-                key={index}
-                src={img}
-                alt={`Sample photo ${index + 1}`}
-                className="w-full h-24 object-cover"
-              />
-            ))}
+          <h3 className="text-sm font-medium text-muted mb-3">Key Features</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-card border border-border rounded-xl p-3">
+              <MapPin className="w-5 h-5 text-primary mb-2" />
+              <p className="text-foreground text-sm font-medium">Location Discovery</p>
+              <p className="text-muted text-xs">Find hidden gems and iconic spots</p>
+            </div>
+            <div className="bg-card border border-border rounded-xl p-3">
+              <Sun className="w-5 h-5 text-primary mb-2" />
+              <p className="text-foreground text-sm font-medium">Optimal Timing</p>
+              <p className="text-muted text-xs">Golden hour & blue hour planning</p>
+            </div>
+            <div className="bg-card border border-border rounded-xl p-3">
+              <Route className="w-5 h-5 text-primary mb-2" />
+              <p className="text-foreground text-sm font-medium">Trip Planning</p>
+              <p className="text-muted text-xs">Day-by-day itineraries</p>
+            </div>
+            <div className="bg-card border border-border rounded-xl p-3">
+              <Sparkles className="w-5 h-5 text-primary mb-2" />
+              <p className="text-foreground text-sm font-medium">AI Recommendations</p>
+              <p className="text-muted text-xs">Personalized for your style</p>
+            </div>
           </div>
-          <p className="text-xs text-muted/60 text-center mt-2">
-            Photos by Vladimir Bolshakov
-          </p>
         </div>
 
         {/* Links */}
@@ -93,7 +109,7 @@ export function AboutPage() {
           </Link>
 
           <a
-            href="mailto:support@photoscout.app"
+            href="mailto:support@aiscout.photo"
             className="flex items-center justify-between px-4 py-3 press"
           >
             <div className="flex items-center gap-3">
@@ -109,28 +125,19 @@ export function AboutPage() {
           <div className="flex items-center gap-3">
             <Camera className="w-8 h-8 text-primary" />
             <div className="flex-1">
-              <p className="text-foreground font-medium text-sm">Created by Vladimir Bolshakov</p>
-              <p className="text-muted text-xs">Landscape & Travel Photographer</p>
+              <p className="text-foreground font-medium text-sm">Built by photographers, for photographers</p>
+              <p className="text-muted text-xs">Created with passion for visual storytelling</p>
             </div>
           </div>
-          <a
-            href="https://vbolshakov.photo"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 flex items-center justify-center gap-2 py-2 px-4 bg-primary/10 text-primary rounded-lg text-sm font-medium"
-          >
-            View Portfolio
-            <ExternalLink className="w-4 h-4" />
-          </a>
         </div>
 
         {/* Credits */}
         <div className="text-center py-4">
           <p className="text-muted text-xs">
-            Made with ❤️ for photographers
+            Made with care for the photography community
           </p>
           <p className="text-muted text-xs mt-1">
-            © 2026 PhotoScout. All rights reserved.
+            © 2026 PhotoScout (Beta). All rights reserved.
           </p>
         </div>
       </div>

@@ -8,17 +8,13 @@ import {
   getConversationMessages,
   deleteConversation,
 } from '../lib/dynamo';
-
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+import { getCorsHeaders } from '../lib/cors';
 
 export async function handler(
   event: APIGatewayProxyEventV2
 ): Promise<APIGatewayProxyResultV2> {
+  const corsHeaders = getCorsHeaders(event.headers.origin, 'GET, DELETE, OPTIONS');
+
   if (event.requestContext.http.method === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
@@ -39,7 +35,7 @@ export async function handler(
 
     // GET /conversations - List all conversations
     if (path === '/api/conversations' && method === 'GET') {
-      const limit = parseInt(event.queryStringParameters?.limit || '20');
+      const limit = Math.min(Math.max(parseInt(event.queryStringParameters?.limit || '20') || 20, 1), 100);
       const cursor = event.queryStringParameters?.cursor;
 
       const result = await listConversations(visitorId, limit, cursor);

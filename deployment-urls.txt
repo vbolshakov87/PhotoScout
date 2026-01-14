@@ -1,10 +1,9 @@
 PhotoScout Deployment URLs
-Generated: Tue Jan 14 2026
+Generated: Wed Jan 14 22:45:05 CET 2026
 
-Web App: https://aiscout.photo
-Legacy URL: https://d2mpt2trz11kx7.cloudfront.net (still works)
+Web App: https://d2mpt2trz11kx7.cloudfront.net
 Chat API: https://ukxa7eu5rks24eoeb445lzzhoi0lsgjj.lambda-url.eu-central-1.on.aws/
 
 iOS Configuration:
 Update ios/PhotoScout/PhotoScout/Config.swift with:
-static let apiBaseURL = "https://aiscout.photo"
+static let apiBaseURL = "https://d2mpt2trz11kx7.cloudfront.net"

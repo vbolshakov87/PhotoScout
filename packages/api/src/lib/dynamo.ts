@@ -24,6 +24,26 @@ function getTTL(): number {
   return Math.floor(Date.now() / 1000) + TTL_DAYS * 24 * 60 * 60;
 }
 
+/**
+ * Safely parse a pagination cursor
+ * Returns undefined if cursor is invalid to prevent injection attacks
+ */
+function parseCursor(cursor: string): Record<string, any> | undefined {
+  try {
+    const decoded = Buffer.from(cursor, 'base64').toString();
+    const parsed = JSON.parse(decoded);
+    // Validate it's a plain object with expected DynamoDB key structure
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      console.warn('[Dynamo] Invalid cursor format: not an object');
+      return undefined;
+    }
+    return parsed;
+  } catch (error) {
+    console.warn('[Dynamo] Failed to parse cursor:', error);
+    return undefined;
+  }
+}
+
 // ============ MESSAGES ============
 
 export async function saveMessage(message: Message): Promise<void> {
@@ -137,7 +157,7 @@ export async function listConversations(
       },
       ScanIndexForward: false,
       Limit: limit,
-      ...(cursor && { ExclusiveStartKey: JSON.parse(Buffer.from(cursor, 'base64').toString()) }),
+      ...(cursor && { ExclusiveStartKey: parseCursor(cursor) }),
     })
   );
 
@@ -223,7 +243,7 @@ export async function listPlans(
       ProjectionExpression: 'planId, visitorId, conversationId, createdAt, city, title, dates, spotCount, htmlUrl, htmlContent, jsonContent',
       ScanIndexForward: false,
       Limit: limit,
-      ...(cursor && { ExclusiveStartKey: JSON.parse(Buffer.from(cursor, 'base64').toString()) }),
+      ...(cursor && { ExclusiveStartKey: parseCursor(cursor) }),
     })
   );
 

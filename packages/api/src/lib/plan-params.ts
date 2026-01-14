@@ -100,13 +100,6 @@ export function extractPlanParams(message: string): PlanParams {
 }
 
 /**
- * Check if we have all parameters needed for caching
- */
-export function hasAllParams(params: PlanParams): boolean {
-  return !!(params.city && params.interests && params.duration);
-}
-
-/**
  * Merge parameters from multiple messages (conversation history)
  */
 export function mergeParams(existing: PlanParams, newParams: PlanParams): PlanParams {

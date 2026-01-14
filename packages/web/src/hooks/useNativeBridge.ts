@@ -16,7 +16,7 @@ export function useNativeBridge() {
     if (!postNativeMessage({ action: 'share', payload: { content, title } })) {
       // Fallback to Web Share API
       if (navigator.share) {
-        navigator.share({ title, text: content }).catch(() => {});
+        navigator.share({ title, text: content }).catch((e) => console.warn('Share failed:', e));
       }
     }
   }, []);
@@ -27,7 +27,7 @@ export function useNativeBridge() {
 
   const copyToClipboard = useCallback((text: string) => {
     if (!postNativeMessage({ action: 'copyToClipboard', payload: { text } })) {
-      navigator.clipboard.writeText(text).catch(() => {});
+      navigator.clipboard.writeText(text).catch((e) => console.warn('Clipboard write failed:', e));
     }
   }, []);
 

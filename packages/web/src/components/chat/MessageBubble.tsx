@@ -4,7 +4,7 @@ import { useNativeBridge } from '../../hooks/useNativeBridge';
 import { Share2, Copy, Check, ArrowRight, Send } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 
 interface SuggestionOption {
   emoji?: string;
@@ -60,7 +60,7 @@ function parseSuggestions(content: string): { cleanContent: string; suggestions:
   };
 }
 
-export function MessageBubble({ message, onSend, onSuggest, isLastMessage }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({ message, onSend, onSuggest, isLastMessage }: MessageBubbleProps) {
   const { share, copyToClipboard, haptic } = useNativeBridge();
   const [copied, setCopied] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -250,4 +250,4 @@ export function MessageBubble({ message, onSend, onSuggest, isLastMessage }: Mes
       )}
     </div>
   );
-}
+});

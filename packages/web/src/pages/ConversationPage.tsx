@@ -12,6 +12,7 @@ export function ConversationPage() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadConversation() {
@@ -22,10 +23,14 @@ export function ConversationPage() {
         const response = await fetch(
           `${API_BASE}/conversations/${conversationId}?visitorId=${visitorId}`
         );
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
         const data = await response.json();
         setMessages(data.messages);
       } catch (error) {
         console.error('Failed to load conversation:', error);
+        setError('Failed to load conversation');
       } finally {
         setIsLoading(false);
       }
@@ -38,6 +43,20 @@ export function ConversationPage() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+        <p className="text-red-400 mb-4">{error}</p>
+        <button
+          onClick={() => window.history.back()}
+          className="px-4 py-2 bg-card border border-border rounded-lg text-sm"
+        >
+          Go Back
+        </button>
       </div>
     );
   }

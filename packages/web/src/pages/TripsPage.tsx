@@ -60,7 +60,7 @@ export function TripsPage() {
                       setCityImages(prev => ({ ...prev, [city]: data.imageUrl }));
                     }
                   })
-                  .catch(() => {}); // Silently fail
+                  .catch((e) => console.warn(`Failed to load image for ${city}:`, e));
               });
             }
           } catch {
