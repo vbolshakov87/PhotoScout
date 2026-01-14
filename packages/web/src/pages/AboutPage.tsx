@@ -29,14 +29,16 @@ export function AboutPage() {
 
       <div className="p-4 space-y-6">
         {/* App Info */}
-        <div className="flex flex-col items-center py-4">
+        <div className="flex items-center justify-center gap-4 py-4">
           <img
             src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
             alt="PhotoScout"
-            className="w-20 h-20 rounded-2xl shadow-lg mb-4"
+            className="w-16 h-16 rounded-2xl shadow-lg"
           />
-          <h2 className="text-xl font-bold text-foreground">PhotoScout</h2>
-          <p className="text-muted text-sm">Version 1.0.0</p>
+          <div>
+            <h2 className="text-xl font-bold text-foreground">PhotoScout</h2>
+            <p className="text-muted text-sm">Version 1.0.0</p>
+          </div>
         </div>
 
         {/* Description */}

@@ -110,6 +110,17 @@ export function LoginPage() {
           <Link to="/privacy" className="text-white/90 hover:text-white underline">Privacy Policy</Link>
         </p>
 
+        {/* About and Examples links */}
+        <div className="flex items-center justify-center gap-4 mt-4">
+          <Link to="/about" className="text-sm text-white/70 hover:text-white transition-colors">
+            About
+          </Link>
+          <span className="text-white/30">·</span>
+          <Link to="/examples" className="text-sm text-white/70 hover:text-white transition-colors">
+            Examples
+          </Link>
+        </div>
+
         {/* Photo credit */}
         <p className="text-xs text-white/40 mt-4">
           Photos by Vladimir Bolshakov

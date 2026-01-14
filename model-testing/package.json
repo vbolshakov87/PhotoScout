@@ -8,8 +8,12 @@
     "test:all": "tsx src/runner.ts --all",
     "test:model": "tsx src/runner.ts --model",
     "test:case": "tsx src/runner.ts --case",
+    "quality": "tsx src/quality-runner.ts",
+    "quality:model": "tsx src/quality-runner.ts --model",
+    "quality:location": "tsx src/quality-runner.ts --location",
     "report": "tsx src/report.ts",
-    "view": "open results/report.html"
+    "view": "open results/report.html",
+    "view:quality": "open results/quality-report.md"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

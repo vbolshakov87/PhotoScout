@@ -8,6 +8,7 @@ import { HistoryPage } from './pages/HistoryPage';
 import { LoginPage } from './pages/LoginPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AboutPage } from './pages/AboutPage';
+import { ExamplesPage } from './pages/ExamplesPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
 import { BottomNav } from './components/navigation/BottomNav';
@@ -97,6 +98,7 @@ function AppContent() {
             }
           />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/examples" element={<ExamplesPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
         </Routes>

@@ -1,0 +1,25 @@
+# PhotoScout - AI Photo Trip Planner
+# https://aiscout.photo
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://aiscout.photo/sitemap.xml
+
+# Crawl-delay for politeness
+Crawl-delay: 1
+
+# Block API endpoints from indexing
+Disallow: /api/
+Disallow: /plans/
+
+# Allow social media bots for link previews
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /

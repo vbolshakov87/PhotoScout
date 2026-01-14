@@ -1,11 +1,67 @@
-# PhotoScout 📷
+# AI Scout 📷
 
 AI-powered photo trip planning assistant with native iOS app and web interface. Plan stunning photography trips to 94 destinations worldwide with personalized AI recommendations.
 
 ## Live Demo
 
-- **Web App**: https://d2mpt2trz11kx7.cloudfront.net
-- **iOS App**: Available on App Store
+- **Web App**: https://aiscout.photo
+- **iOS App**: Coming soon to App Store
+
+---
+
+## 📋 Project Roadmap
+
+See **[docs/TODO.md](docs/TODO.md)** for prioritized tasks and launch checklist.
+
+**Current Priorities:**
+1. Prompt quality improvements (seasonal tips, local insights)
+2. Add spot images to trip plans (Unsplash API)
+3. Improve destination image quality
+
+---
+
+## 🔗 Third-Party Service Consoles
+
+Quick links to manage external integrations:
+
+| Service | Console | What to Configure |
+|---------|---------|-------------------|
+| **Google OAuth** | [Google Cloud Console](https://console.cloud.google.com/apis/credentials) | OAuth 2.0 Client ID, Authorized domains, Redirect URIs |
+| **Google Analytics** | [GA4 Admin](https://analytics.google.com/) | Get Measurement ID (G-XXXXXXXXXX), Configure events |
+| **Google Imagen** | [Vertex AI Console](https://console.cloud.google.com/vertex-ai) | Enable API, Check quotas, Billing |
+| **Anthropic Claude** | [Anthropic Console](https://console.anthropic.com/) | API keys, Usage & billing |
+| **DeepSeek** | [DeepSeek Platform](https://platform.deepseek.com/) | Cheaper LLM alternative (~$0.14/1M tokens vs $3) |
+| **AWS Console** | [AWS Console](https://console.aws.amazon.com/) | Lambda, DynamoDB, S3, CloudFront |
+| **Route 53** | [Route 53 Console](https://console.aws.amazon.com/route53/) | DNS records for aiscout.photo |
+| **ACM Certificates** | [ACM Console](https://us-east-1.console.aws.amazon.com/acm/) | SSL certificates (must be us-east-1) |
+
+### Configuration Checklist
+
+```bash
+# Google OAuth - Update authorized domains:
+# 1. Go to Google Cloud Console → APIs & Services → Credentials
+# 2. Edit OAuth 2.0 Client ID
+# 3. Add to Authorized JavaScript origins:
+#    - https://aiscout.photo
+#    - https://www.aiscout.photo
+# 4. Add to Authorized redirect URIs:
+#    - https://aiscout.photo
+#    - https://aiscout.photo/auth/callback
+
+# Google Analytics - Get Measurement ID:
+# 1. Go to analytics.google.com
+# 2. Admin → Data Streams → Web
+# 3. Copy Measurement ID (G-XXXXXXXXXX)
+# 4. Update packages/web/index.html
+
+# Google Imagen - Check/Increase Quota:
+# 1. Go to Vertex AI Console
+# 2. Quotas → Search "imagen"
+# 3. Current: 70 requests/day
+# 4. Request increase: https://forms.gle/ETzX94k8jf7iSotH9
+```
+
+---
 
 ## Features
 
@@ -22,7 +78,7 @@ AI-powered photo trip planning assistant with native iOS app and web interface. 
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              PHOTOSCOUT ARCHITECTURE                         │
+│                              AI SCOUT ARCHITECTURE                           │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────┐     ┌──────────────┐
@@ -37,7 +93,7 @@ AI-powered photo trip planning assistant with native iOS app and web interface. 
 ┌───────────────────────────────────────┐
 │           AWS CloudFront              │
 │    (CDN + SPA Routing + Caching)      │
-│    d2mpt2trz11kx7.cloudfront.net      │
+│    aiscout.photo      │
 └───────────────┬───────────────────────┘
                 │
        ┌────────┴────────┬─────────────────┐
@@ -264,9 +320,12 @@ See [ios/AppStore/metadata.md](ios/AppStore/metadata.md) for App Store submissio
 | S3 | ~$0.023 per GB |
 | CloudFront | ~$0.085 per GB |
 | Claude API | ~$3 per 1M input tokens |
+| **DeepSeek API** | ~$0.14 per 1M input tokens (20x cheaper!) |
 | Imagen API | ~$0.02 per image |
 
 **Estimated**: <$10/month for moderate usage
+
+**Cost Optimization:** Set `ENVIRONMENT=development` in `.env` to use DeepSeek instead of Claude for testing.
 
 ## Security
 
@@ -279,9 +338,9 @@ See [ios/AppStore/metadata.md](ios/AppStore/metadata.md) for App Store submissio
 
 ## Legal
 
-- [Privacy Policy](https://d2mpt2trz11kx7.cloudfront.net/privacy)
-- [Terms of Service](https://d2mpt2trz11kx7.cloudfront.net/terms)
-- [About](https://d2mpt2trz11kx7.cloudfront.net/about)
+- [Privacy Policy](https://aiscout.photo/privacy)
+- [Terms of Service](https://aiscout.photo/terms)
+- [About](https://aiscout.photo/about)
 
 ## License
 

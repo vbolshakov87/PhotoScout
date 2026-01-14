@@ -1,255 +1,172 @@
-# PhotoScout - Project TODO
+# AI Scout - Alpha Launch TODO
+
+**Domain:** https://aiscout.photo
+**Goal:** Launch alpha version for beta testing with photographers
+
+---
+
+## P0 - Critical for Alpha Launch (Prompt Quality & Images)
+
+### Prompt Quality
+- [ ] **Add seasonal photography tips** (cherry blossoms, northern lights, monsoons)
+- [ ] **Add local photographer insights** (hidden gems, less touristy spots)
+- [ ] **Improve accuracy of sun times** (integrate SunCalc API)
+- [ ] **Add weather considerations** per destination/season
+- [x] **Security guardrails** - refuse off-topic/inappropriate requests
+- [x] **Smart question flow** - skip questions if info already provided
+
+### Images
+- [ ] **Add spot images to trip plans** (Unsplash API integration)
+- [ ] **Upgrade city image generation** (consider Imagen 3 or higher quality)
+- [ ] **Generate remaining 24 destination images** (quota reset)
+  - Command: `cd packages/api && npx tsx scripts/generate-missing-images.ts --regenerate-all --start-from=Cappadocia`
+
+### Domain & Infrastructure
+- [x] **Buy domain** - aiscout.photo ✓
+- [x] **Configure SSL + CloudFront** ✓
+- [x] **Update all URLs** to aiscout.photo ✓
+
+---
+
+## P1 - Important for Launch Quality
+
+### Images
+- [ ] **Add spot images to trip plans** (Unsplash API integration)
+- [ ] **Review image generation quality** - consider Imagen 3 upgrade
+
+### Features
+- [ ] **PDF export** for offline use (photographers need this!)
+- [ ] **GPX export** for GPS devices
+- [ ] **Sunrise/sunset API** (SunCalc) for accurate times
+
+### Monitoring
+- [ ] **Error tracking** (Sentry) for crash reporting
+- [ ] **API cost monitoring** dashboard
+
+---
+
+## P2 - Beta Testing
+
+### Channels
+- [ ] Reddit: r/photography, r/landscapephotography, r/travel_photography
+- [ ] Facebook photography groups
+- [ ] Personal network - photographer friends
+
+### Feedback
+- [ ] In-app feedback button
+- [ ] Post-plan survey (rating + comments)
+- [ ] Track: plans generated, completion rate, user ratings
+
+### Marketing Assets
+- [ ] Sample plans for top 10 destinations
+- [ ] YouTube demo video (2-3 min)
+- [ ] Screenshots for social media
+
+---
+
+## P3 - Post-Launch
+
+### Partnerships
+- [ ] Draft partnership email for PhotoHound
+- [ ] Draft partnership email for LocationScout
+- [ ] Create pitch deck
+
+### Monetization
+- [ ] Decide on model: Freemium vs One-time vs Partnership
+- [ ] Implement payment if going direct-to-consumer
+
+### Growth
+- [ ] Product Hunt launch
+- [ ] SEO landing pages for top 20 destinations
+- [ ] Content marketing (blog posts, YouTube)
+
+---
 
 ## Completed
 
-### UI Modernization
-- [x] Simplified to minimalist dark theme design
-- [x] Removed excessive gradients and animations
-- [x] Clean bottom navigation with 3 tabs
-- [x] Responsive chat interface
+### Core Functionality
+- [x] Chat with AI trip planning
+- [x] Plan generation (JSON → HTML)
+- [x] Plan caching infrastructure
+- [x] 70/94 destination images generated
 
-### Chat Features
-- [x] Chat persistence with IndexedDB
-- [x] Conversation history page
-- [x] Quick action buttons (duration, interests, confirm)
-- [x] Message streaming with progress indicators
-- [x] HTML preview for travel plans
+### Apps
+- [x] Web app with dark theme
+- [x] iOS app (ready for App Store submission)
+- [x] Guest mode (try without signing in)
 
-### Image Generation
-- [x] Google Imagen API integration (`packages/api/src/lib/imagen.ts`)
-- [x] S3 caching for generated images
-- [x] 40 top city destinations
-- [x] 50 nature/landscape regions (including 10 German destinations)
-- [x] Automatic prompt selection (city vs nature style)
-- [x] Epic cinematic photography prompts for photographers
-- [x] City name alias mapping (e.g., "New York City" → "New York")
+### UX
+- [x] Smart question flow (skip if info provided)
+- [x] Minute-by-minute schedule in JSON
+- [x] Difficulty levels for spots
+- [x] Support for cities, places, regions, countries
 
-### Legal Pages
-- [x] About page
-- [x] Terms of Service page
-- [x] Privacy Policy page
-- **Public URLs** (for App Store submission):
-  - About: https://d2mpt2trz11kx7.cloudfront.net/about
-  - Privacy: https://d2mpt2trz11kx7.cloudfront.net/privacy
-  - Terms: https://d2mpt2trz11kx7.cloudfront.net/terms
+### SEO
+- [x] Meta tags, Open Graph, Twitter Cards
+- [x] JSON-LD structured data
+- [x] robots.txt and sitemap.xml
 
-### iOS App
-- [x] WKWebView wrapper with native auth injection
-- [x] Haptic feedback bridge
-- [x] Share functionality bridge
-- [x] Clipboard bridge
-- [x] Console log capture for debugging
-- [x] Fixed city name click handling
-- [x] Fixed text input keyboard issues
-- [x] Full WebView functionality working
+### Security
+- [x] Prompt guardrails (refuse off-topic, inappropriate content)
+- [x] Security tests added
 
-### Deployment & Infrastructure
-- [x] Add `GOOGLE_API_KEY` to `.env` file
-- [x] Deploy CDK stack with updated Lambda permissions
-- [x] Deploy latest web app with auto-image generation for trips
-- [x] CloudFront SPA routing fix (403/404 → index.html)
-- [x] Vite proxy configuration for local development (`/api/images`, `/city-images`)
+### Infrastructure
+- [x] AWS CDK deployment
+- [x] CloudFront CDN
+- [x] DynamoDB storage
+- [x] Lambda functions
+- [x] S3 for plans and images
 
-### App Assets
-- [x] **App Logo/Icon**: Created app icon for iOS
-  - Generated using Google Imagen 4.0 with minimalist camera/location pin design
-  - All icon sizes generated (16x16 to 1024x1024)
-  - Location: `ios/PhotoScout/Assets.xcassets/AppIcon.appiconset/`
-  - S3: https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png
+### Documentation
+- [x] LAUNCH_PLAN.md - Go-to-market strategy
+- [x] WHAT_YOU_MIGHT_BE_MISSING.md - Gap analysis
+- [x] Versioned prompts (v1, v2, v3)
 
-## In Progress
+---
 
-### Image Generation - REGENERATING ALL with Epic Photography Prompts
-- [x] Regenerate ALL 94 destination images with new cinematic prompts
-  - **Status**: 70/94 completed (quota limit reached on Jan 11)
-  - **Remaining 24 images**: Cappadocia, Banff, Yosemite, Grand Canyon, Antelope Canyon, Monument Valley, Big Sur, Hawaii, Yellowstone, Patagonia, Torres del Paine, Bali, Ha Long Bay, Zhangjiajie, Maldives, New Zealand, Milford Sound, Mount Fuji, Guilin, Great Barrier Reef, Sahara Desert, Serengeti, Victoria Falls, Namib Desert
-  - **Resume command**: `cd packages/api && npx tsx scripts/generate-missing-images.ts --regenerate-all --start-from=Cappadocia`
-  - **Script**: `packages/api/scripts/generate-missing-images.ts --regenerate-all`
+## Quick Commands
 
-### Login Page Redesign (COMPLETED)
-- [x] Updated iOS login with photo carousel background (using vbolshakov.photo portfolio)
-- [x] Updated web login with matching photo carousel design
-- [x] Added Terms & Privacy links to iOS login screen
-- [x] Added photo credit attribution
+```bash
+# Build and deploy API
+cd packages/api && npm run build
+cd dist && zip -rq ../lambda.zip . && aws lambda update-function-code --function-name PhotoScoutStack-ChatFunction3D7C447E-Vj4CxXpKgBXF --zip-file fileb://../lambda.zip
 
-### Settings Page (COMPLETED)
-- [x] Added Settings tab to iOS app with About, Terms, Privacy, Sign Out
-- [x] Added Settings page to web app with same functionality
-- [x] User profile display with avatar
+# Build and deploy web
+cd packages/web && npm run build
+aws s3 sync dist s3://photoscout-web-707282829805 --delete
+aws cloudfront create-invalidation --distribution-id E1234567890 --paths "/*"
 
-### Chat UX Improvements (COMPLETED)
-- [x] Updated prompts to ask questions one-by-one (more conversational)
-- [x] First response: asks duration only
-- [x] Second response: asks photography interests only
-- [x] Feels more natural and less overwhelming
+# Run tests
+cd packages/api && npm test
 
-### Trip Plan HTML (COMPLETED - World Class Redesign)
-- [x] Added city hero image to generated HTML trip plans
-- [x] Hero section with gradient overlay and title
-- [x] Falls back gracefully if image not found
-- [x] **Complete world-class redesign** (Jan 11, 2026):
-  - Modern dark theme with CSS variables
-  - Google Fonts: Playfair Display + Inter
-  - 70vh hero with parallax zoom animation
-  - Light schedule with visual sunrise/sunset timeline
-  - Priority badges: "🔥 Must See", "⭐ Recommended", "💡 Optional"
-  - Animated spot cards with staggered fade-in
-  - Custom colored map markers by priority
-  - SVG icon action buttons (Navigate, View Map, See Photos)
-  - Info cards grid for practical info
-  - Pro tips section with checkmarks
-  - PhotoScout branded footer
-  - All 6 existing trip plans regenerated with new design
-- [x] Created CLI tools for rapid iteration:
-  - `scripts/preview-html.ts` - Preview HTML locally without deploy
-  - `scripts/regenerate-html.ts` - Regenerate from DynamoDB JSON
+# Generate missing images
+cd packages/api && npx tsx scripts/generate-missing-images.ts --regenerate-all --start-from=Cappadocia
+```
 
-### Guest Mode (COMPLETED)
-- [x] "Try without signing in" option on login page
-- [x] Guest users get temporary ID
-- [x] Limited functionality banner for guests
-- [x] Trips not saved for guests (warning shown)
+---
 
-### Button Styling in Chat (COMPLETED)
-- [x] Better visual affordance for chat buttons
-- [x] "Quick select:" labels above option groups
-- [x] Multi-select for interests with "Send" button
-- [x] Improved shadows and containers
+## URLs
 
-### iOS App Store Preparation
-- [x] Configure app metadata in Xcode (bundle ID, version, build number)
-- [x] Update Info.plist with App Store requirements
-- [x] Privacy Policy URL: https://d2mpt2trz11kx7.cloudfront.net/privacy
-- [x] Terms of Service URL: https://d2mpt2trz11kx7.cloudfront.net/terms
-- [ ] Set up App Store Connect account and app listing
-- [ ] Create App Store screenshots (6.7", 6.5", 5.5" sizes)
-- [ ] Write App Store description and keywords
-- [ ] Set Development Team in Xcode (requires Apple Developer account)
-- [ ] Test on physical device
-- [ ] Archive and upload build to App Store Connect
-- [ ] Submit for App Review
+- **Web App:** https://aiscout.photo
+- **Privacy:** https://aiscout.photo/privacy
+- **Terms:** https://aiscout.photo/terms
+- **About:** https://aiscout.photo/about
+- **Legacy:** https://d2mpt2trz11kx7.cloudfront.net (still works)
 
-## Pending
-
-### Remaining Image Generation (Jan 12)
-- [ ] Generate remaining 24 destination images when quota resets
-  - Resume from: Cappadocia
-  - Command: `cd packages/api && npx tsx scripts/generate-missing-images.ts --regenerate-all --start-from=Cappadocia`
-
-### Spot Images in Plans
-- [ ] Plan how to show images of recommended photography spots
-  - Options: Flickr API, Unsplash API, or generate with Imagen
-  - Display in the generated HTML trip plan
-  - Consider bandwidth/loading time for mobile
-
-### UI Updates
-- [ ] Update webapp accent colors from blue to warm gold/orange to match app icon
-
-### Future Enhancements
-- [ ] Push notifications for trip reminders
-- [ ] Offline mode with cached trips
-- [ ] Multi-language support
-- [ ] Trip sharing functionality
-- [ ] Calendar integration
-
-## Known Issues
-
-### iOS Simulator
-1. `CHHapticPattern` errors - Expected (no haptic hardware in simulator)
-2. Auto Layout constraint warnings - Apple internal, auto-resolved
-3. `RTIInputSystemClient` warnings - Keyboard-related simulator noise
-
-### Web App
-- None currently identified
-
-### Google Imagen API
-- Daily quota: 70 requests/day (paid tier 1)
-- Quota resets at midnight Pacific Time
-- Request increase: https://forms.gle/ETzX94k8jf7iSotH9
+---
 
 ## Architecture
 
 ```
 PhotoScout/
 ├── packages/
-│   ├── api/          # Lambda functions (Node.js/TypeScript)
-│   │   └── src/
-│   │       ├── handlers/  # API route handlers
-│   │       └── lib/       # Shared utilities (imagen.ts, etc.)
-│   ├── web/          # React frontend (Vite/TypeScript)
-│   │   └── src/
-│   │       ├── components/
-│   │       ├── hooks/
-│   │       └── pages/
-│   └── shared/       # Shared types
-├── ios/              # Native iOS app (SwiftUI)
-│   └── PhotoScout/
-│       ├── Components/   # WebView.swift, etc.
-│       ├── Views/        # SwiftUI views
-│       └── Services/     # AuthenticationService, etc.
-└── infra/            # AWS CDK infrastructure
+│   ├── api/           # Lambda (Node.js/TypeScript)
+│   │   ├── src/handlers/   # chat.ts, plans.ts, etc.
+│   │   ├── src/lib/        # prompts.ts, dynamo.ts, etc.
+│   │   └── src/tests/      # Integration tests
+│   ├── web/           # React (Vite/TypeScript)
+│   └── shared/        # Shared types
+├── ios/               # SwiftUI app
+├── infra/             # AWS CDK
+└── docs/              # Documentation
 ```
-
-## Deployment URLs
-
-- **Web App**: https://d2mpt2trz11kx7.cloudfront.net
-- **Chat API**: https://ukxa7eu5rks24eoeb445lzzhoi0lsgjj.lambda-url.eu-central-1.on.aws/
-
-## Key Files Modified (Session Jan 11, 2026)
-
-### Login Page Redesign
-- `ios/PhotoScout/Views/GoogleSignInView.swift` - Photo carousel background with portfolio images
-- `packages/web/src/pages/LoginPage.tsx` - Matching web design with photo carousel
-
-### Settings Pages
-- `ios/PhotoScout/Views/SettingsTab.swift` - New Settings tab with About, Terms, Privacy, Sign Out
-- `packages/web/src/pages/SettingsPage.tsx` - New Settings page for web
-- `ios/PhotoScout/MainTabView.swift` - Added Settings tab to navigation
-- `packages/web/src/components/navigation/BottomNav.tsx` - Added Settings to navigation
-- `packages/web/src/App.tsx` - Added Settings route
-
-### Chat UX
-- `packages/api/src/lib/prompts.ts` - One-by-one question flow (dates first, then interests, then duration)
-
-### Trip Plan HTML - World Class Redesign
-- `packages/api/src/lib/html-template.ts` - Complete modern dark theme redesign
-- `packages/api/scripts/preview-html.ts` - Local HTML preview tool (NEW)
-- `packages/api/scripts/regenerate-html.ts` - Regenerate from DynamoDB (NEW)
-
-### Guest Mode & Auth
-- `packages/web/src/contexts/AuthContext.tsx` - Added guest login, isGuest state
-- `packages/web/src/pages/LoginPage.tsx` - "Try without signing in" button, FedCM disabled for Safari
-
-### Button Styling
-- `packages/web/src/components/chat/MessageBubble.tsx` - Better button affordance, multi-select
-
-### Previous Session (Jan 10-11)
-1. `packages/web/src/pages/TripsPage.tsx` - Auto-generate images for missing cities
-2. `packages/web/vite.config.ts` - Added proxy for `/api/images` and `/city-images`
-3. `packages/api/src/lib/imagen.ts` - City name aliases + epic photography prompts
-4. `infra/lib/photoscout-stack.ts` - CloudFront 403 error handling for SPA routing
-5. `packages/api/scripts/generate-missing-images.ts` - Batch image generation script
-
-## Destination List (94 total)
-
-### Cities (40)
-Tokyo, Paris, New York, London, Rome, Barcelona, Amsterdam, Berlin, Vienna, Prague, Lisbon, Copenhagen, Stockholm, Oslo, Bergen, Dubai, Singapore, Hong Kong, Sydney, Melbourne, San Francisco, Los Angeles, Chicago, Miami, Boston, Vancouver, Toronto, Montreal, Rio de Janeiro, Buenos Aires, Cape Town, Marrakech, Istanbul, Athens, Florence, Venice, Munich, Zurich, Brussels, Dublin
-
-### Nature Regions (54)
-**Europe - Alps & Mountains**: Dolomites, Swiss Alps, Scottish Highlands, Lofoten, Norwegian Fjords, Trolltunga, Faroe Islands
-
-**Europe - Mediterranean & Lakes**: Lake Bled, Tuscany, Amalfi Coast, Cinque Terre, Provence, Santorini, Lake Como, Plitvice Lakes
-
-**Europe - Atlantic**: Iceland, Normandy, Madeira, Azores, Slovenia
-
-**Germany**: Black Forest, Saxon Switzerland, Bavarian Alps, Rhine Valley, Moselle Valley, Berchtesgaden, Lake Constance, Harz Mountains, Romantic Road, Baltic Sea Coast
-
-**Middle East**: Cappadocia
-
-**Americas - North**: Banff, Yosemite, Grand Canyon, Antelope Canyon, Monument Valley, Big Sur, Hawaii, Yellowstone
-
-**Americas - South**: Patagonia, Torres del Paine
-
-**Asia & Pacific**: Bali, Ha Long Bay, Zhangjiajie, Maldives, New Zealand, Milford Sound, Mount Fuji, Guilin, Great Barrier Reef
-
-**Africa**: Sahara Desert, Serengeti, Victoria Falls, Namib Desert
