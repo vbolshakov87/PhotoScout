@@ -1292,7 +1292,7 @@ export function generateHTML(plan: TripPlan): string {
     </section>
 
     <footer class="footer">
-      Created with <a href="https://d2mpt2trz11kx7.cloudfront.net">PhotoScout</a>
+      Created with <a href="https://aiscout.photo">PhotoScout</a>
     </footer>
   </div>
 

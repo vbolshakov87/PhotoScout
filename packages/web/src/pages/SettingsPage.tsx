@@ -25,7 +25,7 @@ export function SettingsPage() {
       {/* Header */}
       <div className="px-4 py-3 border-b border-border flex items-center gap-3">
         <img
-          src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
+          src="https://aiscout.photo/city-images/appicon.png"
           alt="PhotoScout"
           className="w-9 h-9 rounded-lg"
         />

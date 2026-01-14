@@ -13,7 +13,7 @@ const GOOGLE_API_KEY = apiKeyMatch?.[1]?.trim();
 const s3Client = new S3Client({ region: 'eu-central-1' });
 const MODEL = 'imagen-4.0-fast-generate-001';
 const BUCKET_NAME = 'photoscout-plans-707282829805';
-const CLOUDFRONT_DOMAIN = 'd2mpt2trz11kx7.cloudfront.net';
+const CLOUDFRONT_DOMAIN = 'aiscout.photo';
 
 const NATURE_DESTINATIONS = new Set([
   'Dolomites', 'Lake Bled', 'Slovenia', 'Normandy', 'Lofoten', 'Iceland',

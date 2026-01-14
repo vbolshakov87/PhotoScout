@@ -20,7 +20,7 @@ export function AboutPage() {
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <img
-          src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
+          src="https://aiscout.photo/city-images/appicon.png"
           alt="PhotoScout"
           className="w-8 h-8 rounded-lg"
         />
@@ -31,7 +31,7 @@ export function AboutPage() {
         {/* App Info */}
         <div className="flex items-center justify-center gap-4 py-4">
           <img
-            src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
+            src="https://aiscout.photo/city-images/appicon.png"
             alt="PhotoScout"
             className="w-16 h-16 rounded-2xl shadow-lg"
           />

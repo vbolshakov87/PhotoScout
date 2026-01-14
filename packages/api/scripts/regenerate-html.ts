@@ -17,7 +17,7 @@ const s3Client = new S3Client({ region: 'eu-central-1' });
 
 const PLANS_TABLE = process.env.PLANS_TABLE || 'photoscout-plans';
 const BUCKET_NAME = process.env.HTML_PLANS_BUCKET || 'photoscout-plans-707282829805';
-const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN || 'd2mpt2trz11kx7.cloudfront.net';
+const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN || 'aiscout.photo';
 
 interface Plan {
   visitorId: string;

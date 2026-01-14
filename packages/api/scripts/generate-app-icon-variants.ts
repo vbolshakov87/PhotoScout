@@ -11,7 +11,7 @@ const GOOGLE_API_KEY = apiKeyMatch?.[1]?.trim();
 
 const s3Client = new S3Client({ region: 'eu-central-1' });
 const BUCKET_NAME = 'photoscout-plans-707282829805';
-const CLOUDFRONT_DOMAIN = 'd2mpt2trz11kx7.cloudfront.net';
+const CLOUDFRONT_DOMAIN = 'aiscout.photo';
 const MODEL = 'imagen-4.0-generate-001';
 
 const VARIANTS = [

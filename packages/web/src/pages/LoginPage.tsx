@@ -61,7 +61,7 @@ export function LoginPage() {
       <div className="relative z-10 text-center pt-4">
         <div className="flex items-center justify-center gap-3 mb-2">
           <img
-            src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
+            src="https://aiscout.photo/city-images/appicon.png"
             alt="PhotoScout"
             className="w-12 h-12 rounded-xl shadow-lg"
           />

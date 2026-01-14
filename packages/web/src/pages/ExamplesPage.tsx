@@ -5,42 +5,42 @@ const exampleTrips = [
   {
     title: 'Lofoten Islands',
     location: 'Norway',
-    image: 'https://d2mpt2trz11kx7.cloudfront.net/city-images/lofoten.jpg',
+    image: 'https://aiscout.photo/city-images/lofoten.jpg',
     spots: 10,
     highlights: ['Reine fishing village reflections', 'Northern Lights at Haukland Beach', 'Midnight sun at Reinebringen'],
   },
   {
     title: 'Tokyo',
     location: 'Japan',
-    image: 'https://d2mpt2trz11kx7.cloudfront.net/city-images/tokyo.jpg',
+    image: 'https://aiscout.photo/city-images/tokyo.jpg',
     spots: 12,
     highlights: ['Shibuya Crossing at blue hour', 'Senso-ji Temple at sunrise', 'Tokyo Tower night views'],
   },
   {
     title: 'Dolomites',
     location: 'Italy',
-    image: 'https://d2mpt2trz11kx7.cloudfront.net/city-images/dolomites.jpg',
+    image: 'https://aiscout.photo/city-images/dolomites.jpg',
     spots: 9,
     highlights: ['Tre Cime sunrise panorama', 'Lago di Braies reflections', 'Seceda ridgeline at golden hour'],
   },
   {
     title: 'Iceland Ring Road',
     location: 'Iceland',
-    image: 'https://d2mpt2trz11kx7.cloudfront.net/city-images/iceland.jpg',
+    image: 'https://aiscout.photo/city-images/iceland.jpg',
     spots: 15,
     highlights: ['Kirkjufell mountain compositions', 'Jökulsárlón ice beach', 'Seljalandsfoss waterfall behind'],
   },
   {
     title: 'Patagonia',
     location: 'Argentina & Chile',
-    image: 'https://d2mpt2trz11kx7.cloudfront.net/city-images/patagonia.jpg',
+    image: 'https://aiscout.photo/city-images/patagonia.jpg',
     spots: 11,
     highlights: ['Torres del Paine sunrise', 'Fitz Roy alpenglow', 'Perito Moreno glacier calving'],
   },
   {
     title: 'Kyoto',
     location: 'Japan',
-    image: 'https://d2mpt2trz11kx7.cloudfront.net/city-images/kyoto.jpg',
+    image: 'https://aiscout.photo/city-images/kyoto.jpg',
     spots: 14,
     highlights: ['Fushimi Inari gates at dawn', 'Arashiyama bamboo forest', 'Kinkaku-ji golden reflections'],
   },
@@ -57,7 +57,7 @@ export function ExamplesPage() {
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <img
-          src="https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png"
+          src="https://aiscout.photo/city-images/appicon.png"
           alt="PhotoScout"
           className="w-8 h-8 rounded-lg"
         />
