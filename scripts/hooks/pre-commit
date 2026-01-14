@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# Pre-commit hook: Ensure latest prompt version matches production prompt
+# This prevents the version history from drifting out of sync
+#
+# Install: ./scripts/install-hooks.sh
+# Or manually: cp scripts/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+PROMPTS_DIR="packages/api/src/lib/prompts"
+PROD_PROMPT="packages/api/src/lib/prompts.ts"
+
+# Find the latest version file (highest v* number)
+LATEST_VERSION=$(ls -1 "$PROMPTS_DIR"/v*.ts 2>/dev/null | sort -t'v' -k2 -n | tail -1)
+
+if [ -z "$LATEST_VERSION" ]; then
+    echo "Warning: No version files found in $PROMPTS_DIR"
+    echo "Consider creating a version file (e.g., v1-description.ts)"
+    exit 0
+fi
+
+# Check if production prompt exists
+if [ ! -f "$PROD_PROMPT" ]; then
+    echo "Error: Production prompt not found: $PROD_PROMPT"
+    exit 1
+fi
+
+# Compare the files
+if ! diff -q "$PROD_PROMPT" "$LATEST_VERSION" > /dev/null 2>&1; then
+    echo ""
+    echo "=========================================="
+    echo "  COMMIT BLOCKED: Prompt version mismatch"
+    echo "=========================================="
+    echo ""
+    echo "Production prompt:  $PROD_PROMPT"
+    echo "Latest version:     $LATEST_VERSION"
+    echo ""
+    echo "These files must be identical."
+    echo ""
+    echo "Options:"
+    echo "  1. Update the version file to match production:"
+    echo "     cp $PROD_PROMPT $LATEST_VERSION"
+    echo ""
+    echo "  2. Create a new version file (if this is a new version):"
+    echo "     cp $PROD_PROMPT $PROMPTS_DIR/v4-your-description.ts"
+    echo ""
+    echo "  3. Revert production changes (if version file is correct):"
+    echo "     cp $LATEST_VERSION $PROD_PROMPT"
+    echo ""
+    exit 1
+fi
+
+# All good
+exit 0
