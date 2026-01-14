@@ -1,4 +1,4 @@
-# AI Scout iOS App
+# PhotoScout iOS App
 
 Native iOS application built with SwiftUI, featuring Google Sign-In and full offline support.
 

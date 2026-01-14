@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Complete guide for deploying AI Scout to AWS and distributing the iOS app.
+Complete guide for deploying PhotoScout to AWS and distributing the iOS app.
 
 ## Prerequisites
 

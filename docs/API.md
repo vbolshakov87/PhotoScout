@@ -1,4 +1,4 @@
-# AI Scout API Documentation
+# PhotoScout API Documentation
 
 RESTful API for photo trip planning, built with AWS Lambda and served via CloudFront.
 

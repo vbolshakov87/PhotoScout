@@ -1,10 +1,10 @@
-# AI Scout Launch Plan
+# PhotoScout Launch Plan
 
 **Domain:** https://aiscout.photo
 
 ## Product Overview
 
-**AI Scout** is an AI-powered photography trip planner that creates detailed, actionable shooting plans with specific locations, optimal timing, and minute-by-minute schedules.
+**PhotoScout** is an AI-powered photography trip planner that creates detailed, actionable shooting plans with specific locations, optimal timing, and minute-by-minute schedules.
 
 **Target Audience:** Travel and landscape photographers planning photo trips
 
@@ -18,13 +18,13 @@
 
 ## 💡 Founder's Story & Motivation
 
-**Why I built AI Scout:**
+**Why I built PhotoScout:**
 
 I'm Vladimir Bolshakov, a landscape and travel photographer. In 2024, a "professional" photo guide stole **€5,500** from me and canceled 2 trips at the last minute - leaving me without money AND without the photography experiences I'd been planning for months.
 
 This wasn't just about money. It was the lost time, the shattered plans, and the realization that **photographers are vulnerable** when they depend on guides who may be unreliable, overpriced, or outright fraudulent.
 
-**I built AI Scout so photographers can:**
+**I built PhotoScout so photographers can:**
 - Plan their own trips without depending on expensive guides
 - Get the same quality location scouting that guides charge €500-2000 for
 - Never be stranded by a canceled tour again
@@ -149,7 +149,7 @@ Interested? [Link]
 2. **YouTube Videos**
    - Demo: "Planning a Tokyo Photo Trip in 2 Minutes"
    - Results: "I Followed an AI Photo Plan - Here's What Happened"
-   - Story: "Why I Built AI Scout After Getting Scammed"
+   - Story: "Why I Built PhotoScout After Getting Scammed"
 
 3. **Instagram/TikTok**
    - Before/after: AI plan → actual photos
@@ -260,11 +260,11 @@ Subject: I got scammed by a photo guide - so I built an AI to help photographers
 
 Hi [Name],
 
-I'm Vladimir, a landscape photographer from Germany. Last year, a "professional" photo guide stole €5,500 from me and canceled 2 trips. That experience pushed me to build AI Scout - an AI that generates detailed photography trip plans so photographers can travel independently.
+I'm Vladimir, a landscape photographer from Germany. Last year, a "professional" photo guide stole €5,500 from me and canceled 2 trips. That experience pushed me to build PhotoScout - an AI that generates detailed photography trip plans so photographers can travel independently.
 
 I noticed [Company] has an amazing location database, but photographers still need to figure out HOW to shoot these locations - timing, schedules, logistics.
 
-AI Scout could add that missing layer:
+PhotoScout could add that missing layer:
 - AI-generated itineraries using your location data
 - Minute-by-minute shooting schedules (wake up, travel, arrive, shoot)
 - Golden hour / blue hour optimization
@@ -278,7 +278,7 @@ Demo: https://aiscout.photo
 
 Best,
 Vladimir Bolshakov
-Landscape photographer & builder of AI Scout
+Landscape photographer & builder of PhotoScout
 https://vbolshakov.photo
 ```
 
@@ -288,11 +288,11 @@ Subject: AI-powered planning layer for [Company] users
 
 Hi [Name],
 
-I'm Vladimir, a landscape photographer who built AI Scout - an AI that generates detailed photography trip plans.
+I'm Vladimir, a landscape photographer who built PhotoScout - an AI that generates detailed photography trip plans.
 
 I noticed [Company] has an amazing [database/community/platform] but lacks automated trip planning.
 
-AI Scout could add:
+PhotoScout could add:
 - AI-generated itineraries using your location data
 - Minute-by-minute shooting schedules
 - Golden hour optimization

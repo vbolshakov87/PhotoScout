@@ -1,13 +1,12 @@
 # Changelog
 
-All notable changes to AI Scout (formerly PhotoScout).
+All notable changes to PhotoScout.
 
 ## [1.1.0] - 2026-01-14
 
-### 🚀 Rebranding & Security Update
+### 🚀 New Domain & Security Update
 
-#### Rebranding
-- ✅ Renamed from "PhotoScout" to "AI Scout"
+#### Infrastructure
 - ✅ New domain: https://aiscout.photo
 - ✅ Updated all URLs and branding throughout the app
 - ✅ Updated README with third-party service console links

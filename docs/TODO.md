@@ -1,4 +1,4 @@
-# AI Scout - Alpha Launch TODO
+# PhotoScout - Alpha Launch TODO
 
 **Domain:** https://aiscout.photo
 **Goal:** Launch alpha version for beta testing with photographers

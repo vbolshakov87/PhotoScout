@@ -1,4 +1,4 @@
-AI Scout Deployment URLs
+PhotoScout Deployment URLs
 Generated: Tue Jan 14 2026
 
 Web App: https://aiscout.photo
