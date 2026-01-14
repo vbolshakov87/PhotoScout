@@ -4,101 +4,117 @@ import { useNativeBridge } from '../../hooks/useNativeBridge';
 import { Share2, Copy, Check, ArrowRight, Send } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
-interface QuickAction {
-  label: string;
+interface SuggestionOption {
   emoji?: string;
+  label: string;
   value: string;
+}
+
+interface ParsedSuggestions {
+  multi: boolean;
+  options: SuggestionOption[];
 }
 
 interface MessageBubbleProps {
   message: Message;
   onSend?: (message: string) => void;
+  onSuggest?: (text: string) => void;
   isLastMessage?: boolean;
 }
 
-export function MessageBubble({ message, onSend, isLastMessage }: MessageBubbleProps) {
+// Parse [[suggestions]] or [[suggestions:multi]] blocks from message content
+function parseSuggestions(content: string): { cleanContent: string; suggestions: ParsedSuggestions | null } {
+  const regex = /\[\[suggestions(?::multi)?\]\]\n([\s\S]*?)\n\[\[\/suggestions\]\]/;
+  const match = content.match(regex);
+
+  if (!match) {
+    return { cleanContent: content, suggestions: null };
+  }
+
+  const isMulti = content.includes('[[suggestions:multi]]');
+  const optionsText = match[1];
+  const options: SuggestionOption[] = [];
+
+  for (const line of optionsText.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // Format: emoji|label|value or label|value or just value
+    const parts = trimmed.split('|');
+    if (parts.length >= 3) {
+      options.push({ emoji: parts[0], label: parts[1], value: parts[2] });
+    } else if (parts.length === 2) {
+      options.push({ label: parts[0], value: parts[1] });
+    } else {
+      options.push({ label: trimmed, value: trimmed });
+    }
+  }
+
+  const cleanContent = content.replace(regex, '').trim();
+
+  return {
+    cleanContent,
+    suggestions: options.length > 0 ? { multi: isMulti, options } : null
+  };
+}
+
+export function MessageBubble({ message, onSend, onSuggest, isLastMessage }: MessageBubbleProps) {
   const { share, copyToClipboard, haptic } = useNativeBridge();
   const [copied, setCopied] = useState(false);
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const isUser = message.role === 'user';
 
-  const hasHtmlStart = message.content.includes('<!DOCTYPE html>') || message.content.includes('<html');
-  const hasHtmlEnd = message.content.includes('</html>');
+  // Parse suggestions from message content
+  const { cleanContent, suggestions } = useMemo(
+    () => parseSuggestions(message.content),
+    [message.content]
+  );
+
+  const hasHtmlStart = cleanContent.includes('<!DOCTYPE html>') || cleanContent.includes('<html');
+  const hasHtmlEnd = cleanContent.includes('</html>');
   const isCompleteHtml = hasHtmlStart && hasHtmlEnd;
 
   // Check if this is the "plan ready" message asking for confirmation
   const isPlanReadyMessage = !isUser && isLastMessage && (
-    message.content.includes('Does this plan look good') ||
-    message.content.includes('generate the full interactive HTML')
+    cleanContent.includes('Does this plan look good') ||
+    cleanContent.includes('generate the full interactive HTML')
   );
 
-  // Detect question patterns for quick action buttons
-  const contentLower = message.content.toLowerCase();
+  // Show suggestions only on the last assistant message
+  const showSuggestions = !isUser && isLastMessage && suggestions && (onSend || onSuggest);
 
-  const isDatesQuestion = !isUser && isLastMessage && (
-    contentLower.includes('when are you planning') ||
-    contentLower.includes('what dates') ||
-    contentLower.includes('when do you plan')
-  );
-
-  const isDurationQuestion = !isUser && isLastMessage && (
-    contentLower.includes('how many days') ||
-    contentLower.includes('duration')
-  );
-
-  const isInterestsQuestion = !isUser && isLastMessage && (
-    contentLower.includes('photography priorities') ||
-    contentLower.includes('what are you most interested') ||
-    contentLower.includes('what type of photography') ||
-    contentLower.includes('main interests') ||
-    contentLower.includes('top photography') ||
-    contentLower.includes('pick any that apply')
-  );
-
-  // Quick action options
-  const durationOptions: QuickAction[] = [
-    { label: '2 days', value: '2 days' },
-    { label: '3 days', value: '3 days' },
-    { label: '5 days', value: '5 days' },
-    { label: '1 week', value: '1 week' },
-  ];
-
-  const interestOptions: QuickAction[] = [
-    { label: 'Architecture', emoji: '🏛️', value: 'Architecture & cityscapes' },
-    { label: 'Golden hour', emoji: '🌅', value: 'Golden hour & landscapes' },
-    { label: 'Street', emoji: '🚶', value: 'Street photography' },
-    { label: 'Night', emoji: '🌃', value: 'Night photography' },
-    { label: 'Food & culture', emoji: '🍽️', value: 'Food & culture' },
-  ];
-
-  const handleQuickAction = (value: string) => {
+  const handleSuggestionClick = (value: string) => {
     haptic('light');
-    onSend?.(value);
+    if (onSuggest) {
+      onSuggest(value);
+    } else {
+      onSend?.(value);
+    }
   };
 
-  const toggleInterest = (value: string) => {
+  const toggleOption = (value: string) => {
     haptic('light');
-    setSelectedInterests(prev =>
+    setSelectedOptions(prev =>
       prev.includes(value)
         ? prev.filter(v => v !== value)
         : [...prev, value]
     );
   };
 
-  const sendSelectedInterests = () => {
-    if (selectedInterests.length > 0) {
+  const sendSelectedOptions = () => {
+    if (selectedOptions.length > 0) {
       haptic('medium');
-      onSend?.(selectedInterests.join(', '));
-      setSelectedInterests([]);
+      onSend?.(selectedOptions.join(', '));
+      setSelectedOptions([]);
     }
   };
 
   const isMarkdown = !isUser && !isCompleteHtml && (
-    message.content.includes('**') ||
-    message.content.includes('\n- ') ||
-    message.content.includes('\n1. ')
+    cleanContent.includes('**') ||
+    cleanContent.includes('\n- ') ||
+    cleanContent.includes('\n1. ')
   );
 
   const handleCopy = () => {
@@ -116,7 +132,7 @@ export function MessageBubble({ message, onSend, isLastMessage }: MessageBubbleP
   if (isCompleteHtml) {
     return (
       <div className="space-y-3">
-        <HtmlPreview html={message.content} />
+        <HtmlPreview html={cleanContent} />
         <div className="flex gap-2 justify-end">
           <button
             onClick={handleCopy}
@@ -160,43 +176,26 @@ export function MessageBubble({ message, onSend, isLastMessage }: MessageBubbleP
                 code: ({ children }) => <code className="bg-black/20 px-1 rounded text-sm">{children}</code>,
               }}
             >
-              {message.content}
+              {cleanContent}
             </ReactMarkdown>
           </div>
         ) : (
-          <p className="whitespace-pre-wrap text-[15px]">{message.content}</p>
+          <p className="whitespace-pre-wrap text-[15px]">{cleanContent}</p>
         )}
       </div>
 
-      {/* Quick action buttons for dates question */}
-      {isDatesQuestion && onSend && (
+      {/* Dynamic suggestions from AI */}
+      {showSuggestions && !suggestions.multi && (
         <div className="mt-3 p-3 bg-surface/50 rounded-xl border border-border/50">
-          <p className="text-xs text-muted mb-2 font-medium">Quick select:</p>
+          <p className="text-xs text-muted mb-2 font-medium">Quick suggestion:</p>
           <div className="flex flex-wrap gap-2">
-            {['This weekend', 'Next week', 'In 2 weeks', 'Next month'].map((option) => (
-              <button
-                key={option}
-                onClick={() => handleQuickAction(option)}
-                className="px-4 py-2.5 bg-card hover:bg-primary hover:text-white border-2 border-border hover:border-primary rounded-xl text-sm font-medium text-foreground transition-all shadow-sm active:scale-95"
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Quick action buttons for duration question */}
-      {isDurationQuestion && onSend && (
-        <div className="mt-3 p-3 bg-surface/50 rounded-xl border border-border/50">
-          <p className="text-xs text-muted mb-2 font-medium">Quick select:</p>
-          <div className="flex flex-wrap gap-2">
-            {durationOptions.map((option) => (
+            {suggestions.options.map((option) => (
               <button
                 key={option.value}
-                onClick={() => handleQuickAction(option.value)}
+                onClick={() => handleSuggestionClick(option.value)}
                 className="px-4 py-2.5 bg-card hover:bg-primary hover:text-white border-2 border-border hover:border-primary rounded-xl text-sm font-medium text-foreground transition-all shadow-sm active:scale-95"
               >
+                {option.emoji && <span className="mr-1.5">{option.emoji}</span>}
                 {option.label}
               </button>
             ))}
@@ -204,17 +203,17 @@ export function MessageBubble({ message, onSend, isLastMessage }: MessageBubbleP
         </div>
       )}
 
-      {/* Multi-select buttons for interests question */}
-      {isInterestsQuestion && onSend && (
+      {/* Multi-select suggestions from AI */}
+      {showSuggestions && suggestions.multi && (
         <div className="mt-3 p-3 bg-surface/50 rounded-xl border border-border/50">
           <p className="text-xs text-muted mb-2 font-medium">Select all that apply:</p>
           <div className="flex flex-wrap gap-2 mb-3">
-            {interestOptions.map((option) => {
-              const isSelected = selectedInterests.includes(option.value);
+            {suggestions.options.map((option) => {
+              const isSelected = selectedOptions.includes(option.value);
               return (
                 <button
                   key={option.value}
-                  onClick={() => toggleInterest(option.value)}
+                  onClick={() => toggleOption(option.value)}
                   className={`px-4 py-2.5 border-2 rounded-xl text-sm font-medium transition-all shadow-sm active:scale-95 ${
                     isSelected
                       ? 'bg-primary text-white border-primary'
@@ -227,13 +226,13 @@ export function MessageBubble({ message, onSend, isLastMessage }: MessageBubbleP
               );
             })}
           </div>
-          {selectedInterests.length > 0 && (
+          {selectedOptions.length > 0 && (
             <button
-              onClick={sendSelectedInterests}
+              onClick={sendSelectedOptions}
               className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
             >
               <Send className="w-4 h-4" />
-              Send ({selectedInterests.length} selected)
+              Send ({selectedOptions.length} selected)
             </button>
           )}
         </div>

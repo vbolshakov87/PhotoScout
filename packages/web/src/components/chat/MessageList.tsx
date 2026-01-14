@@ -4,9 +4,10 @@ import { MessageBubble } from './MessageBubble';
 interface MessageListProps {
   messages: Message[];
   onSend?: (message: string) => void;
+  onSuggest?: (text: string) => void;
 }
 
-export function MessageList({ messages, onSend }: MessageListProps) {
+export function MessageList({ messages, onSend, onSuggest }: MessageListProps) {
   return (
     <div className="space-y-4">
       {messages.map((message, index) => (
@@ -14,6 +15,7 @@ export function MessageList({ messages, onSend }: MessageListProps) {
           key={message.id}
           message={message}
           onSend={onSend}
+          onSuggest={onSuggest}
           isLastMessage={index === messages.length - 1}
         />
       ))}

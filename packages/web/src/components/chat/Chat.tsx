@@ -4,13 +4,15 @@ import { useChat } from '../../hooks/useChat';
 import { useNativeBridge } from '../../hooks/useNativeBridge';
 import { useAuth } from '../../contexts/AuthContext';
 import { MessageList } from './MessageList';
-import { ChatInput } from './ChatInput';
+import { ChatInput, ChatInputHandle } from './ChatInput';
 import { TabbedView } from './TabbedView';
 import { PreviewTab } from './PreviewTab';
 import { Camera, LogOut, User, Plus, Loader2, LogIn } from 'lucide-react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
-const CITIES = ['Tokyo', 'Paris', 'New York', 'Lisbon', 'Bergen', 'Copenhagen', 'Rome', 'Amsterdam'];
+const CITIES = ['Tokyo', 'Paris', 'New York', 'Lisbon', 'Bergen', 'Copenhagen', 'Rome', 'Amsterdam', 'Barcelona', 'Prague', 'Vienna', 'Sydney'];
+const LOCATIONS = ['Dolomites', 'Lofoten Islands', 'Scottish Highlands', 'Patagonia', 'Swiss Alps', 'Grand Canyon', 'Faroe Islands', 'Santorini'];
+const COUNTRIES = ['Iceland', 'Japan', 'New Zealand', 'Norway', 'Portugal', 'Croatia', 'Scotland'];
 
 export function Chat() {
   const navigate = useNavigate();
@@ -25,10 +27,14 @@ export function Chat() {
     }
   };
   const scrollRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<ChatInputHandle>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [displayedCities] = useState(() =>
-    [...CITIES].sort(() => Math.random() - 0.5).slice(0, 6)
-  );
+  const [suggestions] = useState(() => {
+    const cities = [...CITIES].sort(() => Math.random() - 0.5).slice(0, 5);
+    const locations = [...LOCATIONS].sort(() => Math.random() - 0.5).slice(0, 2);
+    const countries = [...COUNTRIES].sort(() => Math.random() - 0.5).slice(0, 2);
+    return [...cities, ...locations, ...countries].sort(() => Math.random() - 0.5);
+  });
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -42,9 +48,14 @@ export function Chat() {
     sendMessage(message);
   };
 
-  const handleCityClick = (city: string) => {
+  const handleCityClick = (place: string) => {
     haptic('light');
-    sendMessage(`Photo trip to ${city}`);
+    sendMessage(`I am planning a photo trip to ${place} please help me to find the best photography spots and and the best time to visit them`);
+  };
+
+  const handleSuggest = (text: string) => {
+    haptic('light');
+    chatInputRef.current?.setValue(text);
   };
 
   const chatContent = (
@@ -151,20 +162,20 @@ export function Chat() {
             </p>
 
             <div className="flex flex-wrap gap-2 justify-center max-w-sm">
-              {displayedCities.map((city) => (
+              {suggestions.map((suggestion) => (
                 <button
-                  key={city}
-                  onClick={() => handleCityClick(city)}
+                  key={suggestion}
+                  onClick={() => handleCityClick(suggestion)}
                   className="px-4 py-2 bg-card border border-border rounded-full text-sm text-foreground hover:bg-surface transition-colors press"
                 >
-                  {city}
+                  {suggestion}
                 </button>
               ))}
             </div>
           </div>
         ) : (
           <div className="p-4">
-            <MessageList messages={messages} onSend={handleSend} />
+            <MessageList messages={messages} onSend={handleSend} onSuggest={handleSuggest} />
 
             {/* Processing indicator */}
             {generationProgress.isGenerating && (
@@ -200,7 +211,7 @@ export function Chat() {
         </div>
       )}
 
-      <ChatInput onSend={handleSend} disabled={isLoading} />
+      <ChatInput ref={chatInputRef} onSend={handleSend} disabled={isLoading} />
     </div>
   );
 
