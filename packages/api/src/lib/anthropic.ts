@@ -11,14 +11,14 @@ const anthropic = new Anthropic({
 type ClaudeModel = 'haiku' | 'sonnet' | 'opus';
 
 const MODEL_IDS: Record<ClaudeModel, string> = {
-  haiku: 'claude-3-5-haiku-20241022',     // $0.80/1M input, $4/1M output - fast & cheap
-  sonnet: 'claude-sonnet-4-20250514',     // $3/1M input - balanced
+  haiku: 'claude-haiku-4-5-20251001',     // $1/1M input, $5/1M output - fast & reliable
+  sonnet: 'claude-sonnet-4-5-20250929',   // $3/1M input - balanced
   opus: 'claude-opus-4-20250514',         // $15/1M input - best quality
 };
 
 function getModel(): string {
-  const modelEnv = (process.env.CLAUDE_MODEL || 'sonnet').toLowerCase() as ClaudeModel;
-  const model = MODEL_IDS[modelEnv] || MODEL_IDS.sonnet;
+  const modelEnv = (process.env.CLAUDE_MODEL || 'haiku').toLowerCase() as ClaudeModel;
+  const model = MODEL_IDS[modelEnv] || MODEL_IDS.haiku;
   console.log(`[Anthropic] Using model: ${model}`);
   return model;
 }

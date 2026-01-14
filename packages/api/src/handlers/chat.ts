@@ -16,6 +16,7 @@ import { getLLMClient } from '../lib/llm-factory';
 import { generateHTML, type TripPlan } from '../lib/html-template';
 import { uploadHtmlToS3 } from '../lib/s3';
 import { extractPlanParams, mergeParams, type PlanParams } from '../lib/plan-params';
+import { getCorsOrigin } from '../lib/cors';
 
 // AWS Lambda streaming types
 declare const awslambda: {
@@ -232,7 +233,7 @@ async function internalHandler(
       role: 'assistant',
       content: fullContent, // Save the original JSON content
       isHtml: isHtmlPlan,
-      model: 'claude-sonnet-4-20250514',
+      model: process.env.CLAUDE_MODEL === 'sonnet' ? 'claude-sonnet-4-5-20250929' : 'claude-haiku-4-5-20251001',
     };
     await saveMessage(assistantMessage);
 
@@ -264,9 +265,10 @@ export const handler = awslambda.streamifyResponse(
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': getCorsOrigin(event.headers.origin),
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Credentials': 'true',
       },
     };
 

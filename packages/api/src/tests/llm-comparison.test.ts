@@ -31,10 +31,10 @@ const deepseek = hasDeepSeekKey ? new OpenAI({
 }) : null;
 
 // Model configurations
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'sonnet';
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'haiku';
 const CLAUDE_MODEL_IDS: Record<string, string> = {
-  haiku: 'claude-3-5-haiku-20241022',     // Fast & cheap
-  sonnet: 'claude-sonnet-4-20250514',     // Balanced
+  haiku: 'claude-haiku-4-5-20251001',     // Fast & reliable
+  sonnet: 'claude-sonnet-4-5-20250929',   // Balanced
   opus: 'claude-opus-4-20250514',         // Best quality
 };
 
