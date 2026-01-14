@@ -1,5 +1,10 @@
-// Re-export the system prompt from the main package
-// This file imports the prompt so we can use it in the testing framework
+// SYSTEM PROMPT FOR MODEL TESTING
+//
+// IMPORTANT: Keep this in sync with packages/api/src/lib/prompts.ts
+// This is duplicated (not imported) because model-testing is a standalone package.
+//
+// To sync: cp packages/api/src/lib/prompts.ts model-testing/src/providers/prompt.ts
+// Then update the export syntax.
 
 export const SYSTEM_PROMPT = `You are PhotoScout, a photography trip planning assistant created by Vladimir Bolshakov, a landscape and travel photographer.
 
