@@ -1,6 +1,49 @@
 # Changelog
 
-All notable changes to PhotoScout.
+All notable changes to AI Scout (formerly PhotoScout).
+
+## [1.1.0] - 2026-01-14
+
+### 🚀 Rebranding & Security Update
+
+#### Rebranding
+- ✅ Renamed from "PhotoScout" to "AI Scout"
+- ✅ New domain: https://aiscout.photo
+- ✅ Updated all URLs and branding throughout the app
+- ✅ Updated README with third-party service console links
+
+#### Security
+- ✅ Added security guardrails to AI prompts
+- ✅ AI now refuses off-topic requests (coding help, homework, etc.)
+- ✅ AI now refuses inappropriate/harmful requests
+- ✅ Polite refusal responses redirect users to photography planning
+
+#### New Features
+- ✅ **Examples Page** - Showcase of sample photo trips (Lofoten, Tokyo, Dolomites, etc.)
+- ✅ **Expanded Destinations** - Support for regions, national parks, islands, coastal areas
+- ✅ **Detailed Daily Schedules** - Minute-by-minute timelines for each day
+- ✅ **Difficulty Levels** - Easy/moderate/challenging ratings for each spot
+- ✅ **Extended Golden/Blue Hour Info** - Morning and evening times for both
+
+#### Prompt Improvements (v3)
+- ✅ Added `dailySchedule` with timeline for each day
+- ✅ Added `arriveBy` and `shootingDuration` for each spot
+- ✅ Added `travelTime` between spots
+- ✅ Added `difficulty` field (easy/moderate/challenging)
+- ✅ Added `goldenHourMorning`, `goldenHourEvening`, `blueHourMorning`, `blueHourEvening`
+
+#### Infrastructure
+- ✅ Custom domain configured (aiscout.photo)
+- ✅ SSL certificate via ACM
+- ✅ Route 53 DNS configuration
+- ✅ SEO files added (robots.txt, sitemap.xml)
+
+#### Developer Experience
+- ✅ Prompt versioning system (v1, v2, v3 in prompts/ directory)
+- ✅ LLM comparison tests
+- ✅ DeepSeek integration for cost-effective development testing
+
+---
 
 ## [1.0.0] - 2026-01-08
 
@@ -115,4 +158,4 @@ Format: `[MAJOR.MINOR.PATCH]`
 
 ---
 
-Last updated: January 8, 2026
+Last updated: January 14, 2026

@@ -1,6 +1,6 @@
 # Authentication Setup
 
-PhotoScout uses Google OAuth 2.0 for user authentication in the iOS app.
+AI Scout uses Google OAuth 2.0 for user authentication in the iOS app.
 
 ## Overview
 

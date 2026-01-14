@@ -45,10 +45,12 @@ This wasn't just about money. It was the lost time, the shattered plans, and the
 - [x] Web app with SEO
 - [x] City image generation
 - [x] Plan caching infrastructure
+- [x] Custom domain (aiscout.photo)
+- [x] SSL certificate via ACM
+- [x] Security guardrails in prompts
+- [x] Examples page with sample trips
 - [ ] Update HTML template for daily schedule
 - [ ] Add spot images to plans
-- [ ] Custom domain (photoscout.app or similar)
-- [ ] SSL certificate
 
 ### Analytics & Tracking
 

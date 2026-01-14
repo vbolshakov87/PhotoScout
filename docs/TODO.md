@@ -100,6 +100,7 @@
 - [x] Minute-by-minute schedule in JSON
 - [x] Difficulty levels for spots
 - [x] Support for cities, places, regions, countries
+- [x] Examples page with sample photo trips
 
 ### SEO
 - [x] Meta tags, Open Graph, Twitter Cards

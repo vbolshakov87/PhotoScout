@@ -1,4 +1,4 @@
-# PhotoScout API Documentation
+# AI Scout API Documentation
 
 RESTful API for photo trip planning, built with AWS Lambda and served via CloudFront.
 
@@ -6,10 +6,10 @@ RESTful API for photo trip planning, built with AWS Lambda and served via CloudF
 
 All API requests are made to:
 ```
-https://d2mpt2trz11kx7.cloudfront.net/api
+https://aiscout.photo/api
 ```
 
-Replace with your CloudFront domain from `cdk-outputs.json`.
+For development or custom deployments, replace with your CloudFront domain from `cdk-outputs.json`.
 
 ## Authentication
 
@@ -76,7 +76,7 @@ data: {}
 
 **Example:**
 ```bash
-curl -N 'https://d2mpt2trz11kx7.cloudfront.net/api/chat' \
+curl -N 'https://aiscout.photo/api/chat' \
   -H 'Content-Type: application/json' \
   -d '{
     "visitorId": "test-user-123",
@@ -184,7 +184,7 @@ GET /api/plans?visitorId=string&limit=20&cursor=string
       "location": "Paris, France",
       "duration": "3 days",
       "interests": ["architecture", "street", "landscape"],
-      "htmlUrl": "https://d2mpt2trz11kx7.cloudfront.net/plans/user-123/abc123.html",
+      "htmlUrl": "https://aiscout.photo/plans/user-123/abc123.html",
       "createdAt": 1234567890,
       "expiresAt": 1234567890
     }

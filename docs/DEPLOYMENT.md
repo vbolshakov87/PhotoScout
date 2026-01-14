@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Complete guide for deploying PhotoScout to AWS and distributing the iOS app.
+Complete guide for deploying AI Scout to AWS and distributing the iOS app.
 
 ## Prerequisites
 
@@ -96,9 +96,9 @@ cat cdk-outputs.json
     "ChatApiUrl": "https://xxx.lambda-url.eu-central-1.on.aws/",
     "ConversationsApiUrl": "https://yyy.lambda-url.eu-central-1.on.aws/",
     "PlansApiUrl": "https://zzz.lambda-url.eu-central-1.on.aws/",
-    "DistributionUrl": "https://d2mpt2trz11kx7.cloudfront.net",
-    "HtmlPlansCloudFrontUrl": "https://d2mpt2trz11kx7.cloudfront.net/plans/",
-    "CloudFrontDomain": "d2mpt2trz11kx7.cloudfront.net"
+    "DistributionUrl": "https://aiscout.photo",
+    "HtmlPlansCloudFrontUrl": "https://aiscout.photo/plans/",
+    "CloudFrontDomain": "aiscout.photo"
   }
 }
 ```
@@ -165,7 +165,7 @@ curl 'https://YOUR_CLOUDFRONT_URL/api/plans?visitorId=test'
 
 Visit your CloudFront URL in browser:
 ```
-https://d2mpt2trz11kx7.cloudfront.net
+https://aiscout.photo
 ```
 
 ### Test iOS App
@@ -262,7 +262,7 @@ const distribution = new cloudfront.Distribution(this, 'Distribution', {
 
 Add CNAME in your DNS:
 ```
-app.yourdomain.com → d2mpt2trz11kx7.cloudfront.net
+app.yourdomain.com → aiscout.photo
 ```
 
 ### 4. Redeploy
