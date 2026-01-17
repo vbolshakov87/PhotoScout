@@ -183,13 +183,9 @@ export const MessageBubble = memo(function MessageBubble({
               remarkPlugins={[remarkGfm]}
               components={{
                 strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                ul: ({ children }) => (
-                  <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>
-                ),
-                ol: ({ children }) => (
-                  <ol className="list-decimal list-inside space-y-1 my-2">{children}</ol>
-                ),
-                li: ({ children }) => <li className="ml-1">{children}</li>,
+                ul: ({ children }) => <ul className="list-disc pl-5 space-y-1 my-2">{children}</ul>,
+                ol: ({ children }) => <ol className="list-decimal pl-5 space-y-1 my-2">{children}</ol>,
+                li: ({ children }) => <li className="pl-1">{children}</li>,
                 p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                 h1: ({ children }) => <h1 className="text-lg font-semibold mb-2">{children}</h1>,
                 h2: ({ children }) => <h2 className="text-base font-semibold mb-2">{children}</h2>,
