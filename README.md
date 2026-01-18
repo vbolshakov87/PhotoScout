@@ -1,5 +1,12 @@
 # PhotoScout 📷
 
+[![CI](https://github.com/vbolshakov87/PhotoScout/actions/workflows/ci.yml/badge.svg)](https://github.com/vbolshakov87/PhotoScout/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/vbolshakov87/PhotoScout/actions/workflows/codeql.yml/badge.svg)](https://github.com/vbolshakov87/PhotoScout/actions/workflows/codeql.yml)
+[![codecov](https://codecov.io/gh/vbolshakov87/PhotoScout/graph/badge.svg)](https://codecov.io/gh/vbolshakov87/PhotoScout)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
+[![Node](https://img.shields.io/badge/node-20.x-green)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 AI-powered photo trip planning assistant with native iOS app and web interface. Plan stunning photography trips to 94 destinations worldwide with personalized AI recommendations.
 
 ## Live Demo

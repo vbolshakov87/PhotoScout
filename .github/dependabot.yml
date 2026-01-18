@@ -1,5 +1,6 @@
 version: 2
 updates:
+  # JavaScript/TypeScript dependencies
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -7,30 +8,26 @@ updates:
       day: "monday"
     open-pull-requests-limit: 10
     groups:
-      typescript:
+      dev-dependencies:
+        dependency-type: "development"
         patterns:
-          - "typescript*"
-          - "@types/*"
-      eslint:
+          - "*"
+      production-dependencies:
+        dependency-type: "production"
         patterns:
-          - "eslint*"
-          - "@eslint/*"
-      aws:
-        patterns:
-          - "@aws-sdk/*"
-          - "aws-cdk*"
-      react:
-        patterns:
-          - "react*"
-          - "@react-*"
-      vite:
-        patterns:
-          - "vite*"
-          - "@vitejs/*"
+          - "*"
+    labels:
+      - "dependencies"
+      - "automated"
 
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+      - "automated"
