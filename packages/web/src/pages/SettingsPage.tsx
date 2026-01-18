@@ -38,17 +38,9 @@ export function SettingsPage() {
           <h2 className="text-xs font-medium text-muted uppercase tracking-wide mb-3">Account</h2>
           <div className="bg-card border border-border rounded-xl p-4">
             <div className="flex items-center gap-3">
-              {user?.picture && !isGuest ? (
-                <img
-                  src={user.picture}
-                  alt={user.name}
-                  className="w-12 h-12 rounded-full"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center">
-                  <User className="w-6 h-6 text-muted" />
-                </div>
-              )}
+              <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center">
+                <User className="w-6 h-6 text-muted" />
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-foreground truncate">
                   {isGuest ? 'Guest' : user?.name}
@@ -151,9 +143,7 @@ export function SettingsPage() {
               <span className="text-muted">1.0.0</span>
             </div>
           </div>
-          <p className="text-xs text-muted/60 text-center mt-4">
-            Made with love for photographers
-          </p>
+          <p className="text-xs text-muted/60 text-center mt-4">Made with love for photographers</p>
         </div>
       </div>
     </div>

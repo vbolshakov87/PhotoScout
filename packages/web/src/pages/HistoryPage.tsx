@@ -115,7 +115,9 @@ export function HistoryPage() {
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <LogIn className="w-12 h-12 text-muted/50 mb-4" />
             <p className="text-foreground text-sm font-medium">Sign in to see your history</p>
-            <p className="text-muted/70 text-xs mt-1 mb-4">Your conversations will be saved when you sign in</p>
+            <p className="text-muted/70 text-xs mt-1 mb-4">
+              Your conversations will be saved when you sign in
+            </p>
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => console.error('Login failed')}
@@ -156,11 +158,17 @@ export function HistoryPage() {
       {/* Footer with legal links */}
       <footer className="px-4 py-3 border-t border-border/50 text-center bg-surface">
         <div className="flex items-center justify-center gap-4 text-xs text-muted/60">
-          <Link to="/about" className="hover:text-muted transition-colors">About</Link>
+          <Link to="/about" className="hover:text-muted transition-colors">
+            About
+          </Link>
           <span>·</span>
-          <Link to="/terms" className="hover:text-muted transition-colors">Terms</Link>
+          <Link to="/terms" className="hover:text-muted transition-colors">
+            Terms
+          </Link>
           <span>·</span>
-          <Link to="/privacy" className="hover:text-muted transition-colors">Privacy</Link>
+          <Link to="/privacy" className="hover:text-muted transition-colors">
+            Privacy
+          </Link>
         </div>
         <p className="text-[10px] text-muted/40 mt-1">PhotoScout © 2026</p>
       </footer>

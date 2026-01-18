@@ -1,14 +1,9 @@
-import type {
-  APIGatewayProxyEventV2,
-  APIGatewayProxyResultV2,
-} from 'aws-lambda';
+import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { listPlans, getPlan, deletePlan } from '../lib/dynamo';
 import { downloadHtmlFromS3 } from '../lib/s3';
 import { getCorsHeaders } from '../lib/cors';
 
-export async function handler(
-  event: APIGatewayProxyEventV2
-): Promise<APIGatewayProxyResultV2> {
+export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
   const corsHeaders = getCorsHeaders(event.headers.origin, 'GET, DELETE, OPTIONS');
 
   if (event.requestContext.http.method === 'OPTIONS') {
@@ -31,7 +26,10 @@ export async function handler(
 
     // GET /plans - List all plans (without HTML content)
     if (path === '/api/plans' && method === 'GET') {
-      const limit = Math.min(Math.max(parseInt(event.queryStringParameters?.limit || '20') || 20, 1), 100);
+      const limit = Math.min(
+        Math.max(parseInt(event.queryStringParameters?.limit || '20') || 20, 1),
+        100
+      );
       const cursor = event.queryStringParameters?.cursor;
 
       const result = await listPlans(visitorId, limit, cursor);
@@ -59,7 +57,7 @@ export async function handler(
 
       // Try to get HTML from S3 first
       let htmlContent = await downloadHtmlFromS3(visitorId, planId);
-      
+
       // Fallback to DynamoDB if S3 fails
       if (!htmlContent && plan.htmlContent) {
         htmlContent = plan.htmlContent;
@@ -91,7 +89,7 @@ export async function handler(
 
       // Try to get HTML from S3 first
       let htmlContent = await downloadHtmlFromS3(visitorId, planId);
-      
+
       // Fallback to DynamoDB if S3 fails
       if (!htmlContent && plan.htmlContent) {
         htmlContent = plan.htmlContent;

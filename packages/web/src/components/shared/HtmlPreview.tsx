@@ -12,7 +12,7 @@ function extractHtml(content: string): { html: string; prefix: string } {
   if (doctypeIndex !== -1) {
     return {
       html: content.substring(doctypeIndex),
-      prefix: content.substring(0, doctypeIndex).trim()
+      prefix: content.substring(0, doctypeIndex).trim(),
     };
   }
 
@@ -20,7 +20,7 @@ function extractHtml(content: string): { html: string; prefix: string } {
   if (htmlIndex !== -1) {
     return {
       html: content.substring(htmlIndex),
-      prefix: content.substring(0, htmlIndex).trim()
+      prefix: content.substring(0, htmlIndex).trim(),
     };
   }
 

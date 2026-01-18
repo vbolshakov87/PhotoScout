@@ -12,18 +12,14 @@ function generateHTML(results: TestSuiteResult): string {
   const { timestamp, duration, models, results: testResults } = results;
 
   // Get unique tests
-  const testIds = [...new Set(testResults.map(r => r.testId))];
-  const testNames = Object.fromEntries(
-    testResults.map(r => [r.testId, r.testName])
-  );
+  const testIds = [...new Set(testResults.map((r) => r.testId))];
+  const testNames = Object.fromEntries(testResults.map((r) => [r.testId, r.testName]));
 
   // Build scoring grid
-  const gridRows = testIds.map(testId => {
+  const gridRows = testIds.map((testId) => {
     const testName = testNames[testId];
-    const cells = models.map(model => {
-      const result = testResults.find(
-        r => r.modelId === model.id && r.testId === testId
-      );
+    const cells = models.map((model) => {
+      const result = testResults.find((r) => r.modelId === model.id && r.testId === testId);
       if (!result) return { passed: false, score: 0, error: 'Not run' };
       return result;
     });
@@ -258,17 +254,17 @@ function generateHTML(results: TestSuiteResult): string {
         <thead>
           <tr>
             <th>Test</th>
-            ${models.map(m => `<th>${m.name}</th>`).join('')}
+            ${models.map((m) => `<th>${m.name}</th>`).join('')}
           </tr>
         </thead>
         <tbody>
           ${gridRows
             .map(
-              row => `
+              (row) => `
             <tr>
               <td class="test-name" title="${row.testName}">${row.testName}</td>
               ${row.cells
-                .map(cell => {
+                .map((cell) => {
                   if ('error' in cell && cell.error) {
                     return `<td class="cell-error">${cell.error}</td>`;
                   }
@@ -294,7 +290,7 @@ function generateHTML(results: TestSuiteResult): string {
       <h2 style="margin-bottom: 1rem; color: #f0f6fc;">Detailed Results</h2>
       ${testResults
         .map(
-          r => `
+          (r) => `
         <div class="detail-card">
           <div class="detail-header" onclick="this.nextElementSibling.classList.toggle('open')">
             <span><strong>${r.modelName}</strong> - ${r.testName}</span>
@@ -306,7 +302,7 @@ function generateHTML(results: TestSuiteResult): string {
             <ul class="check-list">
               ${r.checks
                 .map(
-                  c => `
+                  (c) => `
                 <li class="check-item">
                   <span class="${c.passed ? 'check-pass' : 'check-fail'}">${c.passed ? '&#x2713;' : '&#x2717;'}</span>
                   ${c.name}${c.details ? ` <span style="color: #8b949e;">(${c.details})</span>` : ''}
@@ -353,7 +349,7 @@ function escapeHtml(str: string): string {
 
 function getRecommendation(models: ModelSummary[]): string {
   const sorted = [...models].sort((a, b) => b.score - a.score);
-  const passing = sorted.filter(m => m.score >= 90);
+  const passing = sorted.filter((m) => m.score >= 90);
 
   if (passing.length === 0) {
     return `<p>No model achieved >=90% pass rate. Consider:</p>
@@ -377,7 +373,7 @@ function getRecommendation(models: ModelSummary[]): string {
       passing.length > 1
         ? `<p style="margin-top: 0.5rem; color: #8b949e;">Other passing models: ${passing
             .slice(1)
-            .map(m => m.name)
+            .map((m) => m.name)
             .join(', ')}</p>`
         : ''
     }`;

@@ -34,18 +34,14 @@ export function ConversationCard({ conversation, onClick }: ConversationCardProp
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-1">
-            <h3 className="font-medium text-foreground text-sm truncate">
-              {conversation.title}
-            </h3>
+            <h3 className="font-medium text-foreground text-sm truncate">{conversation.title}</h3>
             <span className="text-xs text-muted shrink-0">
               {formatDate(conversation.updatedAt)}
             </span>
           </div>
 
           {conversation.lastMessage && (
-            <p className="text-sm text-muted line-clamp-1 mb-2">
-              {conversation.lastMessage}
-            </p>
+            <p className="text-sm text-muted line-clamp-1 mb-2">{conversation.lastMessage}</p>
           )}
 
           <div className="flex items-center gap-3 text-xs text-muted/70">

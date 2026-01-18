@@ -41,17 +41,14 @@ export function TripDetail({ plan, htmlContent, onBack, onDelete }: TripDetailPr
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-2 p-4 border-b border-white/10 bg-background">
-        <button
-          onClick={onBack}
-          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-        >
+        <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="font-semibold text-base md:text-lg truncate">{plan.title}</h1>
           <p className="text-xs md:text-sm text-gray-400 truncate">{plan.city}</p>
         </div>
-        
+
         <div className="flex items-center gap-1">
           <button
             onClick={handleOpenNewTab}
@@ -68,7 +65,7 @@ export function TripDetail({ plan, htmlContent, onBack, onDelete }: TripDetailPr
           >
             <Share2 className="w-5 h-5" />
           </button>
-          
+
           <button
             onClick={handleDelete}
             title="Delete"

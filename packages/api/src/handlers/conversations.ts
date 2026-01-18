@@ -1,7 +1,4 @@
-import type {
-  APIGatewayProxyEventV2,
-  APIGatewayProxyResultV2,
-} from 'aws-lambda';
+import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import {
   listConversations,
   getConversation,
@@ -10,9 +7,7 @@ import {
 } from '../lib/dynamo';
 import { getCorsHeaders } from '../lib/cors';
 
-export async function handler(
-  event: APIGatewayProxyEventV2
-): Promise<APIGatewayProxyResultV2> {
+export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
   const corsHeaders = getCorsHeaders(event.headers.origin, 'GET, DELETE, OPTIONS');
 
   if (event.requestContext.http.method === 'OPTIONS') {
@@ -35,7 +30,10 @@ export async function handler(
 
     // GET /conversations - List all conversations
     if (path === '/api/conversations' && method === 'GET') {
-      const limit = Math.min(Math.max(parseInt(event.queryStringParameters?.limit || '20') || 20, 1), 100);
+      const limit = Math.min(
+        Math.max(parseInt(event.queryStringParameters?.limit || '20') || 20, 1),
+        100
+      );
       const cursor = event.queryStringParameters?.cursor;
 
       const result = await listConversations(visitorId, limit, cursor);

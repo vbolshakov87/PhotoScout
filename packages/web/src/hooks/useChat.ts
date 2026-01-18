@@ -38,7 +38,7 @@ export function useChat() {
     let visitorId: string;
     try {
       visitorId = getUserId();
-    } catch (e) {
+    } catch (_e) {
       setError('Not authenticated');
       return;
     }

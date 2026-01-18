@@ -1,15 +1,17 @@
-import type {
-  APIGatewayProxyEventV2,
-  APIGatewayProxyResultV2,
-} from 'aws-lambda';
-import { getCityImageUrl, getCachedCityImages, preGenerateAllCityImages, TOP_DESTINATIONS, TOP_CITIES, TOP_NATURE_REGIONS } from '../lib/imagen';
+import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
+import {
+  getCityImageUrl,
+  getCachedCityImages,
+  preGenerateAllCityImages,
+  TOP_DESTINATIONS,
+  TOP_CITIES,
+  TOP_NATURE_REGIONS,
+} from '../lib/imagen';
 import { getCorsHeaders } from '../lib/cors';
 
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
 
-export async function handler(
-  event: APIGatewayProxyEventV2
-): Promise<APIGatewayProxyResultV2> {
+export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
   const corsHeaders = getCorsHeaders(event.headers.origin, 'GET, POST, OPTIONS');
 
   if (event.requestContext.http.method === 'OPTIONS') {

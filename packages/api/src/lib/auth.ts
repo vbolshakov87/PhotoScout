@@ -77,7 +77,7 @@ export async function getOrCreateUser(
   if (getResult.Item) {
     // Update existing user
     const user: User = {
-      ...getResult.Item as User,
+      ...(getResult.Item as User),
       name: googleUser.name,
       profilePicture: googleUser.picture,
       lastLoginAt: now,
@@ -124,7 +124,9 @@ export async function getOrCreateUser(
  * @param headers - Request headers
  * @returns User ID if valid, throws error if invalid
  */
-export async function authenticateRequest(headers: Record<string, string | undefined>): Promise<string> {
+export async function authenticateRequest(
+  headers: Record<string, string | undefined>
+): Promise<string> {
   const authHeader = headers.authorization || headers.Authorization;
 
   if (!authHeader) {

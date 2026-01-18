@@ -17,7 +17,8 @@ export function BottomNav() {
       <div className="flex items-center justify-around max-w-md mx-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
-          const isActive = location.pathname === tab.path ||
+          const isActive =
+            location.pathname === tab.path ||
             (tab.path === '/trips' && location.pathname.startsWith('/trips'));
 
           return (
@@ -27,7 +28,9 @@ export function BottomNav() {
               className="flex-1 flex flex-col items-center gap-1 py-3 press"
             >
               <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted'}`} />
-              <span className={`text-xs ${isActive ? 'text-foreground font-medium' : 'text-muted'}`}>
+              <span
+                className={`text-xs ${isActive ? 'text-foreground font-medium' : 'text-muted'}`}
+              >
                 {tab.label}
               </span>
             </button>

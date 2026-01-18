@@ -4,9 +4,11 @@ dist/
 .env.local
 *.js.map
 *.d.ts
+!vite-env.d.ts
 !vite.config.ts
 cdk.out/
 .DS_Store
+coverage/
 
 # iOS
 ios/PhotoScout/PhotoScout.xcodeproj/xcuserdata/

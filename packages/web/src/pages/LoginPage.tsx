@@ -46,11 +46,7 @@ export function LoginPage() {
             index === currentImageIndex ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          <img
-            src={img}
-            alt=""
-            className="w-full h-full object-cover"
-          />
+          <img src={img} alt="" className="w-full h-full object-cover" />
         </div>
       ))}
 
@@ -105,9 +101,13 @@ export function LoginPage() {
 
         <p className="text-xs text-white/60">
           By signing in, you agree to our{' '}
-          <Link to="/terms" className="text-white/90 hover:text-white underline">Terms</Link>
-          {' '}and{' '}
-          <Link to="/privacy" className="text-white/90 hover:text-white underline">Privacy Policy</Link>
+          <Link to="/terms" className="text-white/90 hover:text-white underline">
+            Terms
+          </Link>{' '}
+          and{' '}
+          <Link to="/privacy" className="text-white/90 hover:text-white underline">
+            Privacy Policy
+          </Link>
         </p>
 
         {/* About and Examples links */}
@@ -122,9 +122,7 @@ export function LoginPage() {
         </div>
 
         {/* Photo credit */}
-        <p className="text-xs text-white/40 mt-4">
-          Photos by Vladimir Bolshakov
-        </p>
+        <p className="text-xs text-white/40 mt-4">Photos by Vladimir Bolshakov</p>
       </div>
     </div>
   );

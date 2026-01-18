@@ -126,11 +126,7 @@ Scoring (0-5):
 }
 
 // Calculate cost for a single API call
-function calculateCost(
-  model: ModelConfig,
-  inputTokens: number,
-  outputTokens: number
-): number {
+function calculateCost(model: ModelConfig, inputTokens: number, outputTokens: number): number {
   return (
     (inputTokens / 1_000_000) * model.inputCostPer1M +
     (outputTokens / 1_000_000) * model.outputCostPer1M
@@ -138,10 +134,7 @@ function calculateCost(
 }
 
 // Run a single quality test
-async function runQualityTest(
-  model: ModelConfig,
-  test: QualityTest
-): Promise<QualityTestResult> {
+async function runQualityTest(model: ModelConfig, test: QualityTest): Promise<QualityTestResult> {
   try {
     // Use quality-specific system prompt to get direct recommendations
     const response = await queryModel(
@@ -203,22 +196,18 @@ function generateHtmlReport(report: QualityReport): string {
 
   // Escape HTML in responses
   const escapeHtml = (text: string) =>
-    text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+    text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   // Generate summary cards
   const summaryCards = sorted
     .map((s) => {
       const model = MODELS.find((m) => m.id === s.modelId);
       const isWinner = s.modelId === winner.modelId;
-      const scoreClass =
-        s.avgScore >= 4 ? 'pass' : s.avgScore >= 3 ? 'warn' : 'fail';
-      const avgLatency = report.results
-        .filter((r) => r.modelId === s.modelId)
-        .reduce((sum, r) => sum + r.latencyMs, 0) /
+      const scoreClass = s.avgScore >= 4 ? 'pass' : s.avgScore >= 3 ? 'warn' : 'fail';
+      const avgLatency =
+        report.results
+          .filter((r) => r.modelId === s.modelId)
+          .reduce((sum, r) => sum + r.latencyMs, 0) /
         report.results.filter((r) => r.modelId === s.modelId).length;
 
       return `
@@ -250,9 +239,7 @@ function generateHtmlReport(report: QualityReport): string {
         if (locResults.length === 0) return '<td class="cell-error">N/A</td>';
 
         // Average across runs
-        const avgScore =
-          locResults.reduce((sum, r) => sum + r.score.score, 0) /
-          locResults.length;
+        const avgScore = locResults.reduce((sum, r) => sum + r.score.score, 0) / locResults.length;
         const cellClass =
           avgScore >= 4 ? 'cell-pass' : avgScore >= 3 ? 'cell-partial' : 'cell-fail';
 
@@ -274,12 +261,14 @@ function generateHtmlReport(report: QualityReport): string {
         ? ` (Run ${(r as QualityTestResult & { run?: number }).run})`
         : '';
 
-      const spotsList = r.score.goodSpotsFound.length > 0
-        ? `<li class="check-item"><span class="check-pass">&#x2713;</span> Spots: ${r.score.goodSpotsFound.slice(0, 5).join(', ')}</li>`
-        : '';
-      const redFlagsList = r.score.redFlagsFound.length > 0
-        ? `<li class="check-item"><span class="check-fail">&#x2717;</span> Red flags: ${r.score.redFlagsFound.join(', ')}</li>`
-        : '';
+      const spotsList =
+        r.score.goodSpotsFound.length > 0
+          ? `<li class="check-item"><span class="check-pass">&#x2713;</span> Spots: ${r.score.goodSpotsFound.slice(0, 5).join(', ')}</li>`
+          : '';
+      const redFlagsList =
+        r.score.redFlagsFound.length > 0
+          ? `<li class="check-item"><span class="check-fail">&#x2717;</span> Red flags: ${r.score.redFlagsFound.join(', ')}</li>`
+          : '';
       const timingCheck = !r.score.missingMustHave.some((m) =>
         ['sunrise', 'sunset', 'golden hour', 'blue hour'].includes(m.toLowerCase())
       )
@@ -609,7 +598,9 @@ function generateMarkdownReport(report: QualityReport): string {
   lines.push(`Generated: ${new Date(report.timestamp).toLocaleString()}`);
   lines.push(`Duration: ${(report.duration / 1000).toFixed(1)}s`);
   lines.push(`Total Cost: $${report.totalCost.toFixed(4)}`);
-  lines.push(`Total Tokens: ${report.totalInputTokens.toLocaleString()} in / ${report.totalOutputTokens.toLocaleString()} out\n`);
+  lines.push(
+    `Total Tokens: ${report.totalInputTokens.toLocaleString()} in / ${report.totalOutputTokens.toLocaleString()} out\n`
+  );
 
   // Summary table
   lines.push('## Summary\n');
@@ -624,9 +615,7 @@ function generateMarkdownReport(report: QualityReport): string {
 
   for (const summary of report.summary.sort((a, b) => b.avgScore - a.avgScore)) {
     const model = MODELS.find((m) => m.id === summary.modelId);
-    const scoreStr = summary.scores
-      .map((s) => `${s.score}/5`)
-      .join(' | ');
+    const scoreStr = summary.scores.map((s) => `${s.score}/5`).join(' | ');
     lines.push(
       `| ${summary.modelName} | ${scoreStr} | **${summary.avgScore.toFixed(1)}** | ${summary.avgFormatScore.toFixed(1)}/3 | ${summary.avgDateScore.toFixed(1)}/1 | $${summary.totalCost.toFixed(4)} | ${model?.tier || ''} |`
     );
@@ -640,28 +629,17 @@ function generateMarkdownReport(report: QualityReport): string {
 
     const locationResults = report.results.filter((r) => r.testId === test.id);
 
-    for (const result of locationResults.sort(
-      (a, b) => b.score.score - a.score.score
-    )) {
-      const emoji =
-        result.score.score >= 4
-          ? '🟢'
-          : result.score.score >= 3
-            ? '🟡'
-            : '🔴';
+    for (const result of locationResults.sort((a, b) => b.score.score - a.score.score)) {
+      const emoji = result.score.score >= 4 ? '🟢' : result.score.score >= 3 ? '🟡' : '🔴';
       lines.push(
         `- **${result.modelName}** ${emoji} ${result.score.score}/5: ${result.score.reasoning}`
       );
 
       if (result.score.goodSpotsFound.length > 0) {
-        lines.push(
-          `  - Found: ${result.score.goodSpotsFound.slice(0, 6).join(', ')}`
-        );
+        lines.push(`  - Found: ${result.score.goodSpotsFound.slice(0, 6).join(', ')}`);
       }
       if (result.score.redFlagsFound.length > 0) {
-        lines.push(
-          `  - Red flags: ${result.score.redFlagsFound.join(', ')}`
-        );
+        lines.push(`  - Red flags: ${result.score.redFlagsFound.join(', ')}`);
       }
     }
     lines.push('');
@@ -721,15 +699,21 @@ function printSummary(report: QualityReport) {
   logHeader('Quality Test Results');
 
   // Print cost summary first
-  log(`${colors.dim}Total cost: $${report.totalCost.toFixed(4)} | Tokens: ${report.totalInputTokens.toLocaleString()} in / ${report.totalOutputTokens.toLocaleString()} out${colors.reset}\n`);
+  log(
+    `${colors.dim}Total cost: $${report.totalCost.toFixed(4)} | Tokens: ${report.totalInputTokens.toLocaleString()} in / ${report.totalOutputTokens.toLocaleString()} out${colors.reset}\n`
+  );
 
   // Header
-  const locHeaders = QUALITY_TESTS.map((t) =>
-    t.id.charAt(0).toUpperCase() + t.id.slice(1, 4)
-  ).join(' │ ');
-  console.log(`┌──────────────────┬─${locHeaders.replace(/[^│]/g, '─')}─┬───────┬────────┬─────────────┐`);
+  const locHeaders = QUALITY_TESTS.map((t) => t.id.charAt(0).toUpperCase() + t.id.slice(1, 4)).join(
+    ' │ '
+  );
+  console.log(
+    `┌──────────────────┬─${locHeaders.replace(/[^│]/g, '─')}─┬───────┬────────┬─────────────┐`
+  );
   console.log(`│ Model            │ ${locHeaders} │  Avg  │  Cost  │ Tier        │`);
-  console.log(`├──────────────────┼─${locHeaders.replace(/[^│]/g, '─')}─┼───────┼────────┼─────────────┤`);
+  console.log(
+    `├──────────────────┼─${locHeaders.replace(/[^│]/g, '─')}─┼───────┼────────┼─────────────┤`
+  );
 
   // Rows sorted by avg score
   for (const summary of report.summary.sort((a, b) => b.avgScore - a.avgScore)) {
@@ -737,8 +721,7 @@ function printSummary(report: QualityReport) {
     const name = summary.modelName.padEnd(16).slice(0, 16);
     const scores = summary.scores
       .map((s) => {
-        const color =
-          s.score >= 4 ? colors.green : s.score >= 3 ? colors.yellow : colors.red;
+        const color = s.score >= 4 ? colors.green : s.score >= 3 ? colors.yellow : colors.red;
         return `${color}${s.score}/5${colors.reset}`;
       })
       .join(' │ ');
@@ -754,7 +737,9 @@ function printSummary(report: QualityReport) {
     console.log(`│ ${name} │ ${scores} │ ${avg.padStart(13)} │ ${cost} │ ${tier} │`);
   }
 
-  console.log(`└──────────────────┴─${locHeaders.replace(/[^│]/g, '─')}─┴───────┴────────┴─────────────┘`);
+  console.log(
+    `└──────────────────┴─${locHeaders.replace(/[^│]/g, '─')}─┴───────┴────────┴─────────────┘`
+  );
 }
 
 // Run tests for a single model
@@ -845,9 +830,12 @@ async function main() {
     for (const { model, results: modelResults } of parallelResults) {
       logHeader(`${model.name}`);
       for (const result of modelResults) {
-        const runLabel = runs > 1 ? ` [run ${(result as QualityTestResult & { run?: number }).run}]` : '';
+        const runLabel =
+          runs > 1 ? ` [run ${(result as QualityTestResult & { run?: number }).run}]` : '';
         if (result.error) {
-          log(`  ${result.location}${runLabel}: ${colors.red}ERROR${colors.reset} - ${result.error}`);
+          log(
+            `  ${result.location}${runLabel}: ${colors.red}ERROR${colors.reset} - ${result.error}`
+          );
         } else {
           const scoreColor =
             result.score.score >= 4
@@ -880,21 +868,25 @@ async function main() {
     const modelResults = results.filter((r) => r.modelId === modelId);
 
     // Average scores per location (across runs)
-    const scores = locationIds.map((locId) => {
-      const locResults = modelResults.filter((r) => r.testId === locId);
-      if (locResults.length === 0) return null;
+    const scores = locationIds
+      .map((locId) => {
+        const locResults = modelResults.filter((r) => r.testId === locId);
+        if (locResults.length === 0) return null;
 
-      const avgScore = locResults.reduce((sum, r) => sum + r.score.score, 0) / locResults.length;
-      const avgFormat = locResults.reduce((sum, r) => sum + r.score.formatScore, 0) / locResults.length;
-      const avgDate = locResults.reduce((sum, r) => sum + r.score.dateScore, 0) / locResults.length;
+        const avgScore = locResults.reduce((sum, r) => sum + r.score.score, 0) / locResults.length;
+        const avgFormat =
+          locResults.reduce((sum, r) => sum + r.score.formatScore, 0) / locResults.length;
+        const avgDate =
+          locResults.reduce((sum, r) => sum + r.score.dateScore, 0) / locResults.length;
 
-      return {
-        location: locResults[0].location,
-        score: Math.round(avgScore * 10) / 10, // Round to 1 decimal
-        formatScore: Math.round(avgFormat * 10) / 10,
-        dateScore: Math.round(avgDate * 10) / 10,
-      };
-    }).filter((s): s is NonNullable<typeof s> => s !== null);
+        return {
+          location: locResults[0].location,
+          score: Math.round(avgScore * 10) / 10, // Round to 1 decimal
+          formatScore: Math.round(avgFormat * 10) / 10,
+          dateScore: Math.round(avgDate * 10) / 10,
+        };
+      })
+      .filter((s): s is NonNullable<typeof s> => s !== null);
 
     const avgScore = scores.reduce((sum, s) => sum + s.score, 0) / scores.length;
     const avgFormatScore = scores.reduce((sum, s) => sum + s.formatScore, 0) / scores.length;

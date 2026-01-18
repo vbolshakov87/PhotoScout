@@ -10,6 +10,7 @@
     "build:api": "pnpm --filter @photoscout/api build",
     "deploy": "cd infra && pnpm cdk deploy",
     "test": "pnpm -r test",
+    "test:coverage": "pnpm -r test:coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

@@ -1,140 +1,149 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>PhotoScout Stream Test</title>
     <style>
-        body {
-            font-family: monospace;
-            padding: 20px;
-            background: #1a1a2e;
-            color: #fff;
-        }
-        #output {
-            white-space: pre-wrap;
-            background: #0f0f23;
-            padding: 15px;
-            border-radius: 8px;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px 5px;
-            cursor: pointer;
-        }
-        .error { color: #ff6b6b; }
-        .success { color: #51cf66; }
-        .info { color: #74c0fc; }
+      body {
+        font-family: monospace;
+        padding: 20px;
+        background: #1a1a2e;
+        color: #fff;
+      }
+      #output {
+        white-space: pre-wrap;
+        background: #0f0f23;
+        padding: 15px;
+        border-radius: 8px;
+        max-height: 600px;
+        overflow-y: auto;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin: 10px 5px;
+        cursor: pointer;
+      }
+      .error {
+        color: #ff6b6b;
+      }
+      .success {
+        color: #51cf66;
+      }
+      .info {
+        color: #74c0fc;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>PhotoScout Stream Test</h1>
     <div>
-        <button onclick="testDirect()">Test Direct Lambda URL</button>
-        <button onclick="testProxy()">Test via Proxy (/api/chat)</button>
-        <button onclick="clearOutput()">Clear</button>
+      <button onclick="testDirect()">Test Direct Lambda URL</button>
+      <button onclick="testProxy()">Test via Proxy (/api/chat)</button>
+      <button onclick="clearOutput()">Clear</button>
     </div>
     <div id="output"></div>
 
     <script>
-        const lambdaUrl = 'https://ukxa7eu5rks24eoeb445lzzhoi0lsgjj.lambda-url.eu-central-1.on.aws/';
-        const proxyUrl = '/api/chat';
+      const lambdaUrl = 'https://ukxa7eu5rks24eoeb445lzzhoi0lsgjj.lambda-url.eu-central-1.on.aws/';
+      const proxyUrl = '/api/chat';
 
-        function log(message, type = 'info') {
-            const output = document.getElementById('output');
-            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
-            output.innerHTML += `<span class="${className}">[${new Date().toISOString()}] ${message}</span>\n`;
-            output.scrollTop = output.scrollHeight;
-        }
+      function log(message, type = 'info') {
+        const output = document.getElementById('output');
+        const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+        output.innerHTML += `<span class="${className}">[${new Date().toISOString()}] ${message}</span>\n`;
+        output.scrollTop = output.scrollHeight;
+      }
 
-        function clearOutput() {
-            document.getElementById('output').innerHTML = '';
-        }
+      function clearOutput() {
+        document.getElementById('output').innerHTML = '';
+      }
 
-        async function testStream(url, label) {
-            log(`\n=== Testing ${label} ===`, 'success');
-            log(`URL: ${url}`);
+      async function testStream(url, label) {
+        log(`\n=== Testing ${label} ===`, 'success');
+        log(`URL: ${url}`);
 
-            const request = {
-                visitorId: 'test-' + Date.now(),
-                message: 'Quick test message'
-            };
+        const request = {
+          visitorId: 'test-' + Date.now(),
+          message: 'Quick test message',
+        };
 
-            try {
-                log('Sending request...');
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(request),
-                });
+        try {
+          log('Sending request...');
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(request),
+          });
 
-                log(`Response status: ${response.status}`);
-                log(`Response headers: ${JSON.stringify([...response.headers.entries()])}`);
+          log(`Response status: ${response.status}`);
+          log(`Response headers: ${JSON.stringify([...response.headers.entries()])}`);
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    log(`ERROR: ${errorText}`, 'error');
-                    return;
-                }
+          if (!response.ok) {
+            const errorText = await response.text();
+            log(`ERROR: ${errorText}`, 'error');
+            return;
+          }
 
-                const reader = response.body?.getReader();
-                if (!reader) {
-                    log('ERROR: No response body', 'error');
-                    return;
-                }
+          const reader = response.body?.getReader();
+          if (!reader) {
+            log('ERROR: No response body', 'error');
+            return;
+          }
 
-                const decoder = new TextDecoder();
-                let buffer = '';
-                let chunkCount = 0;
-                let eventCount = 0;
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let chunkCount = 0;
+          let eventCount = 0;
 
-                log('Reading stream...');
+          log('Reading stream...');
 
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) {
-                        log(`Stream done! Received ${chunkCount} chunks, ${eventCount} events`, 'success');
-                        break;
-                    }
-
-                    chunkCount++;
-                    const chunk = decoder.decode(value, { stream: true });
-                    log(`Chunk ${chunkCount} (${chunk.length} bytes): ${chunk.substring(0, 100)}...`);
-
-                    buffer += chunk;
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop() || '';
-
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            try {
-                                const event = JSON.parse(line.slice(6));
-                                eventCount++;
-                                log(`Event ${eventCount}: ${JSON.stringify(event).substring(0, 100)}...`, 'success');
-                            } catch (e) {
-                                log(`Failed to parse: ${line}`, 'error');
-                            }
-                        }
-                    }
-                }
-            } catch (e) {
-                log(`EXCEPTION: ${e.message}`, 'error');
-                console.error(e);
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              log(`Stream done! Received ${chunkCount} chunks, ${eventCount} events`, 'success');
+              break;
             }
-        }
 
-        async function testDirect() {
-            await testStream(lambdaUrl, 'Direct Lambda URL');
-        }
+            chunkCount++;
+            const chunk = decoder.decode(value, { stream: true });
+            log(`Chunk ${chunkCount} (${chunk.length} bytes): ${chunk.substring(0, 100)}...`);
 
-        async function testProxy() {
-            await testStream(proxyUrl, 'Proxy (/api/chat)');
-        }
+            buffer += chunk;
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
 
-        log('Ready to test! Click a button above.');
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const event = JSON.parse(line.slice(6));
+                  eventCount++;
+                  log(
+                    `Event ${eventCount}: ${JSON.stringify(event).substring(0, 100)}...`,
+                    'success'
+                  );
+                } catch (e) {
+                  log(`Failed to parse: ${line}`, 'error');
+                }
+              }
+            }
+          }
+        } catch (e) {
+          log(`EXCEPTION: ${e.message}`, 'error');
+          console.error(e);
+        }
+      }
+
+      async function testDirect() {
+        await testStream(lambdaUrl, 'Direct Lambda URL');
+      }
+
+      async function testProxy() {
+        await testStream(proxyUrl, 'Proxy (/api/chat)');
+      }
+
+      log('Ready to test! Click a button above.');
     </script>
-</body>
+  </body>
 </html>

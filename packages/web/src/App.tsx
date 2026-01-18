@@ -38,71 +38,72 @@ function AppContent() {
   const { user, isNativeAuth } = useAuth();
 
   // Hide bottom nav on conversation detail pages, login page, or when in native app
-  const shouldShowNav = user &&
-                        !isNativeAuth &&
-                        !location.pathname.startsWith('/conversation/') &&
-                        !location.pathname.match(/^\/trips\/.+/) &&
-                        location.pathname !== '/login';
+  const shouldShowNav =
+    user &&
+    !isNativeAuth &&
+    !location.pathname.startsWith('/conversation/') &&
+    !location.pathname.match(/^\/trips\/.+/) &&
+    location.pathname !== '/login';
 
   return (
     <div className="h-full flex items-center justify-center bg-black">
       <div className="w-full h-full max-w-md max-h-[900px] flex flex-col bg-[#0a0a0f] overflow-hidden md:rounded-2xl md:shadow-2xl md:border md:border-white/10">
         <div className="flex-1 overflow-hidden">
           <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <ChatPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/conversation/:conversationId"
-            element={
-              <ProtectedRoute>
-                <ConversationPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/trips"
-            element={
-              <ProtectedRoute>
-                <TripsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/trips/:planId"
-            element={
-              <ProtectedRoute>
-                <TripsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/history"
-            element={
-              <ProtectedRoute>
-                <HistoryPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <SettingsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/examples" element={<ExamplesPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-        </Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <ChatPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/conversation/:conversationId"
+              element={
+                <ProtectedRoute>
+                  <ConversationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/trips"
+              element={
+                <ProtectedRoute>
+                  <TripsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/trips/:planId"
+              element={
+                <ProtectedRoute>
+                  <TripsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/history"
+              element={
+                <ProtectedRoute>
+                  <HistoryPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/examples" element={<ExamplesPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+          </Routes>
         </div>
         {shouldShowNav && <BottomNav />}
       </div>

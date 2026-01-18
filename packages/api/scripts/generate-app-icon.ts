@@ -15,8 +15,8 @@ const CLOUDFRONT_DOMAIN = 'aiscout.photo';
 
 // Try different Imagen models
 const MODELS = [
-  'imagen-3.0-generate-001',      // Imagen 3 (might have separate quota)
-  'imagen-4.0-generate-001',      // Imagen 4 standard
+  'imagen-3.0-generate-001', // Imagen 3 (might have separate quota)
+  'imagen-4.0-generate-001', // Imagen 4 standard
   'imagen-4.0-fast-generate-001', // Imagen 4 fast (current, quota exceeded)
 ];
 
@@ -65,13 +65,15 @@ async function generateIcon(model: string): Promise<Buffer> {
 async function uploadToS3(imageData: Buffer): Promise<string> {
   const key = 'city-images/appicon.png';
 
-  await s3Client.send(new PutObjectCommand({
-    Bucket: BUCKET_NAME,
-    Key: key,
-    Body: imageData,
-    ContentType: 'image/png',
-    CacheControl: 'public, max-age=31536000, immutable',
-  }));
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: imageData,
+      ContentType: 'image/png',
+      CacheControl: 'public, max-age=31536000, immutable',
+    })
+  );
 
   return `https://${CLOUDFRONT_DOMAIN}/${key}`;
 }

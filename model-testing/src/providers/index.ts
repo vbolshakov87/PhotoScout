@@ -93,8 +93,7 @@ async function queryAnthropic(
     })),
   });
 
-  const content =
-    response.content[0].type === 'text' ? response.content[0].text : '';
+  const content = response.content[0].type === 'text' ? response.content[0].text : '';
 
   return {
     content,

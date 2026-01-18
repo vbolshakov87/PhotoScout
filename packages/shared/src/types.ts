@@ -127,6 +127,12 @@ declare global {
 }
 
 export interface NativeBridgeMessage {
-  action: 'share' | 'haptic' | 'copyToClipboard' | 'openPlan' | 'openConversation' | 'navigateToTab';
+  action:
+    | 'share'
+    | 'haptic'
+    | 'copyToClipboard'
+    | 'openPlan'
+    | 'openConversation'
+    | 'navigateToTab';
   payload: unknown;
 }

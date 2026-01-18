@@ -105,7 +105,9 @@ export class PhotoScoutStack extends cdk.Stack {
     // Get API keys from environment variables
     const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
     if (!anthropicApiKey) {
-      throw new Error('ANTHROPIC_API_KEY environment variable is required. Please set it in .env file');
+      throw new Error(
+        'ANTHROPIC_API_KEY environment variable is required. Please set it in .env file'
+      );
     }
 
     // Optional: DeepSeek API key for development
@@ -275,24 +277,28 @@ export class PhotoScoutStack extends cdk.Stack {
             maxTtl: cdk.Duration.days(365),
             minTtl: cdk.Duration.days(1),
           }),
-          responseHeadersPolicy: new cloudfront.ResponseHeadersPolicy(this, 'HtmlResponseHeadersPolicy', {
-            corsBehavior: {
-              accessControlAllowOrigins: ['*'],
-              accessControlAllowHeaders: ['*'],
-              accessControlAllowMethods: ['GET', 'HEAD', 'OPTIONS'],
-              accessControlAllowCredentials: false,
-              originOverride: true,
-            },
-            customHeadersBehavior: {
-              customHeaders: [
-                {
-                  header: 'Content-Type',
-                  value: 'text/html; charset=utf-8',
-                  override: true,
-                },
-              ],
-            },
-          }),
+          responseHeadersPolicy: new cloudfront.ResponseHeadersPolicy(
+            this,
+            'HtmlResponseHeadersPolicy',
+            {
+              corsBehavior: {
+                accessControlAllowOrigins: ['*'],
+                accessControlAllowHeaders: ['*'],
+                accessControlAllowMethods: ['GET', 'HEAD', 'OPTIONS'],
+                accessControlAllowCredentials: false,
+                originOverride: true,
+              },
+              customHeadersBehavior: {
+                customHeaders: [
+                  {
+                    header: 'Content-Type',
+                    value: 'text/html; charset=utf-8',
+                    override: true,
+                  },
+                ],
+              },
+            }
+          ),
         },
         '/api/chat': {
           origin: new origins.FunctionUrlOrigin(chatFunctionUrl),
@@ -388,7 +394,8 @@ export class PhotoScoutStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'CloudFrontDomain', {
       value: distribution.distributionDomainName,
-      description: 'CloudFront Distribution Domain (set as CLOUDFRONT_DOMAIN env var in Chat Lambda)',
+      description:
+        'CloudFront Distribution Domain (set as CLOUDFRONT_DOMAIN env var in Chat Lambda)',
     });
 
     // Note: CLOUDFRONT_DOMAIN must be set manually after deployment to avoid circular dependency

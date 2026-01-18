@@ -10,8 +10,30 @@ import { PreviewTab } from './PreviewTab';
 import { Camera, LogOut, User, Plus, Loader2, LogIn } from 'lucide-react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
-const CITIES = ['Tokyo', 'Paris', 'New York', 'Lisbon', 'Bergen', 'Copenhagen', 'Rome', 'Amsterdam', 'Barcelona', 'Prague', 'Vienna', 'Sydney'];
-const LOCATIONS = ['Dolomites', 'Lofoten Islands', 'Scottish Highlands', 'Patagonia', 'Swiss Alps', 'Grand Canyon', 'Faroe Islands', 'Santorini'];
+const CITIES = [
+  'Tokyo',
+  'Paris',
+  'New York',
+  'Lisbon',
+  'Bergen',
+  'Copenhagen',
+  'Rome',
+  'Amsterdam',
+  'Barcelona',
+  'Prague',
+  'Vienna',
+  'Sydney',
+];
+const LOCATIONS = [
+  'Dolomites',
+  'Lofoten Islands',
+  'Scottish Highlands',
+  'Patagonia',
+  'Swiss Alps',
+  'Grand Canyon',
+  'Faroe Islands',
+  'Santorini',
+];
 const COUNTRIES = ['Iceland', 'Japan', 'New Zealand', 'Norway', 'Portugal', 'Croatia', 'Scotland'];
 
 export function Chat() {
@@ -50,7 +72,9 @@ export function Chat() {
 
   const handleCityClick = (place: string) => {
     haptic('light');
-    sendMessage(`I am planning a photo trip to ${place} please help me to find the best photography spots and and the best time to visit them`);
+    sendMessage(
+      `I am planning a photo trip to ${place} please help me to find the best photography spots and and the best time to visit them`
+    );
   };
 
   const handleSuggest = (text: string) => {
@@ -77,7 +101,10 @@ export function Chat() {
         <div className="flex items-center gap-2">
           {messages.length > 0 && (
             <button
-              onClick={() => { haptic('light'); clearChat(); }}
+              onClick={() => {
+                haptic('light');
+                clearChat();
+              }}
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted hover:text-foreground transition-colors press"
             >
               <Plus className="w-4 h-4" />
@@ -86,10 +113,7 @@ export function Chat() {
           )}
 
           <div className="relative">
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="press"
-            >
+            <button onClick={() => setShowUserMenu(!showUserMenu)} className="press">
               {user?.picture && !isGuest ? (
                 <img
                   src={user.picture}
@@ -102,7 +126,9 @@ export function Chat() {
                   }}
                 />
               ) : null}
-              <div className={`w-8 h-8 rounded-full bg-card flex items-center justify-center ${user?.picture && !isGuest ? 'hidden' : ''}`}>
+              <div
+                className={`w-8 h-8 rounded-full bg-card flex items-center justify-center ${user?.picture && !isGuest ? 'hidden' : ''}`}
+              >
                 <User className="w-4 h-4 text-muted" />
               </div>
             </button>
@@ -112,8 +138,12 @@ export function Chat() {
                 <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
                 <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-xl overflow-hidden z-50">
                   <div className="px-4 py-3 border-b border-border">
-                    <p className="font-medium text-foreground truncate text-sm">{isGuest ? 'Guest' : user?.name}</p>
-                    <p className="text-xs text-muted truncate">{isGuest ? 'Not signed in' : user?.email}</p>
+                    <p className="font-medium text-foreground truncate text-sm">
+                      {isGuest ? 'Guest' : user?.name}
+                    </p>
+                    <p className="text-xs text-muted truncate">
+                      {isGuest ? 'Not signed in' : user?.email}
+                    </p>
                   </div>
                   {isGuest ? (
                     <div className="p-3">
@@ -132,7 +162,10 @@ export function Chat() {
                     </div>
                   ) : (
                     <button
-                      onClick={() => { haptic('light'); logout(); }}
+                      onClick={() => {
+                        haptic('light');
+                        logout();
+                      }}
                       className="w-full px-4 py-3 text-left flex items-center gap-2 text-danger text-sm hover:bg-white/5 press"
                     >
                       <LogOut className="w-4 h-4" />
@@ -158,7 +191,8 @@ export function Chat() {
               Plan Your Photo Trip
             </h2>
             <p className="text-muted text-sm text-center mb-8 max-w-xs">
-              Tell me a destination and I'll create an interactive guide with the best photography spots.
+              Tell me a destination and I'll create an interactive guide with the best photography
+              spots.
             </p>
 
             <div className="flex flex-wrap gap-2 justify-center max-w-sm">

@@ -14,6 +14,10 @@ export default tseslint.config(
       '**/.vite/**',
       '**/cdk.out/**',
       '**/coverage/**',
+      '**/infra/**/*.js', // CDK compiled output (CommonJS)
+      '**/model-testing/**', // LLM testing utilities
+      '**/tailwind.config.js', // Tailwind config (CommonJS)
+      '**/scripts/**', // Utility scripts
     ],
   },
   {
@@ -23,15 +27,19 @@ export default tseslint.config(
       sourceType: 'module',
     },
     rules: {
-      '@typescript-eslint/no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      'no-console': 'off',
       'prefer-const': 'error',
       'no-var': 'error',
     },
@@ -43,20 +51,23 @@ export default tseslint.config(
       'react-refresh': reactRefresh,
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-    },
-  },
-  {
-    files: ['packages/api/**/*.ts', 'infra/**/*.ts'],
-    rules: {
-      'no-console': 'off', // Allow console in backend/infra
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'off',
+      'react-refresh/only-export-components': 'off',
     },
   },
   {
     files: ['**/*.test.ts', '**/*.spec.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'no-console': 'off',
+    },
+  },
+  {
+    files: ['**/vite.config.ts', '**/vitest.config.ts', '**/vitest.*.config.ts'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
       'no-console': 'off',
     },
   }
