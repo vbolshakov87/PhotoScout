@@ -11,7 +11,8 @@
     "test:llm": "vitest run src/tests/llm-comparison.test.ts",
     "test:llm:haiku": "CLAUDE_MODEL=haiku vitest run src/tests/llm-comparison.test.ts",
     "test:llm:sonnet": "CLAUDE_MODEL=sonnet vitest run src/tests/llm-comparison.test.ts",
-    "test:all": "vitest run"
+    "test:all": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
