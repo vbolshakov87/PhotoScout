@@ -5,14 +5,13 @@
   "scripts": {
     "build": "esbuild src/handlers/*.ts --bundle --platform=node --target=node20 --outdir=dist --format=esm --external:@aws-sdk/* --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\" && echo '{\"type\":\"module\"}' > dist/package.json",
     "dev": "tsx watch src/dev-server.ts",
-    "test": "vitest run src/tests/prompt.test.ts",
+    "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "test:prompt": "vitest run src/tests/prompt.test.ts",
-    "test:llm": "vitest run src/tests/llm-comparison.test.ts",
-    "test:llm:haiku": "CLAUDE_MODEL=haiku vitest run src/tests/llm-comparison.test.ts",
-    "test:llm:sonnet": "CLAUDE_MODEL=sonnet vitest run src/tests/llm-comparison.test.ts",
-    "test:all": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:llm": "vitest run src/tests/llm-comparison.test.ts --config vitest.integration.config.ts",
+    "test:llm:haiku": "CLAUDE_MODEL=haiku vitest run src/tests/llm-comparison.test.ts --config vitest.integration.config.ts",
+    "test:llm:sonnet": "CLAUDE_MODEL=sonnet vitest run src/tests/llm-comparison.test.ts --config vitest.integration.config.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
