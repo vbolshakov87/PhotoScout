@@ -8,22 +8,64 @@ const MODEL = 'imagen-4.0-fast-generate-001';
 // Nature/landscape regions that need a different prompt style
 const NATURE_DESTINATIONS = new Set([
   // Europe - General
-  'Dolomites', 'Lake Bled', 'Slovenia', 'Normandy', 'Lofoten', 'Iceland',
-  'Scottish Highlands', 'Swiss Alps', 'Tuscany', 'Amalfi Coast', 'Cinque Terre',
-  'Provence', 'Santorini', 'Faroe Islands', 'Norwegian Fjords', 'Lake Como',
-  'Plitvice Lakes', 'Trolltunga', 'Madeira', 'Azores', 'Cappadocia',
+  'Dolomites',
+  'Lake Bled',
+  'Slovenia',
+  'Normandy',
+  'Lofoten',
+  'Iceland',
+  'Scottish Highlands',
+  'Swiss Alps',
+  'Tuscany',
+  'Amalfi Coast',
+  'Cinque Terre',
+  'Provence',
+  'Santorini',
+  'Faroe Islands',
+  'Norwegian Fjords',
+  'Lake Como',
+  'Plitvice Lakes',
+  'Trolltunga',
+  'Madeira',
+  'Azores',
+  'Cappadocia',
   // Germany
-  'Black Forest', 'Saxon Switzerland', 'Bavarian Alps', 'Rhine Valley',
-  'Moselle Valley', 'Berchtesgaden', 'Lake Constance', 'Harz Mountains',
-  'Romantic Road', 'Baltic Sea Coast',
+  'Black Forest',
+  'Saxon Switzerland',
+  'Bavarian Alps',
+  'Rhine Valley',
+  'Moselle Valley',
+  'Berchtesgaden',
+  'Lake Constance',
+  'Harz Mountains',
+  'Romantic Road',
+  'Baltic Sea Coast',
   // Americas
-  'Patagonia', 'Banff', 'Yosemite', 'Grand Canyon', 'Antelope Canyon',
-  'Monument Valley', 'Big Sur', 'Hawaii', 'Yellowstone', 'Torres del Paine',
+  'Patagonia',
+  'Banff',
+  'Yosemite',
+  'Grand Canyon',
+  'Antelope Canyon',
+  'Monument Valley',
+  'Big Sur',
+  'Hawaii',
+  'Yellowstone',
+  'Torres del Paine',
   // Asia & Pacific
-  'Bali', 'Ha Long Bay', 'Zhangjiajie', 'Maldives', 'New Zealand',
-  'Great Barrier Reef', 'Milford Sound', 'Mount Fuji', 'Guilin',
+  'Bali',
+  'Ha Long Bay',
+  'Zhangjiajie',
+  'Maldives',
+  'New Zealand',
+  'Great Barrier Reef',
+  'Milford Sound',
+  'Mount Fuji',
+  'Guilin',
   // Africa
-  'Sahara Desert', 'Serengeti', 'Victoria Falls', 'Namib Desert',
+  'Sahara Desert',
+  'Serengeti',
+  'Victoria Falls',
+  'Namib Desert',
 ]);
 
 function isNatureDestination(destination: string): boolean {
@@ -46,11 +88,11 @@ function getDestinationImagePrompt(destination: string): string {
 // Common city name variations mapping to canonical names
 const CITY_NAME_ALIASES: Record<string, string> = {
   'new york city': 'new york',
-  'nyc': 'new york',
-  'la': 'los angeles',
-  'sf': 'san francisco',
+  nyc: 'new york',
+  la: 'los angeles',
+  sf: 'san francisco',
   'hong kong sar': 'hong kong',
-  'rio': 'rio de janeiro',
+  rio: 'rio de janeiro',
 };
 
 function normalizeCityName(city: string): string {
@@ -59,7 +101,9 @@ function normalizeCityName(city: string): string {
 }
 
 function getCityImageKey(city: string): string {
-  const normalizedCity = normalizeCityName(city).replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+  const normalizedCity = normalizeCityName(city)
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-');
   return `city-images/${normalizedCity}.png`;
 }
 
@@ -70,10 +114,12 @@ async function cityImageExists(city: string): Promise<boolean> {
   const key = getCityImageKey(city);
 
   try {
-    await s3Client.send(new HeadObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-    }));
+    await s3Client.send(
+      new HeadObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+      })
+    );
     return true;
   } catch {
     return false;
@@ -93,13 +139,15 @@ async function uploadImageToS3(city: string, imageData: Buffer): Promise<string>
 
   const key = getCityImageKey(city);
 
-  await s3Client.send(new PutObjectCommand({
-    Bucket: bucketName,
-    Key: key,
-    Body: imageData,
-    ContentType: 'image/png',
-    CacheControl: 'public, max-age=31536000, immutable',
-  }));
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      Body: imageData,
+      ContentType: 'image/png',
+      CacheControl: 'public, max-age=31536000, immutable',
+    })
+  );
 
   return `https://${cloudfrontDomain}/${key}`;
 }
@@ -135,7 +183,7 @@ async function generateCityImage(city: string): Promise<Buffer> {
     throw new Error(`Imagen API error: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as { predictions?: Array<{ bytesBase64Encoded?: string }> };
 
   const imageData = data.predictions?.[0]?.bytesBase64Encoded;
   if (!imageData) {
@@ -169,7 +217,9 @@ export async function getCityImageUrl(city: string): Promise<string> {
   return url;
 }
 
-export async function getCachedCityImages(cities: string[]): Promise<Record<string, string | null>> {
+export async function getCachedCityImages(
+  cities: string[]
+): Promise<Record<string, string | null>> {
   const cloudfrontDomain = process.env.CLOUDFRONT_DOMAIN;
   const result: Record<string, string | null> = {};
 
@@ -187,42 +237,113 @@ export async function getCachedCityImages(cities: string[]): Promise<Record<stri
 
 // Top city destinations to pre-generate
 export const TOP_CITIES = [
-  'Tokyo', 'Paris', 'New York', 'London', 'Rome',
-  'Barcelona', 'Amsterdam', 'Berlin', 'Vienna', 'Prague',
-  'Lisbon', 'Copenhagen', 'Stockholm', 'Oslo', 'Bergen',
-  'Dubai', 'Singapore', 'Hong Kong', 'Sydney', 'Melbourne',
-  'San Francisco', 'Los Angeles', 'Chicago', 'Miami', 'Boston',
-  'Vancouver', 'Toronto', 'Montreal', 'Rio de Janeiro', 'Buenos Aires',
-  'Cape Town', 'Marrakech', 'Istanbul', 'Athens', 'Florence',
-  'Venice', 'Munich', 'Zurich', 'Brussels', 'Dublin',
+  'Tokyo',
+  'Paris',
+  'New York',
+  'London',
+  'Rome',
+  'Barcelona',
+  'Amsterdam',
+  'Berlin',
+  'Vienna',
+  'Prague',
+  'Lisbon',
+  'Copenhagen',
+  'Stockholm',
+  'Oslo',
+  'Bergen',
+  'Dubai',
+  'Singapore',
+  'Hong Kong',
+  'Sydney',
+  'Melbourne',
+  'San Francisco',
+  'Los Angeles',
+  'Chicago',
+  'Miami',
+  'Boston',
+  'Vancouver',
+  'Toronto',
+  'Montreal',
+  'Rio de Janeiro',
+  'Buenos Aires',
+  'Cape Town',
+  'Marrakech',
+  'Istanbul',
+  'Athens',
+  'Florence',
+  'Venice',
+  'Munich',
+  'Zurich',
+  'Brussels',
+  'Dublin',
 ];
 
 // Top nature/landscape regions to pre-generate
 export const TOP_NATURE_REGIONS = [
   // Europe - Alps & Mountains
-  'Dolomites', 'Swiss Alps', 'Scottish Highlands', 'Lofoten', 'Norwegian Fjords',
-  'Trolltunga', 'Faroe Islands',
+  'Dolomites',
+  'Swiss Alps',
+  'Scottish Highlands',
+  'Lofoten',
+  'Norwegian Fjords',
+  'Trolltunga',
+  'Faroe Islands',
   // Europe - Mediterranean & Lakes
-  'Lake Bled', 'Tuscany', 'Amalfi Coast', 'Cinque Terre', 'Provence',
-  'Santorini', 'Lake Como', 'Plitvice Lakes',
+  'Lake Bled',
+  'Tuscany',
+  'Amalfi Coast',
+  'Cinque Terre',
+  'Provence',
+  'Santorini',
+  'Lake Como',
+  'Plitvice Lakes',
   // Europe - Atlantic
-  'Iceland', 'Normandy', 'Madeira', 'Azores', 'Slovenia',
+  'Iceland',
+  'Normandy',
+  'Madeira',
+  'Azores',
+  'Slovenia',
   // Germany
-  'Black Forest', 'Saxon Switzerland', 'Bavarian Alps', 'Rhine Valley',
-  'Moselle Valley', 'Berchtesgaden', 'Lake Constance', 'Harz Mountains',
-  'Romantic Road', 'Baltic Sea Coast',
+  'Black Forest',
+  'Saxon Switzerland',
+  'Bavarian Alps',
+  'Rhine Valley',
+  'Moselle Valley',
+  'Berchtesgaden',
+  'Lake Constance',
+  'Harz Mountains',
+  'Romantic Road',
+  'Baltic Sea Coast',
   // Middle East
   'Cappadocia',
   // Americas - North
-  'Banff', 'Yosemite', 'Grand Canyon', 'Antelope Canyon', 'Monument Valley',
-  'Big Sur', 'Hawaii', 'Yellowstone',
+  'Banff',
+  'Yosemite',
+  'Grand Canyon',
+  'Antelope Canyon',
+  'Monument Valley',
+  'Big Sur',
+  'Hawaii',
+  'Yellowstone',
   // Americas - South
-  'Patagonia', 'Torres del Paine',
+  'Patagonia',
+  'Torres del Paine',
   // Asia & Pacific
-  'Bali', 'Ha Long Bay', 'Zhangjiajie', 'Maldives', 'New Zealand',
-  'Milford Sound', 'Mount Fuji', 'Guilin', 'Great Barrier Reef',
+  'Bali',
+  'Ha Long Bay',
+  'Zhangjiajie',
+  'Maldives',
+  'New Zealand',
+  'Milford Sound',
+  'Mount Fuji',
+  'Guilin',
+  'Great Barrier Reef',
   // Africa
-  'Sahara Desert', 'Serengeti', 'Victoria Falls', 'Namib Desert',
+  'Sahara Desert',
+  'Serengeti',
+  'Victoria Falls',
+  'Namib Desert',
 ];
 
 // Combined list of all destinations
@@ -242,7 +363,7 @@ export async function preGenerateAllCityImages(): Promise<{ success: string[]; f
       console.error(`[Imagen] ✗ ${city}:`, error);
     }
     // Small delay to avoid rate limiting
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
   return { success, failed };

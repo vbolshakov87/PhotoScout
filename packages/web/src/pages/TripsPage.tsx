@@ -51,13 +51,13 @@ export function TripsPage() {
               setCityImages(images);
 
               // For any cities without cached images, trigger generation in background
-              const missingCities = (uniqueCities as string[]).filter(city => !images[city]);
-              missingCities.forEach(city => {
+              const missingCities = (uniqueCities as string[]).filter((city) => !images[city]);
+              missingCities.forEach((city) => {
                 fetch(`/api/images/city/${encodeURIComponent(city)}`)
-                  .then(res => res.json())
-                  .then(data => {
+                  .then((res) => res.json())
+                  .then((data) => {
                     if (data.imageUrl) {
-                      setCityImages(prev => ({ ...prev, [city]: data.imageUrl }));
+                      setCityImages((prev) => ({ ...prev, [city]: data.imageUrl }));
                     }
                   })
                   .catch((e) => console.warn(`Failed to load image for ${city}:`, e));
@@ -98,7 +98,7 @@ export function TripsPage() {
         setHtmlContent(plan.htmlContent);
       }
       navigate(`/trips/${plan.planId}`);
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to load trip details');
     }
   };
@@ -113,17 +113,26 @@ export function TripsPage() {
     if (!selectedPlan) return;
     try {
       const visitorId = getUserId();
-      const response = await fetch(`/api/plans/${selectedPlan.planId}?visitorId=${visitorId}`, { method: 'DELETE' });
+      const response = await fetch(`/api/plans/${selectedPlan.planId}?visitorId=${visitorId}`, {
+        method: 'DELETE',
+      });
       if (!response.ok) throw new Error('Failed to delete plan');
       setPlans((prev) => prev.filter((p) => p.planId !== selectedPlan.planId));
       handleBack();
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to delete trip');
     }
   };
 
   if (selectedPlan && htmlContent) {
-    return <TripDetail plan={selectedPlan} htmlContent={htmlContent} onBack={handleBack} onDelete={handleDelete} />;
+    return (
+      <TripDetail
+        plan={selectedPlan}
+        htmlContent={htmlContent}
+        onBack={handleBack}
+        onDelete={handleDelete}
+      />
+    );
   }
 
   return (
@@ -155,7 +164,9 @@ export function TripsPage() {
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <LogIn className="w-12 h-12 text-muted/50 mb-4" />
             <p className="text-foreground text-sm font-medium">Sign in to see your trips</p>
-            <p className="text-muted/70 text-xs mt-1 mb-4">Your trips will be saved when you sign in</p>
+            <p className="text-muted/70 text-xs mt-1 mb-4">
+              Your trips will be saved when you sign in
+            </p>
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => console.error('Login failed')}

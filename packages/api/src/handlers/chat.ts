@@ -8,7 +8,6 @@ import {
   upsertConversation,
   savePlan,
   countSpotsInPlan,
-  getCachedPlan,
   saveCachedPlan,
   generateCacheKey,
 } from '../lib/dynamo';
@@ -26,16 +25,10 @@ declare const awslambda: {
   };
 };
 
-type StreamingHandler = (
-  event: APIGatewayProxyEventV2,
-  responseStream: any
-) => Promise<void>;
+type StreamingHandler = (event: APIGatewayProxyEventV2, responseStream: any) => Promise<void>;
 
 // Internal handler for actual logic
-async function internalHandler(
-  event: APIGatewayProxyEventV2,
-  responseStream: any
-): Promise<void> {
+async function internalHandler(event: APIGatewayProxyEventV2, responseStream: any): Promise<void> {
   // Handle OPTIONS
   if (event.requestContext.http.method === 'OPTIONS') {
     responseStream.write('');
@@ -68,8 +61,7 @@ async function internalHandler(
     await saveMessage(userMessage);
 
     // Update conversation metadata
-    const conversationTitle =
-      message.length > 50 ? message.substring(0, 50) + '...' : message;
+    const conversationTitle = message.length > 50 ? message.substring(0, 50) + '...' : message;
     await upsertConversation(visitorId, conversationId, conversationTitle);
 
     // Stream response
@@ -96,7 +88,11 @@ async function internalHandler(
     let generatedHtml: string | undefined;
 
     // Detect if LLM returned JSON trip plan
-    if (fullContent.trim().startsWith('{') && fullContent.includes('"title"') && fullContent.includes('"spots"')) {
+    if (
+      fullContent.trim().startsWith('{') &&
+      fullContent.includes('"title"') &&
+      fullContent.includes('"spots"')
+    ) {
       console.log('[Chat] Detected JSON trip plan, converting to HTML...');
 
       try {
@@ -107,7 +103,7 @@ async function internalHandler(
 
         console.log('[Chat] Successfully converted JSON to HTML', {
           jsonLength: fullContent.length,
-          htmlLength: generatedHtml.length
+          htmlLength: generatedHtml.length,
         });
 
         // Stream the HTML to client
@@ -158,11 +154,17 @@ async function internalHandler(
 
           // Use extracted or fallback values
           planInterests = params.interests || tripPlan.spots?.[0]?.tags?.join('-') || 'general';
-          planDuration = params.duration || String(Math.max(...(tripPlan.spots?.map(s => s.day) || [1])));
+          planDuration =
+            params.duration || String(Math.max(...(tripPlan.spots?.map((s) => s.day ?? 1) || [1])));
 
           // Save to cache for future requests
           const cacheKey = generateCacheKey(planCity, planInterests, planDuration);
-          console.log('[Cache] Saving plan to cache:', { cacheKey, city: planCity, interests: planInterests, duration: planDuration });
+          console.log('[Cache] Saving plan to cache:', {
+            cacheKey,
+            city: planCity,
+            interests: planInterests,
+            duration: planDuration,
+          });
 
           await saveCachedPlan(
             cacheKey,
@@ -208,12 +210,7 @@ async function internalHandler(
 
       // Update conversation with city
       if (planCity && planCity !== 'Unknown') {
-        await upsertConversation(
-          visitorId,
-          conversationId,
-          `${planCity} Trip`,
-          planCity
-        );
+        await upsertConversation(visitorId, conversationId, `${planCity} Trip`, planCity);
       }
 
       // Send plan saved event
@@ -233,7 +230,10 @@ async function internalHandler(
       role: 'assistant',
       content: fullContent, // Save the original JSON content
       isHtml: isHtmlPlan,
-      model: process.env.CLAUDE_MODEL === 'sonnet' ? 'claude-sonnet-4-5-20250929' : 'claude-haiku-4-5-20251001',
+      model:
+        process.env.CLAUDE_MODEL === 'sonnet'
+          ? 'claude-sonnet-4-5-20250929'
+          : 'claude-haiku-4-5-20251001',
     };
     await saveMessage(assistantMessage);
 
@@ -264,7 +264,7 @@ export const handler = awslambda.streamifyResponse(
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
         'Access-Control-Allow-Origin': getCorsOrigin(event.headers.origin),
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',

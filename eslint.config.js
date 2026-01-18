@@ -14,6 +14,10 @@ export default tseslint.config(
       '**/.vite/**',
       '**/cdk.out/**',
       '**/coverage/**',
+      '**/infra/**/*.js', // CDK compiled output (CommonJS)
+      '**/model-testing/**', // LLM testing utilities
+      '**/tailwind.config.js', // Tailwind config (CommonJS)
+      '**/scripts/**', // Utility scripts
     ],
   },
   {
@@ -26,6 +30,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
       }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
@@ -57,6 +62,14 @@ export default tseslint.config(
     files: ['**/*.test.ts', '**/*.spec.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'no-console': 'off',
+    },
+  },
+  {
+    files: ['**/vite.config.ts', '**/vitest.config.ts'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
       'no-console': 'off',
     },
   }
