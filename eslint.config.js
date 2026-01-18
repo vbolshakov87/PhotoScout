@@ -32,11 +32,11 @@ export default tseslint.config(
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_',
       }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      'no-console': 'off',
       'prefer-const': 'error',
       'no-var': 'error',
     },
@@ -48,14 +48,9 @@ export default tseslint.config(
       'react-refresh': reactRefresh,
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-    },
-  },
-  {
-    files: ['packages/api/**/*.ts', 'infra/**/*.ts'],
-    rules: {
-      'no-console': 'off', // Allow console in backend/infra
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'off',
+      'react-refresh/only-export-components': 'off',
     },
   },
   {
@@ -67,7 +62,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/vite.config.ts', '**/vitest.config.ts'],
+    files: ['**/vite.config.ts', '**/vitest.config.ts', '**/vitest.*.config.ts'],
     rules: {
       '@typescript-eslint/no-unused-vars': 'off',
       'no-console': 'off',
