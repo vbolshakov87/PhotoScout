@@ -3,9 +3,25 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Info, FileText, Shield, LogOut, ExternalLink, Camera, LogIn } from 'lucide-react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
+// Validate that profile picture URL is from trusted Google domains
+function getSafeProfilePicture(url: string | undefined): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const trustedDomains = ['googleusercontent.com', 'ggpht.com', 'google.com'];
+    if (trustedDomains.some((domain) => parsed.hostname.endsWith(domain))) {
+      return url;
+    }
+  } catch {
+    // Invalid URL
+  }
+  return null;
+}
+
 export function SettingsPage() {
   const { user, logout, isGuest, login } = useAuth();
   const navigate = useNavigate();
+  const safeProfilePicture = getSafeProfilePicture(user?.picture);
 
   const handleSignOut = () => {
     if (confirm('Are you sure you want to sign out?')) {
@@ -38,8 +54,12 @@ export function SettingsPage() {
           <h2 className="text-xs font-medium text-muted uppercase tracking-wide mb-3">Account</h2>
           <div className="bg-card border border-border rounded-xl p-4">
             <div className="flex items-center gap-3">
-              {user?.picture && !isGuest ? (
-                <img src={user.picture} alt={user.name} className="w-12 h-12 rounded-full" />
+              {safeProfilePicture && !isGuest ? (
+                <img
+                  src={safeProfilePicture}
+                  alt={user?.name || ''}
+                  className="w-12 h-12 rounded-full"
+                />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center">
                   <User className="w-6 h-6 text-muted" />

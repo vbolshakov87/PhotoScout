@@ -339,7 +339,7 @@ export function generateHTML(plan: TripPlan): string {
   const markerData = plan.spots
     .map(
       (s) =>
-        `{lat:${s.lat},lng:${s.lng},num:${s.number},name:"${s.name.replace(/"/g, '\\"')}",p:${s.priority}}`
+        `{lat:${s.lat},lng:${s.lng},num:${s.number},name:"${s.name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}",p:${s.priority}}`
     )
     .join(',');
 
