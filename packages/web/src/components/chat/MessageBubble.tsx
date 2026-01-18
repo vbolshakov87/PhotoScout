@@ -25,7 +25,10 @@ interface MessageBubbleProps {
 }
 
 // Parse [[suggestions]] or [[suggestions:multi]] blocks from message content
-function parseSuggestions(content: string): { cleanContent: string; suggestions: ParsedSuggestions | null } {
+function parseSuggestions(content: string): {
+  cleanContent: string;
+  suggestions: ParsedSuggestions | null;
+} {
   const regex = /\[\[suggestions(?::multi)?\]\]\n([\s\S]*?)\n\[\[\/suggestions\]\]/;
   const match = content.match(regex);
 
@@ -56,11 +59,16 @@ function parseSuggestions(content: string): { cleanContent: string; suggestions:
 
   return {
     cleanContent,
-    suggestions: options.length > 0 ? { multi: isMulti, options } : null
+    suggestions: options.length > 0 ? { multi: isMulti, options } : null,
   };
 }
 
-export const MessageBubble = memo(function MessageBubble({ message, onSend, onSuggest, isLastMessage }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({
+  message,
+  onSend,
+  onSuggest,
+  isLastMessage,
+}: MessageBubbleProps) {
   const { share, copyToClipboard, haptic } = useNativeBridge();
   const [copied, setCopied] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -77,10 +85,11 @@ export const MessageBubble = memo(function MessageBubble({ message, onSend, onSu
   const isCompleteHtml = hasHtmlStart && hasHtmlEnd;
 
   // Check if this is the "plan ready" message asking for confirmation
-  const isPlanReadyMessage = !isUser && isLastMessage && (
-    cleanContent.includes('Does this plan look good') ||
-    cleanContent.includes('generate the full interactive HTML')
-  );
+  const isPlanReadyMessage =
+    !isUser &&
+    isLastMessage &&
+    (cleanContent.includes('Does this plan look good') ||
+      cleanContent.includes('generate the full interactive HTML'));
 
   // Show suggestions only on the last assistant message
   const showSuggestions = !isUser && isLastMessage && suggestions && (onSend || onSuggest);
@@ -96,10 +105,8 @@ export const MessageBubble = memo(function MessageBubble({ message, onSend, onSu
 
   const toggleOption = (value: string) => {
     haptic('light');
-    setSelectedOptions(prev =>
-      prev.includes(value)
-        ? prev.filter(v => v !== value)
-        : [...prev, value]
+    setSelectedOptions((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
     );
   };
 
@@ -111,11 +118,12 @@ export const MessageBubble = memo(function MessageBubble({ message, onSend, onSu
     }
   };
 
-  const isMarkdown = !isUser && !isCompleteHtml && (
-    cleanContent.includes('**') ||
-    cleanContent.includes('\n- ') ||
-    cleanContent.includes('\n1. ')
-  );
+  const isMarkdown =
+    !isUser &&
+    !isCompleteHtml &&
+    (cleanContent.includes('**') ||
+      cleanContent.includes('\n- ') ||
+      cleanContent.includes('\n1. '));
 
   const handleCopy = () => {
     haptic('light');
@@ -138,11 +146,18 @@ export const MessageBubble = memo(function MessageBubble({ message, onSend, onSu
             onClick={handleCopy}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-card border border-border rounded-lg text-muted hover:text-foreground transition-colors press"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-success" />
+            ) : (
+              <Copy className="w-3.5 h-3.5" />
+            )}
             {copied ? 'Copied' : 'Copy'}
           </button>
           <button
-            onClick={() => { haptic('light'); share(message.content, 'PhotoScout Trip'); }}
+            onClick={() => {
+              haptic('light');
+              share(message.content, 'PhotoScout Trip');
+            }}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-primary text-white rounded-lg press"
           >
             <Share2 className="w-3.5 h-3.5" />
@@ -155,25 +170,33 @@ export const MessageBubble = memo(function MessageBubble({ message, onSend, onSu
 
   return (
     <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
-      <div className={`max-w-[85%] px-4 py-3 rounded-2xl ${
-        isUser
-          ? 'bg-primary text-white rounded-br-md'
-          : 'bg-card border border-border rounded-bl-md'
-      }`}>
+      <div
+        className={`max-w-[85%] px-4 py-3 rounded-2xl ${
+          isUser
+            ? 'bg-primary text-white rounded-br-md'
+            : 'bg-card border border-border rounded-bl-md'
+        }`}
+      >
         {isMarkdown ? (
           <div className="prose prose-invert prose-sm max-w-none">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
                 strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>,
-                ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-2">{children}</ol>,
+                ul: ({ children }) => (
+                  <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="list-decimal list-inside space-y-1 my-2">{children}</ol>
+                ),
                 li: ({ children }) => <li className="ml-1">{children}</li>,
                 p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                 h1: ({ children }) => <h1 className="text-lg font-semibold mb-2">{children}</h1>,
                 h2: ({ children }) => <h2 className="text-base font-semibold mb-2">{children}</h2>,
                 h3: ({ children }) => <h3 className="text-sm font-semibold mb-1">{children}</h3>,
-                code: ({ children }) => <code className="bg-black/20 px-1 rounded text-sm">{children}</code>,
+                code: ({ children }) => (
+                  <code className="bg-black/20 px-1 rounded text-sm">{children}</code>
+                ),
               }}
             >
               {cleanContent}

@@ -59,18 +59,22 @@ async function getAllPlans(): Promise<Plan[]> {
 async function uploadHtmlToS3(visitorId: string, planId: string, html: string): Promise<string> {
   const key = `plans/${visitorId}/${planId}.html`;
 
-  await s3Client.send(new PutObjectCommand({
-    Bucket: BUCKET_NAME,
-    Key: key,
-    Body: html,
-    ContentType: 'text/html',
-    CacheControl: 'public, max-age=31536000',
-  }));
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: html,
+      ContentType: 'text/html',
+      CacheControl: 'public, max-age=31536000',
+    })
+  );
 
   return `https://${CLOUDFRONT_DOMAIN}/${key}`;
 }
 
-async function regeneratePlan(plan: Plan): Promise<{ success: boolean; url?: string; error?: string }> {
+async function regeneratePlan(
+  plan: Plan
+): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
     if (!plan.jsonContent) {
       return { success: false, error: 'No JSON content stored' };
@@ -89,7 +93,7 @@ async function regeneratePlan(plan: Plan): Promise<{ success: boolean; url?: str
 async function main() {
   const args = process.argv.slice(2);
   const isTest = args.includes('--test');
-  const planIdArg = args.find(a => a.startsWith('--plan-id='));
+  const planIdArg = args.find((a) => a.startsWith('--plan-id='));
   const specificPlanId = planIdArg?.split('=')[1];
 
   console.log('🔄 HTML Regeneration Script\n');
@@ -126,11 +130,11 @@ async function main() {
 
   // Specific plan mode
   if (specificPlanId) {
-    const plan = plans.find(p => p.planId === specificPlanId);
+    const plan = plans.find((p) => p.planId === specificPlanId);
     if (!plan) {
       console.log(`❌ Plan not found: ${specificPlanId}`);
       console.log('\nAvailable plans:');
-      plans.slice(0, 10).forEach(p => {
+      plans.slice(0, 10).forEach((p) => {
         console.log(`  - ${p.planId}: ${p.title}`);
       });
       return;
@@ -155,7 +159,9 @@ async function main() {
   let failed = 0;
 
   for (const plan of plans) {
-    process.stdout.write(`  [${success + failed + 1}/${plans.length}] ${plan.city || plan.title}... `);
+    process.stdout.write(
+      `  [${success + failed + 1}/${plans.length}] ${plan.city || plan.title}... `
+    );
 
     const result = await regeneratePlan(plan);
 

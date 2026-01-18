@@ -230,10 +230,7 @@ export function extractJson(response: string): { json: unknown | null; startsCle
 /**
  * Score a quality test response
  */
-export function scoreQualityResponse(
-  response: string,
-  test: QualityTest
-): QualityScore {
+export function scoreQualityResponse(response: string, test: QualityTest): QualityScore {
   const responseLower = response.toLowerCase();
 
   // Find good spots mentioned
@@ -242,9 +239,7 @@ export function scoreQualityResponse(
   );
 
   // Find red flags present
-  const redFlagsFound = test.redFlags.filter((flag) =>
-    responseLower.includes(flag.toLowerCase())
-  );
+  const redFlagsFound = test.redFlags.filter((flag) => responseLower.includes(flag.toLowerCase()));
 
   // Find missing must-have elements
   const missingMustHave = test.mustHave.filter(
@@ -275,9 +270,7 @@ export function scoreQualityResponse(
 
   // Timing bonus (+1 point)
   const timingTerms = ['sunrise', 'sunset', 'golden hour', 'blue hour'];
-  const hasTimingMissing = missingMustHave.some((m) =>
-    timingTerms.includes(m.toLowerCase())
-  );
+  const hasTimingMissing = missingMustHave.some((m) => timingTerms.includes(m.toLowerCase()));
   if (!hasTimingMissing) {
     contentScore += 1;
   }

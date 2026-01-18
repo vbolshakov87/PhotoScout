@@ -40,9 +40,7 @@ export function TripCard({ plan, onClick, imageUrl }: TripCardProps) {
 
       {/* Content */}
       <div className="p-3">
-        <h3 className="font-medium text-foreground text-sm line-clamp-2 mb-2">
-          {plan.title}
-        </h3>
+        <h3 className="font-medium text-foreground text-sm line-clamp-2 mb-2">{plan.title}</h3>
 
         <div className="flex items-center gap-1.5 text-xs text-muted mb-1">
           <MapPin className="w-3 h-3" />

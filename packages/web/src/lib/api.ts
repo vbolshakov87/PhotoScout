@@ -1,4 +1,11 @@
-import type { ChatRequest, ChatStreamEvent, Conversation, Plan, PaginatedResponse, Message } from '@photoscout/shared';
+import type {
+  ChatRequest,
+  ChatStreamEvent,
+  Conversation,
+  Plan,
+  PaginatedResponse,
+  Message,
+} from '@photoscout/shared';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 

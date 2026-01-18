@@ -93,9 +93,7 @@
         }
       ],
       "latencyMs": 871,
-      "responses": [
-        "When in April are you planning to visit Hamburg?"
-      ]
+      "responses": ["When in April are you planning to visit Hamburg?"]
     },
     {
       "modelId": "gpt4o-mini",

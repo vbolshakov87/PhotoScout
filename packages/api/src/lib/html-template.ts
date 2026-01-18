@@ -86,7 +86,8 @@ function getSuggestedTime(bestTime: string, sunrise: string, sunset: string): st
   if (bt.includes('afternoon')) return '14:00';
   if (bt.includes('golden hour') || bt.includes('golden')) return toTime(sunsetMin - 60);
   if (bt.includes('sunset') || bt.includes('dusk')) return toTime(sunsetMin - 30);
-  if (bt.includes('blue hour') && (bt.includes('evening') || bt.includes('pm'))) return toTime(sunsetMin + 10);
+  if (bt.includes('blue hour') && (bt.includes('evening') || bt.includes('pm')))
+    return toTime(sunsetMin + 10);
   if (bt.includes('night') || bt.includes('after dark')) return toTime(sunsetMin + 45);
   return sunrise;
 }
@@ -97,13 +98,13 @@ function getPhotoLinks(spotName: string, city: string) {
   return {
     flickr: `https://www.flickr.com/search/?text=${query}&sort=interestingness-desc`,
     google: `https://www.google.com/search?tbm=isch&q=${query}`,
-    instagram: `https://www.instagram.com/explore/tags/${hashtag}/`
+    instagram: `https://www.instagram.com/explore/tags/${hashtag}/`,
   };
 }
 
 function groupSpotsByDay(spots: TripPlan['spots']): Map<number, TripPlan['spots']> {
   const grouped = new Map<number, TripPlan['spots']>();
-  spots.forEach(spot => {
+  spots.forEach((spot) => {
     const day = spot.day || 1;
     if (!grouped.has(day)) grouped.set(day, []);
     grouped.get(day)!.push(spot);
@@ -118,14 +119,19 @@ export function generateHTML(plan: TripPlan): string {
   const hasMultipleDays = days.length > 1;
 
   const priorityBadge = (p: number) => {
-    if (p === 3) return { icon: '🔥', text: 'MUST SEE', vertical: 'MUST SEE', class: 'priority-must' };
-    if (p === 2) return { icon: '⭐', text: 'RECOMMENDED', vertical: 'RECOMMENDED', class: 'priority-rec' };
+    if (p === 3)
+      return { icon: '🔥', text: 'MUST SEE', vertical: 'MUST SEE', class: 'priority-must' };
+    if (p === 2)
+      return { icon: '⭐', text: 'RECOMMENDED', vertical: 'RECOMMENDED', class: 'priority-rec' };
     return { icon: '', text: '', vertical: '', class: 'priority-opt' };
   };
 
   // Calculate arrival and leaving times (30-45 min per spot depending on priority)
   const getScheduleTimes = (arrivalTime: string, priority: number) => {
-    const toMinutes = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const toMinutes = (t: string) => {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    };
     const toTime = (mins: number) => {
       const h = Math.floor(mins / 60) % 24;
       const m = mins % 60;
@@ -136,12 +142,16 @@ export function generateHTML(plan: TripPlan): string {
     return {
       arrival: arrivalTime,
       leaving: toTime(arrivalMins + duration),
-      duration
+      duration,
     };
   };
 
   const generateSpotCard = (spot: TripPlan['spots'][0], index: number, totalSpots: number) => {
-    const suggestedTime = getSuggestedTime(spot.bestTime, plan.sunriseSunset.sunrise, plan.sunriseSunset.sunset);
+    const suggestedTime = getSuggestedTime(
+      spot.bestTime,
+      plan.sunriseSunset.sunrise,
+      plan.sunriseSunset.sunset
+    );
     const photos = getPhotoLinks(spot.name, plan.city);
     const badge = priorityBadge(spot.priority);
     const schedule = getScheduleTimes(suggestedTime, spot.priority);
@@ -157,14 +167,18 @@ export function generateHTML(plan: TripPlan): string {
         <header class="spot-head">
           <div class="spot-info">
             <h3>${spot.name}</h3>
-            ${showSchedule ? `
+            ${
+              showSchedule
+                ? `
             <div class="spot-schedule">
               <span class="schedule-time">🕐 ${schedule.arrival}</span>
               <span class="schedule-arrow">→</span>
               <span class="schedule-time">${schedule.leaving}</span>
               <span class="schedule-duration">(${schedule.duration} min)</span>
             </div>
-            ` : `<div class="spot-meta"><span class="spot-time">⏰ ${suggestedTime}</span></div>`}
+            `
+                : `<div class="spot-meta"><span class="spot-time">⏰ ${suggestedTime}</span></div>`
+            }
           </div>
           <label class="check-btn">
             <input type="checkbox" data-spot="${spot.number}">
@@ -182,7 +196,7 @@ export function generateHTML(plan: TripPlan): string {
         </div>
 
         <div class="spot-tags">
-          ${spot.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+          ${spot.tags.map((t) => `<span class="tag">${t}</span>`).join('')}
         </div>
 
         <div class="spot-actions">
@@ -197,15 +211,21 @@ export function generateHTML(plan: TripPlan): string {
     </article>`;
   };
 
-  const dayTabsHTML = hasMultipleDays ? `
+  const dayTabsHTML = hasMultipleDays
+    ? `
     <nav class="day-nav">
-      ${days.map((day, idx) => `
+      ${days
+        .map(
+          (day, idx) => `
         <button class="day-btn ${idx === 0 ? 'active' : ''}" data-day="${day}">
           Day ${day}
         </button>
-      `).join('')}
+      `
+        )
+        .join('')}
     </nav>
-  ` : '';
+  `
+    : '';
 
   const lightScheduleHTML = `
     <div class="light-schedule">
@@ -236,34 +256,50 @@ export function generateHTML(plan: TripPlan): string {
   // Sort spots by suggested time
   const sortByTime = (spots: TripPlan['spots']) => {
     return [...spots].sort((a, b) => {
-      const timeA = getSuggestedTime(a.bestTime, plan.sunriseSunset.sunrise, plan.sunriseSunset.sunset);
-      const timeB = getSuggestedTime(b.bestTime, plan.sunriseSunset.sunrise, plan.sunriseSunset.sunset);
+      const timeA = getSuggestedTime(
+        a.bestTime,
+        plan.sunriseSunset.sunrise,
+        plan.sunriseSunset.sunset
+      );
+      const timeB = getSuggestedTime(
+        b.bestTime,
+        plan.sunriseSunset.sunrise,
+        plan.sunriseSunset.sunset
+      );
       return timeA.localeCompare(timeB);
     });
   };
 
   // Generate global spots overview for ALL spots with day grouping
   const generateAllSpotsOverview = () => {
-    return days.map(day => {
-      const daySpots = sortByTime(spotsByDay.get(day)!);
-      const spotsHtml = daySpots.map(spot => {
-        const time = getSuggestedTime(spot.bestTime, plan.sunriseSunset.sunrise, plan.sunriseSunset.sunset);
-        const badge = priorityBadge(spot.priority);
-        return `<a href="#spot-${spot.number}" class="overview-spot ${badge.class}" data-day="${day}" onclick="goToSpot(${spot.number}, ${day})">
+    return days
+      .map((day) => {
+        const daySpots = sortByTime(spotsByDay.get(day)!);
+        const spotsHtml = daySpots
+          .map((spot) => {
+            const time = getSuggestedTime(
+              spot.bestTime,
+              plan.sunriseSunset.sunrise,
+              plan.sunriseSunset.sunset
+            );
+            const badge = priorityBadge(spot.priority);
+            return `<a href="#spot-${spot.number}" class="overview-spot ${badge.class}" data-day="${day}" onclick="goToSpot(${spot.number}, ${day})">
           <span class="overview-num">${spot.number}</span>
           <span class="overview-time">${time}</span>
           <span class="overview-name">${spot.name}</span>
           ${badge.text ? `<span class="overview-badge ${badge.class}">${badge.icon}</span>` : ''}
         </a>`;
-      }).join('');
+          })
+          .join('');
 
-      return hasMultipleDays
-        ? `<div class="overview-day">
+        return hasMultipleDays
+          ? `<div class="overview-day">
             <div class="overview-day-title">Day ${day}</div>
             ${spotsHtml}
           </div>`
-        : spotsHtml;
-    }).join('');
+          : spotsHtml;
+      })
+      .join('');
   };
 
   const hintsHTML = `
@@ -284,21 +320,28 @@ export function generateHTML(plan: TripPlan): string {
     </div>`;
 
   const spotsHTML = hasMultipleDays
-    ? days.map(day => {
-        const daySpots = sortByTime(spotsByDay.get(day)!);
-        return `
+    ? days
+        .map((day) => {
+          const daySpots = sortByTime(spotsByDay.get(day)!);
+          return `
         <div class="day-content" data-day="${day}" ${day !== days[0] ? 'hidden' : ''}>
           ${lightScheduleHTML}
           ${daySpots.map((spot, i) => generateSpotCard(spot, i, daySpots.length)).join('')}
         </div>`;
-      }).join('')
+        })
+        .join('')
     : `${lightScheduleHTML}
-       ${sortByTime(plan.spots).map((spot, i) => generateSpotCard(spot, i, plan.spots.length)).join('')}`;
+       ${sortByTime(plan.spots)
+         .map((spot, i) => generateSpotCard(spot, i, plan.spots.length))
+         .join('')}`;
 
-  const routeCoords = plan.route.map(r => `[${r.lat}, ${r.lng}]`).join(',');
-  const markerData = plan.spots.map(s =>
-    `{lat:${s.lat},lng:${s.lng},num:${s.number},name:"${s.name.replace(/"/g, '\\"')}",p:${s.priority}}`
-  ).join(',');
+  const routeCoords = plan.route.map((r) => `[${r.lat}, ${r.lng}]`).join(',');
+  const markerData = plan.spots
+    .map(
+      (s) =>
+        `{lat:${s.lat},lng:${s.lng},num:${s.number},name:"${s.name.replace(/"/g, '\\"')}",p:${s.priority}}`
+    )
+    .join(',');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1245,7 +1288,7 @@ export function generateHTML(plan: TripPlan): string {
     <!-- Map (at top) -->
     <section class="map-section fade-up" style="--delay: 0.1s">
       <div id="map"></div>
-      <a href="https://www.google.com/maps/dir/${plan.spots.map(s => `${s.lat},${s.lng}`).join('/')}" target="_blank" class="map-btn">
+      <a href="https://www.google.com/maps/dir/${plan.spots.map((s) => `${s.lat},${s.lng}`).join('/')}" target="_blank" class="map-btn">
         Open in Google Maps
       </a>
     </section>
@@ -1257,7 +1300,7 @@ export function generateHTML(plan: TripPlan): string {
         <div class="stat-label">Spots</div>
       </div>
       <div class="stat fade-up" style="--delay: 0.2s">
-        <div class="stat-value" style="color: var(--red)">${plan.spots.filter(s => s.priority === 3).length}</div>
+        <div class="stat-value" style="color: var(--red)">${plan.spots.filter((s) => s.priority === 3).length}</div>
         <div class="stat-label">Must See</div>
       </div>
       <div class="stat fade-up" style="--delay: 0.25s">
@@ -1283,12 +1326,16 @@ export function generateHTML(plan: TripPlan): string {
     <!-- Tips -->
     <section class="tips-section">
       <h2 class="section-title">Pro Tips</h2>
-      ${plan.shootingStrategy.map(tip => `
+      ${plan.shootingStrategy
+        .map(
+          (tip) => `
         <div class="tip">
           <span class="tip-icon">✓</span>
           <span>${tip}</span>
         </div>
-      `).join('')}
+      `
+        )
+        .join('')}
     </section>
 
     <footer class="footer">
@@ -1408,7 +1455,7 @@ export function generateHTML(plan: TripPlan): string {
       document.getElementById('progressText').textContent = done + '/' + TOTAL;
 
       // Update nav info
-      const nextNum = ${JSON.stringify(plan.spots.map(s => s.number))}.find(n => !checked.has(n));
+      const nextNum = ${JSON.stringify(plan.spots.map((s) => s.number))}.find(n => !checked.has(n));
       if (nextNum) {
         const spot = document.getElementById('spot-' + nextNum);
         if (spot) {
@@ -1461,7 +1508,7 @@ export function generateHTML(plan: TripPlan): string {
 
     // Scroll to next
     function scrollToNext() {
-      const nextNum = ${JSON.stringify(plan.spots.map(s => s.number))}.find(n => !checked.has(n));
+      const nextNum = ${JSON.stringify(plan.spots.map((s) => s.number))}.find(n => !checked.has(n));
       if (nextNum) {
         document.getElementById('spot-' + nextNum).scrollIntoView({ behavior: 'smooth', block: 'center' });
       }

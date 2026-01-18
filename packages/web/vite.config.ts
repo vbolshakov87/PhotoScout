@@ -5,7 +5,8 @@ import fs from 'fs';
 
 // Read deployed Lambda URLs from CDK outputs
 let chatApiUrl = 'https://ukxa7eu5rks24eoeb445lzzhoi0lsgjj.lambda-url.eu-central-1.on.aws/';
-let conversationsApiUrl = 'https://qsd2li2o2hv64wwypr52br7hqa0zmgrm.lambda-url.eu-central-1.on.aws/';
+let conversationsApiUrl =
+  'https://qsd2li2o2hv64wwypr52br7hqa0zmgrm.lambda-url.eu-central-1.on.aws/';
 let plansApiUrl = 'https://4kjp3ntfoc2hrpzxwy3pmea6fu0kfukt.lambda-url.eu-central-1.on.aws/';
 let cloudfrontUrl = 'https://aiscout.photo';
 

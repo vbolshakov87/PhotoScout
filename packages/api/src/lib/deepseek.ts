@@ -23,10 +23,7 @@ export async function* streamChatResponse(
 
   const stream = await deepseek.chat.completions.create({
     model: 'deepseek-chat',
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...formattedMessages,
-    ],
+    messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...formattedMessages],
     stream: true,
     max_tokens: 8192, // DeepSeek API limit (same as Claude Sonnet 4)
     temperature: 0.7,
@@ -38,7 +35,7 @@ export async function* streamChatResponse(
     // Log finish reason if stream is ending
     if (choice?.finish_reason) {
       console.log('[DeepSeek] Stream finished:', {
-        finish_reason: choice.finish_reason
+        finish_reason: choice.finish_reason,
       });
     }
 

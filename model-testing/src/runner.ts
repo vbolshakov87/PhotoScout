@@ -76,7 +76,7 @@ function parseArgs(): { models: string[]; tests: string[]; verbose: boolean; par
       const testId = args[++i];
       if (testId) tests.push(testId);
     } else if (arg === '--all' || arg === '-a') {
-      models = MODELS.map(m => m.id);
+      models = MODELS.map((m) => m.id);
     } else if (arg === '--verbose' || arg === '-v') {
       verbose = true;
     } else if (arg === '--parallel' || arg === '-p') {
@@ -89,12 +89,12 @@ function parseArgs(): { models: string[]; tests: string[]; verbose: boolean; par
 
   // Default: run all enabled and available models if none specified
   if (models.length === 0) {
-    models = MODELS.filter(m => m.enabled !== false && isModelAvailable(m)).map(m => m.id);
+    models = MODELS.filter((m) => m.enabled !== false && isModelAvailable(m)).map((m) => m.id);
   }
 
   // Default: run all tests if none specified
   if (tests.length === 0) {
-    tests = TEST_CASES.map(t => t.id);
+    tests = TEST_CASES.map((t) => t.id);
   }
 
   return { models, tests, verbose, parallel };
@@ -120,10 +120,10 @@ Options:
   -p, --parallel        Run models in parallel
 
 Models:
-  ${MODELS.map(m => `${m.id.padEnd(15)} ${m.name}`).join('\n  ')}
+  ${MODELS.map((m) => `${m.id.padEnd(15)} ${m.name}`).join('\n  ')}
 
 Tests:
-  ${TEST_CASES.map(t => `${t.id.padEnd(20)} ${t.name}`).join('\n  ')}
+  ${TEST_CASES.map((t) => `${t.id.padEnd(20)} ${t.name}`).join('\n  ')}
 
 Environment Variables:
   ANTHROPIC_API_KEY    For Claude models
@@ -171,7 +171,12 @@ async function runTest(
 
     if (verbose) {
       log(`\n${colors.dim}Response preview:${colors.reset}`);
-      log(colors.dim + allResponseTexts[allResponseTexts.length - 1].substring(0, 200) + '...' + colors.reset);
+      log(
+        colors.dim +
+          allResponseTexts[allResponseTexts.length - 1].substring(0, 200) +
+          '...' +
+          colors.reset
+      );
     }
 
     return {
@@ -232,7 +237,9 @@ async function runModelTests(
       // Show failed checks
       for (const check of result.checks) {
         if (!check.passed) {
-          log(`    ${colors.red}✗${colors.reset} ${check.name}${check.details ? ` - ${check.details}` : ''}`);
+          log(
+            `    ${colors.red}✗${colors.reset} ${check.name}${check.details ? ` - ${check.details}` : ''}`
+          );
         }
       }
     }
@@ -242,12 +249,9 @@ async function runModelTests(
 }
 
 // Calculate model summary
-function calculateSummary(
-  model: ModelConfig,
-  results: ModelTestResult[]
-): ModelSummary {
-  const modelResults = results.filter(r => r.modelId === model.id);
-  const passed = modelResults.filter(r => r.passed).length;
+function calculateSummary(model: ModelConfig, results: ModelTestResult[]): ModelSummary {
+  const modelResults = results.filter((r) => r.modelId === model.id);
+  const passed = modelResults.filter((r) => r.passed).length;
   const avgLatency =
     modelResults.length > 0
       ? modelResults.reduce((sum, r) => sum + r.latencyMs, 0) / modelResults.length
@@ -255,8 +259,7 @@ function calculateSummary(
 
   // Estimate cost per conversation (assume ~2000 input, ~1000 output tokens)
   const estimatedCost =
-    (2000 / 1_000_000) * model.inputCostPer1M +
-    (1000 / 1_000_000) * model.outputCostPer1M;
+    (2000 / 1_000_000) * model.inputCostPer1M + (1000 / 1_000_000) * model.outputCostPer1M;
 
   return {
     id: model.id,
@@ -276,15 +279,9 @@ function printSummary(summaries: ModelSummary[]) {
   logHeader('Results Summary');
 
   // Header
-  console.log(
-    '┌────────────────────┬───────┬────────┬─────────┬──────────────┐'
-  );
-  console.log(
-    '│ Model              │ Score │ Passed │ Latency │ Cost/Conv    │'
-  );
-  console.log(
-    '├────────────────────┼───────┼────────┼─────────┼──────────────┤'
-  );
+  console.log('┌────────────────────┬───────┬────────┬─────────┬──────────────┐');
+  console.log('│ Model              │ Score │ Passed │ Latency │ Cost/Conv    │');
+  console.log('├────────────────────┼───────┼────────┼─────────┼──────────────┤');
 
   // Sort by score descending
   const sorted = [...summaries].sort((a, b) => b.score - a.score);
@@ -300,14 +297,14 @@ function printSummary(summaries: ModelSummary[]) {
     console.log(`│ ${name} │ ${score} │ ${passed} │ ${latency} │ ${cost} │`);
   }
 
-  console.log(
-    '└────────────────────┴───────┴────────┴─────────┴──────────────┘'
-  );
+  console.log('└────────────────────┴───────┴────────┴─────────┴──────────────┘');
 
   // Recommendation
-  const best = sorted.find(s => s.score >= 90);
+  const best = sorted.find((s) => s.score >= 90);
   if (best) {
-    logInfo(`Recommendation: ${colors.bold}${best.name}${colors.reset} - ${best.score.toFixed(0)}% pass rate at $${best.estimatedCostPerConv.toFixed(4)}/conv`);
+    logInfo(
+      `Recommendation: ${colors.bold}${best.name}${colors.reset} - ${best.score.toFixed(0)}% pass rate at $${best.estimatedCostPerConv.toFixed(4)}/conv`
+    );
   } else {
     logInfo('No model achieved >= 90% pass rate. Consider simplifying the prompt.');
   }
@@ -356,25 +353,29 @@ async function main() {
   const { models, tests, verbose, parallel } = parseArgs();
 
   log(`\n${colors.bold}PhotoScout Compliance Testing${colors.reset}`);
-  log(`${colors.dim}Testing ${models.length} model(s) with ${tests.length} test(s)${parallel ? ' (parallel)' : ''}${colors.reset}\n`);
+  log(
+    `${colors.dim}Testing ${models.length} model(s) with ${tests.length} test(s)${parallel ? ' (parallel)' : ''}${colors.reset}\n`
+  );
 
   // Check available API keys
-  const availableModels = MODELS.filter(m => models.includes(m.id));
-  const unavailable = availableModels.filter(m => !isModelAvailable(m));
+  const availableModels = MODELS.filter((m) => models.includes(m.id));
+  const unavailable = availableModels.filter((m) => !isModelAvailable(m));
 
   if (unavailable.length > 0) {
-    logInfo(`Missing API keys for: ${unavailable.map(m => m.name).join(', ')}`);
+    logInfo(`Missing API keys for: ${unavailable.map((m) => m.name).join(', ')}`);
   }
 
   const startTime = Date.now();
   let allResults: ModelTestResult[] = [];
 
   // Get test cases
-  const testCases = tests.map(id => getTestById(id)).filter((t): t is TestCase => t !== undefined);
+  const testCases = tests
+    .map((id) => getTestById(id))
+    .filter((t): t is TestCase => t !== undefined);
 
   // Get available models to test
   const modelsToTest = models
-    .map(id => MODELS.find(m => m.id === id))
+    .map((id) => MODELS.find((m) => m.id === id))
     .filter((m): m is ModelConfig => m !== undefined && isModelAvailable(m));
 
   if (parallel) {
@@ -395,12 +396,18 @@ async function main() {
         if (result.error) {
           log(`  ${result.testName}: ${colors.red}ERROR${colors.reset} - ${result.error}`);
         } else if (result.passed) {
-          log(`  ${result.testName}: ${colors.green}✓${colors.reset} ${(result.score * 100).toFixed(0)}% (${result.latencyMs}ms)`);
+          log(
+            `  ${result.testName}: ${colors.green}✓${colors.reset} ${(result.score * 100).toFixed(0)}% (${result.latencyMs}ms)`
+          );
         } else {
-          log(`  ${result.testName}: ${colors.red}✗${colors.reset} ${(result.score * 100).toFixed(0)}% (${result.latencyMs}ms)`);
+          log(
+            `  ${result.testName}: ${colors.red}✗${colors.reset} ${(result.score * 100).toFixed(0)}% (${result.latencyMs}ms)`
+          );
           for (const check of result.checks) {
             if (!check.passed) {
-              log(`    ${colors.red}✗${colors.reset} ${check.name}${check.details ? ` - ${check.details}` : ''}`);
+              log(
+                `    ${colors.red}✗${colors.reset} ${check.name}${check.details ? ` - ${check.details}` : ''}`
+              );
             }
           }
         }
@@ -410,7 +417,7 @@ async function main() {
   } else {
     // Run sequentially
     for (const modelId of models) {
-      const model = MODELS.find(m => m.id === modelId);
+      const model = MODELS.find((m) => m.id === modelId);
       if (!model) {
         logInfo(`Unknown model: ${modelId}`);
         continue;
@@ -423,10 +430,10 @@ async function main() {
 
   // Calculate summaries
   const summaries = models
-    .map(id => MODELS.find(m => m.id === id))
+    .map((id) => MODELS.find((m) => m.id === id))
     .filter((m): m is ModelConfig => m !== undefined)
-    .filter(m => isModelAvailable(m))
-    .map(m => calculateSummary(m, allResults));
+    .filter((m) => isModelAvailable(m))
+    .map((m) => calculateSummary(m, allResults));
 
   // Print and save results
   printSummary(summaries);
@@ -441,7 +448,7 @@ async function main() {
   saveResults(result);
 
   // Exit code based on results
-  const failedTests = allResults.filter(r => !r.passed).length;
+  const failedTests = allResults.filter((r) => !r.passed).length;
   process.exit(failedTests > 0 ? 1 : 0);
 }
 

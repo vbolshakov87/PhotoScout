@@ -1,4 +1,15 @@
-import { ArrowLeft, ExternalLink, Mail, Shield, FileText, Camera, Sparkles, MapPin, Sun, Route } from 'lucide-react';
+import {
+  ArrowLeft,
+  ExternalLink,
+  Mail,
+  Shield,
+  FileText,
+  Camera,
+  Sparkles,
+  MapPin,
+  Sun,
+  Route,
+} from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export function AboutPage() {
@@ -37,7 +48,8 @@ export function AboutPage() {
         <div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
           <p className="text-foreground text-sm leading-relaxed">
             <strong>Welcome to the PhotoScout beta!</strong> We're actively developing new features
-            and improving the experience. Your feedback helps us build a better app for photographers.
+            and improving the experience. Your feedback helps us build a better app for
+            photographers.
           </p>
           <a
             href="mailto:feedback@aiscout.photo"
@@ -52,8 +64,8 @@ export function AboutPage() {
         <div className="bg-card border border-border rounded-xl p-4">
           <p className="text-foreground text-sm leading-relaxed">
             PhotoScout is your AI-powered photography trip planner. Tell us where you want to go,
-            and we'll create a personalized itinerary with the best photography spots, optimal
-            times for lighting, and interactive maps to guide your journey.
+            and we'll create a personalized itinerary with the best photography spots, optimal times
+            for lighting, and interactive maps to guide your journey.
           </p>
         </div>
 
@@ -125,7 +137,9 @@ export function AboutPage() {
           <div className="flex items-center gap-3">
             <Camera className="w-8 h-8 text-primary" />
             <div className="flex-1">
-              <p className="text-foreground font-medium text-sm">Built by photographers, for photographers</p>
+              <p className="text-foreground font-medium text-sm">
+                Built by photographers, for photographers
+              </p>
               <p className="text-muted text-xs">Created with passion for visual storytelling</p>
             </div>
           </div>
@@ -133,12 +147,8 @@ export function AboutPage() {
 
         {/* Credits */}
         <div className="text-center py-4">
-          <p className="text-muted text-xs">
-            Made with care for the photography community
-          </p>
-          <p className="text-muted text-xs mt-1">
-            © 2026 PhotoScout (Beta). All rights reserved.
-          </p>
+          <p className="text-muted text-xs">Made with care for the photography community</p>
+          <p className="text-muted text-xs mt-1">© 2026 PhotoScout (Beta). All rights reserved.</p>
         </div>
       </div>
     </div>

@@ -77,7 +77,7 @@ async function main() {
       console.log(`   ✅ Saved: ${localPath}`);
 
       // Wait between requests
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, 2000));
     } catch (error) {
       console.error(`   ❌ Failed: ${error}`);
       if (String(error).includes('429') || String(error).includes('quota')) {

@@ -16,47 +16,160 @@ const BUCKET_NAME = 'photoscout-plans-707282829805';
 const CLOUDFRONT_DOMAIN = 'aiscout.photo';
 
 const NATURE_DESTINATIONS = new Set([
-  'Dolomites', 'Lake Bled', 'Slovenia', 'Normandy', 'Lofoten', 'Iceland',
-  'Scottish Highlands', 'Swiss Alps', 'Tuscany', 'Amalfi Coast', 'Cinque Terre',
-  'Provence', 'Santorini', 'Faroe Islands', 'Norwegian Fjords', 'Lake Como',
-  'Plitvice Lakes', 'Trolltunga', 'Madeira', 'Azores', 'Cappadocia',
-  'Black Forest', 'Saxon Switzerland', 'Bavarian Alps', 'Rhine Valley',
-  'Moselle Valley', 'Berchtesgaden', 'Lake Constance', 'Harz Mountains',
-  'Romantic Road', 'Baltic Sea Coast',
-  'Patagonia', 'Banff', 'Yosemite', 'Grand Canyon', 'Antelope Canyon',
-  'Monument Valley', 'Big Sur', 'Hawaii', 'Yellowstone', 'Torres del Paine',
-  'Bali', 'Ha Long Bay', 'Zhangjiajie', 'Maldives', 'New Zealand',
-  'Great Barrier Reef', 'Milford Sound', 'Mount Fuji', 'Guilin',
-  'Sahara Desert', 'Serengeti', 'Victoria Falls', 'Namib Desert',
+  'Dolomites',
+  'Lake Bled',
+  'Slovenia',
+  'Normandy',
+  'Lofoten',
+  'Iceland',
+  'Scottish Highlands',
+  'Swiss Alps',
+  'Tuscany',
+  'Amalfi Coast',
+  'Cinque Terre',
+  'Provence',
+  'Santorini',
+  'Faroe Islands',
+  'Norwegian Fjords',
+  'Lake Como',
+  'Plitvice Lakes',
+  'Trolltunga',
+  'Madeira',
+  'Azores',
+  'Cappadocia',
+  'Black Forest',
+  'Saxon Switzerland',
+  'Bavarian Alps',
+  'Rhine Valley',
+  'Moselle Valley',
+  'Berchtesgaden',
+  'Lake Constance',
+  'Harz Mountains',
+  'Romantic Road',
+  'Baltic Sea Coast',
+  'Patagonia',
+  'Banff',
+  'Yosemite',
+  'Grand Canyon',
+  'Antelope Canyon',
+  'Monument Valley',
+  'Big Sur',
+  'Hawaii',
+  'Yellowstone',
+  'Torres del Paine',
+  'Bali',
+  'Ha Long Bay',
+  'Zhangjiajie',
+  'Maldives',
+  'New Zealand',
+  'Great Barrier Reef',
+  'Milford Sound',
+  'Mount Fuji',
+  'Guilin',
+  'Sahara Desert',
+  'Serengeti',
+  'Victoria Falls',
+  'Namib Desert',
 ]);
 
 const TOP_CITIES = [
-  'Tokyo', 'Paris', 'New York', 'London', 'Rome',
-  'Barcelona', 'Amsterdam', 'Berlin', 'Vienna', 'Prague',
-  'Lisbon', 'Copenhagen', 'Stockholm', 'Oslo', 'Bergen',
-  'Dubai', 'Singapore', 'Hong Kong', 'Sydney', 'Melbourne',
-  'San Francisco', 'Los Angeles', 'Chicago', 'Miami', 'Boston',
-  'Vancouver', 'Toronto', 'Montreal', 'Rio de Janeiro', 'Buenos Aires',
-  'Cape Town', 'Marrakech', 'Istanbul', 'Athens', 'Florence',
-  'Venice', 'Munich', 'Zurich', 'Brussels', 'Dublin',
+  'Tokyo',
+  'Paris',
+  'New York',
+  'London',
+  'Rome',
+  'Barcelona',
+  'Amsterdam',
+  'Berlin',
+  'Vienna',
+  'Prague',
+  'Lisbon',
+  'Copenhagen',
+  'Stockholm',
+  'Oslo',
+  'Bergen',
+  'Dubai',
+  'Singapore',
+  'Hong Kong',
+  'Sydney',
+  'Melbourne',
+  'San Francisco',
+  'Los Angeles',
+  'Chicago',
+  'Miami',
+  'Boston',
+  'Vancouver',
+  'Toronto',
+  'Montreal',
+  'Rio de Janeiro',
+  'Buenos Aires',
+  'Cape Town',
+  'Marrakech',
+  'Istanbul',
+  'Athens',
+  'Florence',
+  'Venice',
+  'Munich',
+  'Zurich',
+  'Brussels',
+  'Dublin',
 ];
 
 const TOP_NATURE_REGIONS = [
-  'Dolomites', 'Swiss Alps', 'Scottish Highlands', 'Lofoten', 'Norwegian Fjords',
-  'Trolltunga', 'Faroe Islands',
-  'Lake Bled', 'Tuscany', 'Amalfi Coast', 'Cinque Terre', 'Provence',
-  'Santorini', 'Lake Como', 'Plitvice Lakes',
-  'Iceland', 'Normandy', 'Madeira', 'Azores', 'Slovenia',
-  'Black Forest', 'Saxon Switzerland', 'Bavarian Alps', 'Rhine Valley',
-  'Moselle Valley', 'Berchtesgaden', 'Lake Constance', 'Harz Mountains',
-  'Romantic Road', 'Baltic Sea Coast',
+  'Dolomites',
+  'Swiss Alps',
+  'Scottish Highlands',
+  'Lofoten',
+  'Norwegian Fjords',
+  'Trolltunga',
+  'Faroe Islands',
+  'Lake Bled',
+  'Tuscany',
+  'Amalfi Coast',
+  'Cinque Terre',
+  'Provence',
+  'Santorini',
+  'Lake Como',
+  'Plitvice Lakes',
+  'Iceland',
+  'Normandy',
+  'Madeira',
+  'Azores',
+  'Slovenia',
+  'Black Forest',
+  'Saxon Switzerland',
+  'Bavarian Alps',
+  'Rhine Valley',
+  'Moselle Valley',
+  'Berchtesgaden',
+  'Lake Constance',
+  'Harz Mountains',
+  'Romantic Road',
+  'Baltic Sea Coast',
   'Cappadocia',
-  'Banff', 'Yosemite', 'Grand Canyon', 'Antelope Canyon', 'Monument Valley',
-  'Big Sur', 'Hawaii', 'Yellowstone',
-  'Patagonia', 'Torres del Paine',
-  'Bali', 'Ha Long Bay', 'Zhangjiajie', 'Maldives', 'New Zealand',
-  'Milford Sound', 'Mount Fuji', 'Guilin', 'Great Barrier Reef',
-  'Sahara Desert', 'Serengeti', 'Victoria Falls', 'Namib Desert',
+  'Banff',
+  'Yosemite',
+  'Grand Canyon',
+  'Antelope Canyon',
+  'Monument Valley',
+  'Big Sur',
+  'Hawaii',
+  'Yellowstone',
+  'Patagonia',
+  'Torres del Paine',
+  'Bali',
+  'Ha Long Bay',
+  'Zhangjiajie',
+  'Maldives',
+  'New Zealand',
+  'Milford Sound',
+  'Mount Fuji',
+  'Guilin',
+  'Great Barrier Reef',
+  'Sahara Desert',
+  'Serengeti',
+  'Victoria Falls',
+  'Namib Desert',
 ];
 
 const TOP_DESTINATIONS = [...TOP_CITIES, ...TOP_NATURE_REGIONS];
@@ -77,17 +190,23 @@ function getDestinationImagePrompt(destination: string): string {
 }
 
 function getCityImageKey(city: string): string {
-  const normalizedCity = city.toLowerCase().trim().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+  const normalizedCity = city
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-');
   return `city-images/${normalizedCity}.png`;
 }
 
 async function imageExists(city: string): Promise<boolean> {
   const key = getCityImageKey(city);
   try {
-    await s3Client.send(new HeadObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-    }));
+    await s3Client.send(
+      new HeadObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+      })
+    );
     return true;
   } catch {
     return false;
@@ -134,23 +253,27 @@ async function generateImage(destination: string): Promise<Buffer> {
 async function uploadToS3(destination: string, imageData: Buffer): Promise<string> {
   const key = getCityImageKey(destination);
 
-  await s3Client.send(new PutObjectCommand({
-    Bucket: BUCKET_NAME,
-    Key: key,
-    Body: imageData,
-    ContentType: 'image/png',
-    CacheControl: 'public, max-age=31536000, immutable',
-  }));
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: imageData,
+      ContentType: 'image/png',
+      CacheControl: 'public, max-age=31536000, immutable',
+    })
+  );
 
   return `https://${CLOUDFRONT_DOMAIN}/${key}`;
 }
 
 async function main() {
   const regenerateAll = process.argv.includes('--regenerate-all');
-  const startFromArg = process.argv.find(a => a.startsWith('--start-from='));
+  const startFromArg = process.argv.find((a) => a.startsWith('--start-from='));
   const startFrom = startFromArg?.split('=')[1];
 
-  console.log('Usage: npx tsx generate-missing-images.ts [--regenerate-all] [--start-from=Destination]\n');
+  console.log(
+    'Usage: npx tsx generate-missing-images.ts [--regenerate-all] [--start-from=Destination]\n'
+  );
 
   let toGenerate: string[];
 
@@ -159,7 +282,7 @@ async function main() {
     toGenerate = [...TOP_DESTINATIONS];
 
     if (startFrom) {
-      const idx = toGenerate.findIndex(d => d.toLowerCase() === startFrom.toLowerCase());
+      const idx = toGenerate.findIndex((d) => d.toLowerCase() === startFrom.toLowerCase());
       if (idx >= 0) {
         console.log(`⏩ Starting from: ${toGenerate[idx]} (skipping ${idx} destinations)\n`);
         toGenerate = toGenerate.slice(idx);
@@ -176,7 +299,9 @@ async function main() {
         toGenerate.push(dest);
       }
     }
-    console.log(`📊 Status: ${TOP_DESTINATIONS.length - toGenerate.length}/${TOP_DESTINATIONS.length} images exist`);
+    console.log(
+      `📊 Status: ${TOP_DESTINATIONS.length - toGenerate.length}/${TOP_DESTINATIONS.length} images exist`
+    );
   }
 
   console.log(`🎯 To generate: ${toGenerate.length} images\n`);
@@ -206,7 +331,7 @@ async function main() {
       // Delay to avoid rate limiting
       if (i < toGenerate.length - 1) {
         console.log('  ⏳ Waiting 2s...');
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise((r) => setTimeout(r, 2000));
       }
     } catch (error) {
       console.error(`  ❌ Failed: ${error}`);

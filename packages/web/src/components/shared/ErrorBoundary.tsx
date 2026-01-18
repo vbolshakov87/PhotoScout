@@ -37,9 +37,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="flex flex-col items-center justify-center h-full p-6 text-center">
           <div className="text-4xl mb-4">😵</div>
-          <h2 className="text-lg font-semibold text-foreground mb-2">
-            Something went wrong
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground mb-2">Something went wrong</h2>
           <p className="text-sm text-muted mb-4 max-w-xs">
             The app encountered an unexpected error. Try refreshing or going back.
           </p>
@@ -51,7 +49,7 @@ export class ErrorBoundary extends Component<Props, State> {
               Try Again
             </button>
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={() => (window.location.href = '/')}
               className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
             >
               Go Home

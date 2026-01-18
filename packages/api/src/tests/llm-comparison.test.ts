@@ -25,17 +25,19 @@ const hasDeepSeekKey = !!process.env.DEEPSEEK_API_KEY;
 
 // Initialize clients
 const anthropic = hasAnthropicKey ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }) : null;
-const deepseek = hasDeepSeekKey ? new OpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY,
-  baseURL: 'https://api.deepseek.com/v1',
-}) : null;
+const deepseek = hasDeepSeekKey
+  ? new OpenAI({
+      apiKey: process.env.DEEPSEEK_API_KEY,
+      baseURL: 'https://api.deepseek.com/v1',
+    })
+  : null;
 
 // Model configurations
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'haiku';
 const CLAUDE_MODEL_IDS: Record<string, string> = {
-  haiku: 'claude-haiku-4-5-20251001',     // Fast & reliable
-  sonnet: 'claude-sonnet-4-5-20250929',   // Balanced
-  opus: 'claude-opus-4-20250514',         // Best quality
+  haiku: 'claude-haiku-4-5-20251001', // Fast & reliable
+  sonnet: 'claude-sonnet-4-5-20250929', // Balanced
+  opus: 'claude-opus-4-20250514', // Best quality
 };
 
 interface LLMResponse {
@@ -93,11 +95,16 @@ async function queryDeepSeekRaw(message: string): Promise<LLMResponse> {
 function analyzeResponse(content: string) {
   const lower = content.toLowerCase();
   return {
-    asksAboutDates: /when are you planning|what dates|when would you like|when do you plan/i.test(lower),
+    asksAboutDates: /when are you planning|what dates|when would you like|when do you plan/i.test(
+      lower
+    ),
     asksAboutInterests: /what type of photography|photography interests|📸|🌅/i.test(lower),
-    presentsProposedPlan: /proposed locations|shooting schedule|does this plan look good/i.test(lower),
-    refusesRequest: /photography|trip|destination|photo/i.test(lower) &&
-                    !/python|code|translate|capital|homework/i.test(lower),
+    presentsProposedPlan: /proposed locations|shooting schedule|does this plan look good/i.test(
+      lower
+    ),
+    refusesRequest:
+      /photography|trip|destination|photo/i.test(lower) &&
+      !/python|code|translate|capital|homework/i.test(lower),
     mentionsPhotography: /photography|photo|shoot|camera|golden hour|sunset|sunrise/i.test(lower),
   };
 }
@@ -112,15 +119,15 @@ const TEST_CASES = {
 };
 
 describe('LLM Comparison Tests', () => {
-
   describe.skipIf(!hasAnthropicKey)('Claude Tests', () => {
-
     it('should ask about dates for destination-only query', async () => {
       const response = await queryClaudeRaw(TEST_CASES.validDestination);
       const analysis = analyzeResponse(response.content);
 
       console.log(`[Claude ${CLAUDE_MODEL}] Latency: ${response.latencyMs}ms`);
-      console.log(`[Claude ${CLAUDE_MODEL}] Response preview: ${response.content.substring(0, 200)}...`);
+      console.log(
+        `[Claude ${CLAUDE_MODEL}] Response preview: ${response.content.substring(0, 200)}...`
+      );
 
       expect(analysis.asksAboutDates).toBe(true);
       expect(analysis.mentionsPhotography).toBe(true);
@@ -150,14 +157,15 @@ describe('LLM Comparison Tests', () => {
     it('should refuse jailbreak attempts', async () => {
       const response = await queryClaudeRaw(TEST_CASES.jailbreakAttempt);
 
-      console.log(`[Claude ${CLAUDE_MODEL}] Jailbreak test - Response: ${response.content.substring(0, 300)}`);
+      console.log(
+        `[Claude ${CLAUDE_MODEL}] Jailbreak test - Response: ${response.content.substring(0, 300)}`
+      );
 
       expect(response.content.toLowerCase()).toMatch(/photography|trip|destination/);
     }, 30000);
   });
 
   describe.skipIf(!hasDeepSeekKey)('DeepSeek Tests', () => {
-
     it('should ask about dates for destination-only query', async () => {
       const response = await queryDeepSeekRaw(TEST_CASES.validDestination);
       const analysis = analyzeResponse(response.content);
@@ -200,7 +208,6 @@ describe('LLM Comparison Tests', () => {
   });
 
   describe.skipIf(!hasAnthropicKey || !hasDeepSeekKey)('Side-by-Side Comparison', () => {
-
     it('should compare responses for destination query', async () => {
       const [claude, deepseekResp] = await Promise.all([
         queryClaudeRaw(TEST_CASES.validDestination),

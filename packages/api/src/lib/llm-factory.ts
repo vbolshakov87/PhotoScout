@@ -3,10 +3,7 @@ import * as anthropicClient from './anthropic';
 import * as deepseekClient from './deepseek';
 
 export type LLMClient = {
-  streamChatResponse: (
-    messages: Message[],
-    userMessage: string
-  ) => AsyncGenerator<string>;
+  streamChatResponse: (messages: Message[], userMessage: string) => AsyncGenerator<string>;
 };
 
 export function getLLMClient(): LLMClient {

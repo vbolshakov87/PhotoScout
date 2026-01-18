@@ -88,10 +88,7 @@ export async function getConversationMessages(
   return (result.Items || []) as Message[];
 }
 
-export async function getRecentMessages(
-  visitorId: string,
-  limit: number = 20
-): Promise<Message[]> {
+export async function getRecentMessages(visitorId: string, limit: number = 20): Promise<Message[]> {
   const result = await docClient.send(
     new QueryCommand({
       TableName: MESSAGES_TABLE,
@@ -190,10 +187,7 @@ export async function getConversation(
   return (result.Item as Conversation) || null;
 }
 
-export async function deleteConversation(
-  visitorId: string,
-  conversationId: string
-): Promise<void> {
+export async function deleteConversation(visitorId: string, conversationId: string): Promise<void> {
   await docClient.send(
     new DeleteCommand({
       TableName: CONVERSATIONS_TABLE,
@@ -240,7 +234,8 @@ export async function listPlans(
       ExpressionAttributeValues: {
         ':vid': visitorId,
       },
-      ProjectionExpression: 'planId, visitorId, conversationId, createdAt, city, title, dates, spotCount, htmlUrl, htmlContent, jsonContent',
+      ProjectionExpression:
+        'planId, visitorId, conversationId, createdAt, city, title, dates, spotCount, htmlUrl, htmlContent, jsonContent',
       ScanIndexForward: false,
       Limit: limit,
       ...(cursor && { ExclusiveStartKey: parseCursor(cursor) }),
@@ -259,10 +254,7 @@ export async function listPlans(
   };
 }
 
-export async function getPlan(
-  visitorId: string,
-  planId: string
-): Promise<Plan | null> {
+export async function getPlan(visitorId: string, planId: string): Promise<Plan | null> {
   const result = await docClient.send(
     new GetCommand({
       TableName: PLANS_TABLE,
@@ -276,10 +268,7 @@ export async function getPlan(
   return (result.Item as Plan) || null;
 }
 
-export async function deletePlan(
-  visitorId: string,
-  planId: string
-): Promise<void> {
+export async function deletePlan(visitorId: string, planId: string): Promise<void> {
   await docClient.send(
     new DeleteCommand({
       TableName: PLANS_TABLE,
@@ -294,14 +283,14 @@ export async function deletePlan(
 // ============ PLAN CACHE ============
 
 export interface CachedPlan {
-  cacheKey: string;        // city-interest-duration hash
-  jsonContent: string;     // The JSON plan
-  htmlContent: string;     // Generated HTML
+  cacheKey: string; // city-interest-duration hash
+  jsonContent: string; // The JSON plan
+  htmlContent: string; // Generated HTML
   city: string;
   interests: string;
   duration: string;
   createdAt: number;
-  hitCount: number;        // Track popularity
+  hitCount: number; // Track popularity
   expiresAt: number;
 }
 
@@ -310,7 +299,12 @@ export interface CachedPlan {
  * Format: city-interest-duration (normalized, lowercase)
  */
 export function generateCacheKey(city: string, interests: string, duration: string): string {
-  const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const normalize = (s: string) =>
+    s
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
   return `${normalize(city)}-${normalize(interests)}-${normalize(duration)}`;
 }
 
@@ -328,14 +322,16 @@ export async function getCachedPlan(cacheKey: string): Promise<CachedPlan | null
 
     if (result.Item) {
       // Increment hit count asynchronously (fire and forget)
-      docClient.send(
-        new UpdateCommand({
-          TableName: CACHE_TABLE,
-          Key: { cacheKey },
-          UpdateExpression: 'SET hitCount = hitCount + :one',
-          ExpressionAttributeValues: { ':one': 1 },
-        })
-      ).catch(() => {}); // Ignore errors on hit count update
+      docClient
+        .send(
+          new UpdateCommand({
+            TableName: CACHE_TABLE,
+            Key: { cacheKey },
+            UpdateExpression: 'SET hitCount = hitCount + :one',
+            ExpressionAttributeValues: { ':one': 1 },
+          })
+        )
+        .catch(() => {}); // Ignore errors on hit count update
 
       console.log(`[Cache] HIT for key: ${cacheKey}`);
       return result.Item as CachedPlan;

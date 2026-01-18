@@ -30,13 +30,13 @@ function getNativeAuth(): User | null {
   // Check URL params first (passed from iOS app)
   const params = new URLSearchParams(window.location.search);
   const isNative = params.get('nativeAuth') === 'true';
-  
+
   if (isNative) {
     const userId = params.get('userId');
     const userName = params.get('userName');
     const userEmail = params.get('userEmail');
     const userPhoto = params.get('userPhoto');
-    
+
     if (userId) {
       return {
         userId,
@@ -46,7 +46,7 @@ function getNativeAuth(): User | null {
       };
     }
   }
-  
+
   // Check window.nativeAuth (injected by iOS WebView)
   if ((window as any).nativeAuth?.userId) {
     const nativeAuth = (window as any).nativeAuth;
@@ -57,7 +57,7 @@ function getNativeAuth(): User | null {
       picture: nativeAuth.userPhoto || undefined,
     };
   }
-  
+
   // Check localStorage for previously stored native auth
   const stored = localStorage.getItem(NATIVE_AUTH_KEY);
   if (stored) {
@@ -67,7 +67,7 @@ function getNativeAuth(): User | null {
       localStorage.removeItem(NATIVE_AUTH_KEY);
     }
   }
-  
+
   return null;
 }
 
@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setIsLoading(false);
   }, []);
-  
+
   // Listen for native auth injection after page load
   useEffect(() => {
     const handleNativeAuth = (event: CustomEvent) => {
@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(NATIVE_AUTH_KEY, JSON.stringify(nativeUser));
       }
     };
-    
+
     window.addEventListener('nativeAuthReady', handleNativeAuth as EventListener);
     return () => window.removeEventListener('nativeAuthReady', handleNativeAuth as EventListener);
   }, []);
@@ -209,7 +209,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, idToken, isLoading, isNativeAuth, isGuest, login, loginAsGuest, logout }}>
+    <AuthContext.Provider
+      value={{ user, idToken, isLoading, isNativeAuth, isGuest, login, loginAsGuest, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

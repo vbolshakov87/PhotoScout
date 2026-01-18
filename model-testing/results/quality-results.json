@@ -18,15 +18,8 @@
         "dateScore": 1,
         "score": 3,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Reine",
-          "Kvalvika",
-          "Reinebringen",
-          "Nusfjord"
-        ],
-        "redFlagsFound": [
-          "breathtaking"
-        ],
+        "goodSpotsFound": ["Reine", "Kvalvika", "Reinebringen", "Nusfjord"],
+        "redFlagsFound": ["breathtaking"],
         "missingMustHave": [],
         "hasValidJson": false,
         "jsonStartsClean": false,
@@ -53,13 +46,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Bohinj",
-          "Julian Alps",
-          "Škocjan",
-          "Triglav"
-        ],
+        "goodSpotsFound": ["Bled", "Bohinj", "Julian Alps", "Škocjan", "Triglav"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -87,18 +74,9 @@
         "dateScore": 0,
         "score": 2,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Trocadéro",
-          "Pont Alexandre",
-          "Alexandre III",
-          "Sacré-Cœur"
-        ],
-        "redFlagsFound": [
-          "Champs-Élysées"
-        ],
-        "missingMustHave": [
-          "blue hour"
-        ],
+        "goodSpotsFound": ["Trocadéro", "Pont Alexandre", "Alexandre III", "Sacré-Cœur"],
+        "redFlagsFound": ["Champs-Élysées"],
+        "missingMustHave": ["blue hour"],
         "hasValidJson": false,
         "jsonStartsClean": false,
         "dateReflected": false,
@@ -124,16 +102,8 @@
         "dateScore": 1,
         "score": 2,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Reine",
-          "Hamnøy",
-          "Kvalvika",
-          "Nusfjord"
-        ],
-        "redFlagsFound": [
-          "stunning landscapes",
-          "breathtaking"
-        ],
+        "goodSpotsFound": ["Reine", "Hamnøy", "Kvalvika", "Nusfjord"],
+        "redFlagsFound": ["stunning landscapes", "breathtaking"],
         "missingMustHave": [],
         "hasValidJson": false,
         "jsonStartsClean": false,
@@ -160,13 +130,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Bohinj",
-          "Julian Alps",
-          "Škocjan",
-          "Triglav"
-        ],
+        "goodSpotsFound": ["Bled", "Bohinj", "Julian Alps", "Škocjan", "Triglav"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -194,12 +158,7 @@
         "dateScore": 1,
         "score": 4,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Trocadéro",
-          "Montmartre",
-          "Pont Alexandre",
-          "Alexandre III"
-        ],
+        "goodSpotsFound": ["Trocadéro", "Montmartre", "Pont Alexandre", "Alexandre III"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -236,9 +195,7 @@
           "Uttakleiv",
           "Skagsanden"
         ],
-        "redFlagsFound": [
-          "breathtaking"
-        ],
+        "redFlagsFound": ["breathtaking"],
         "missingMustHave": [],
         "hasValidJson": false,
         "jsonStartsClean": false,
@@ -265,13 +222,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Bohinj",
-          "Julian Alps",
-          "Vršič",
-          "Škocjan"
-        ],
+        "goodSpotsFound": ["Bled", "Bohinj", "Julian Alps", "Vršič", "Škocjan"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -299,12 +250,7 @@
         "dateScore": 1,
         "score": 4,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Trocadéro",
-          "Bir-Hakeim",
-          "Montmartre",
-          "Sacré-Cœur"
-        ],
+        "goodSpotsFound": ["Trocadéro", "Bir-Hakeim", "Montmartre", "Sacré-Cœur"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -340,9 +286,7 @@
           "Uttakleiv",
           "Skagsanden"
         ],
-        "redFlagsFound": [
-          "breathtaking"
-        ],
+        "redFlagsFound": ["breathtaking"],
         "missingMustHave": [],
         "hasValidJson": false,
         "jsonStartsClean": false,
@@ -369,12 +313,7 @@
         "dateScore": 1,
         "score": 4,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Bohinj",
-          "Mangart",
-          "Julian Alps"
-        ],
+        "goodSpotsFound": ["Bled", "Bohinj", "Mangart", "Julian Alps"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -402,12 +341,7 @@
         "dateScore": 1,
         "score": 4,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bir-Hakeim",
-          "Montmartre",
-          "Sacré-Cœur",
-          "Pont des Arts"
-        ],
+        "goodSpotsFound": ["Bir-Hakeim", "Montmartre", "Sacré-Cœur", "Pont des Arts"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -470,14 +404,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Bohinj",
-          "Julian Alps",
-          "Vršič",
-          "Savica",
-          "Zelenci"
-        ],
+        "goodSpotsFound": ["Bled", "Bohinj", "Julian Alps", "Vršič", "Savica", "Zelenci"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -512,9 +439,7 @@
           "Alexandre III",
           "Sacré-Cœur"
         ],
-        "redFlagsFound": [
-          "Champs-Élysées"
-        ],
+        "redFlagsFound": ["Champs-Élysées"],
         "missingMustHave": [],
         "hasValidJson": false,
         "jsonStartsClean": false,
@@ -577,12 +502,7 @@
         "dateScore": 1,
         "score": 4,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Bohinj",
-          "Vršič",
-          "Zelenci"
-        ],
+        "goodSpotsFound": ["Bled", "Bohinj", "Vršič", "Zelenci"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -619,9 +539,7 @@
           "Sacré-Cœur",
           "Louvre pyramid"
         ],
-        "redFlagsFound": [
-          "Champs-Élysées"
-        ],
+        "redFlagsFound": ["Champs-Élysées"],
         "missingMustHave": [],
         "hasValidJson": false,
         "jsonStartsClean": false,
@@ -648,13 +566,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Reine",
-          "Hamnøy",
-          "Kvalvika",
-          "Sakrisøy",
-          "Uttakleiv"
-        ],
+        "goodSpotsFound": ["Reine", "Hamnøy", "Kvalvika", "Sakrisøy", "Uttakleiv"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -682,13 +594,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Julian Alps",
-          "Vršič",
-          "Škocjan",
-          "Triglav"
-        ],
+        "goodSpotsFound": ["Bled", "Julian Alps", "Vršič", "Škocjan", "Triglav"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -716,12 +622,7 @@
         "dateScore": 1,
         "score": 4,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Trocadéro",
-          "Pont Alexandre",
-          "Alexandre III",
-          "Sacré-Cœur"
-        ],
+        "goodSpotsFound": ["Trocadéro", "Pont Alexandre", "Alexandre III", "Sacré-Cœur"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -749,12 +650,7 @@
         "dateScore": 1,
         "score": 4,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Hamnøy",
-          "Kvalvika",
-          "Sakrisøy",
-          "Uttakleiv"
-        ],
+        "goodSpotsFound": ["Hamnøy", "Kvalvika", "Sakrisøy", "Uttakleiv"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -782,11 +678,7 @@
         "dateScore": 1,
         "score": 4,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Vršič",
-          "Triglav"
-        ],
+        "goodSpotsFound": ["Bled", "Vršič", "Triglav"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -848,14 +740,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Reine",
-          "Hamnøy",
-          "Kvalvika",
-          "Reinebringen",
-          "Sakrisøy",
-          "Uttakleiv"
-        ],
+        "goodSpotsFound": ["Reine", "Hamnøy", "Kvalvika", "Reinebringen", "Sakrisøy", "Uttakleiv"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -883,13 +768,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Bohinj",
-          "Julian Alps",
-          "Savica",
-          "Triglav"
-        ],
+        "goodSpotsFound": ["Bled", "Bohinj", "Julian Alps", "Savica", "Triglav"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -952,13 +831,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Reine",
-          "Hamnøy",
-          "Kvalvika",
-          "Reinebringen",
-          "Sakrisøy"
-        ],
+        "goodSpotsFound": ["Reine", "Hamnøy", "Kvalvika", "Reinebringen", "Sakrisøy"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -986,12 +859,7 @@
         "dateScore": 1,
         "score": 4,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Bohinj",
-          "Savica",
-          "Triglav"
-        ],
+        "goodSpotsFound": ["Bled", "Bohinj", "Savica", "Triglav"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -1019,12 +887,7 @@
         "dateScore": 1,
         "score": 4,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Trocadéro",
-          "Montmartre",
-          "Sacré-Cœur",
-          "Pont des Arts"
-        ],
+        "goodSpotsFound": ["Trocadéro", "Montmartre", "Sacré-Cœur", "Pont des Arts"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -1087,12 +950,7 @@
         "dateScore": 1,
         "score": 4,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Bohinj",
-          "Julian Alps",
-          "Savica"
-        ],
+        "goodSpotsFound": ["Bled", "Bohinj", "Julian Alps", "Savica"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -1156,13 +1014,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Reine",
-          "Hamnøy",
-          "Reinebringen",
-          "Sakrisøy",
-          "Skagsanden"
-        ],
+        "goodSpotsFound": ["Reine", "Hamnøy", "Reinebringen", "Sakrisøy", "Skagsanden"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -1190,12 +1042,7 @@
         "dateScore": 1,
         "score": 4,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Bohinj",
-          "Julian Alps",
-          "Vršič"
-        ],
+        "goodSpotsFound": ["Bled", "Bohinj", "Julian Alps", "Vršič"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -1294,14 +1141,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Bohinj",
-          "Julian Alps",
-          "Vršič",
-          "Savica",
-          "Triglav"
-        ],
+        "goodSpotsFound": ["Bled", "Bohinj", "Julian Alps", "Vršič", "Savica", "Triglav"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -1366,13 +1206,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Reine",
-          "Reinebringen",
-          "Sakrisøy",
-          "Uttakleiv",
-          "Skagsanden"
-        ],
+        "goodSpotsFound": ["Reine", "Reinebringen", "Sakrisøy", "Uttakleiv", "Skagsanden"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,
@@ -1400,14 +1234,7 @@
         "dateScore": 1,
         "score": 5,
         "maxScore": 5,
-        "goodSpotsFound": [
-          "Bled",
-          "Bohinj",
-          "Julian Alps",
-          "Vršič",
-          "Savica",
-          "Triglav"
-        ],
+        "goodSpotsFound": ["Bled", "Bohinj", "Julian Alps", "Vršič", "Savica", "Triglav"],
         "redFlagsFound": [],
         "missingMustHave": [],
         "hasValidJson": false,

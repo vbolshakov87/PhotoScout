@@ -11,7 +11,10 @@ export interface ChatInputHandle {
   focus: () => void;
 }
 
-export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ChatInput({ onSend, disabled }, ref) {
+export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ChatInput(
+  { onSend, disabled },
+  ref
+) {
   const [value, setValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -21,7 +24,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
       // Focus the textarea after setting value
       setTimeout(() => textareaRef.current?.focus(), 0);
     },
-    focus: () => textareaRef.current?.focus()
+    focus: () => textareaRef.current?.focus(),
   }));
 
   useEffect(() => {
@@ -62,9 +65,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
           onClick={handleSubmit}
           disabled={!value.trim() || disabled}
           className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors press ${
-            value.trim() && !disabled
-              ? 'bg-primary text-white'
-              : 'bg-card text-muted'
+            value.trim() && !disabled ? 'bg-primary text-white' : 'bg-card text-muted'
           }`}
         >
           {disabled ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}

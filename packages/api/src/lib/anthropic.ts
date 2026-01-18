@@ -11,9 +11,9 @@ const anthropic = new Anthropic({
 type ClaudeModel = 'haiku' | 'sonnet' | 'opus';
 
 const MODEL_IDS: Record<ClaudeModel, string> = {
-  haiku: 'claude-haiku-4-5-20251001',     // $1/1M input, $5/1M output - fast & reliable
-  sonnet: 'claude-sonnet-4-5-20250929',   // $3/1M input - balanced
-  opus: 'claude-opus-4-20250514',         // $15/1M input - best quality
+  haiku: 'claude-haiku-4-5-20251001', // $1/1M input, $5/1M output - fast & reliable
+  sonnet: 'claude-sonnet-4-5-20250929', // $3/1M input - balanced
+  opus: 'claude-opus-4-20250514', // $15/1M input - best quality
 };
 
 function getModel(): string {
@@ -45,10 +45,7 @@ export async function* streamChatResponse(
   });
 
   for await (const event of stream) {
-    if (
-      event.type === 'content_block_delta' &&
-      event.delta.type === 'text_delta'
-    ) {
+    if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
       yield event.delta.text;
     }
   }

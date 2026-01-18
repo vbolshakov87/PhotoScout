@@ -28,12 +28,12 @@ const SAMPLE_PLAN: TripPlan = {
   sunriseSunset: {
     sunrise: '05:54',
     sunset: '17:53',
-    note: 'March times - spring equinox approaching'
+    note: 'March times - spring equinox approaching',
   },
   shootingStrategy: [
     'Golden hour begins around 5:00 AM and 5:00 PM',
     'Blue hour is spectacular with city lights',
-    'Cherry blossoms may be starting - check forecasts'
+    'Cherry blossoms may be starting - check forecasts',
   ],
   spots: [
     {
@@ -42,14 +42,15 @@ const SAMPLE_PLAN: TripPlan = {
       lat: 35.7148,
       lng: 139.7967,
       priority: 3,
-      description: 'Tokyo\'s oldest temple with iconic Thunder Gate (Kaminarimon). Best photographed at dawn before crowds arrive. Use wide angle for the gate, telephoto for lantern details.',
+      description:
+        "Tokyo's oldest temple with iconic Thunder Gate (Kaminarimon). Best photographed at dawn before crowds arrive. Use wide angle for the gate, telephoto for lantern details.",
       bestTime: 'Sunrise',
       tags: ['Architecture', 'Cultural', 'Wide Angle'],
       distanceFromPrevious: '0 km (starting point)',
       parkingInfo: 'No parking - use Asakusa Station',
       crowdLevel: 'Very low at sunrise, packed by 10am',
       accessibility: 'Fully accessible, flat ground',
-      day: 1
+      day: 1,
     },
     {
       number: 2,
@@ -57,14 +58,15 @@ const SAMPLE_PLAN: TripPlan = {
       lat: 35.7101,
       lng: 139.8107,
       priority: 2,
-      description: 'World\'s tallest tower offers stunning city views. Photograph from below for dramatic perspective or visit observation deck for aerial shots.',
+      description:
+        "World's tallest tower offers stunning city views. Photograph from below for dramatic perspective or visit observation deck for aerial shots.",
       bestTime: 'Blue Hour',
       tags: ['Architecture', 'Night', 'Cityscape'],
       distanceFromPrevious: '1.5 km walk',
       parkingInfo: 'Parking available at Skytree Town',
       crowdLevel: 'Moderate',
       accessibility: 'Fully accessible with elevators',
-      day: 1
+      day: 1,
     },
     {
       number: 3,
@@ -72,14 +74,15 @@ const SAMPLE_PLAN: TripPlan = {
       lat: 35.6595,
       lng: 139.7004,
       priority: 3,
-      description: 'World\'s busiest pedestrian crossing. Shoot from Starbucks 2F or Shibuya Sky rooftop for bird\'s eye view. Long exposures create stunning light trails.',
+      description:
+        "World's busiest pedestrian crossing. Shoot from Starbucks 2F or Shibuya Sky rooftop for bird's eye view. Long exposures create stunning light trails.",
       bestTime: 'Night',
       tags: ['Street', 'Night', 'Long Exposure'],
       distanceFromPrevious: '8 km by metro',
       parkingInfo: 'Use Shibuya Station',
-      crowdLevel: 'Always busy - that\'s the point!',
+      crowdLevel: "Always busy - that's the point!",
       accessibility: 'Street level, accessible',
-      day: 2
+      day: 2,
     },
     {
       number: 4,
@@ -87,45 +90,47 @@ const SAMPLE_PLAN: TripPlan = {
       lat: 35.6764,
       lng: 139.6993,
       priority: 2,
-      description: 'Peaceful Shinto shrine surrounded by forest. The torii gates and forested paths offer serene compositions. Morning light filters beautifully through trees.',
+      description:
+        'Peaceful Shinto shrine surrounded by forest. The torii gates and forested paths offer serene compositions. Morning light filters beautifully through trees.',
       bestTime: 'Morning',
       tags: ['Cultural', 'Nature', 'Peaceful'],
       distanceFromPrevious: '2 km walk',
       parkingInfo: 'Limited parking, use Harajuku Station',
       crowdLevel: 'Moderate, quieter in early morning',
       accessibility: 'Gravel paths, mostly flat',
-      day: 2
+      day: 2,
     },
     {
       number: 5,
       name: 'Shinjuku Gyoen',
       lat: 35.6852,
-      lng: 139.7100,
+      lng: 139.71,
       priority: 1,
-      description: 'Beautiful garden with diverse landscapes. Cherry blossoms in spring, autumn colors in fall. Great for portrait photography with Tokyo skyline backdrop.',
+      description:
+        'Beautiful garden with diverse landscapes. Cherry blossoms in spring, autumn colors in fall. Great for portrait photography with Tokyo skyline backdrop.',
       bestTime: 'Golden Hour',
       tags: ['Nature', 'Garden', 'Portrait'],
       distanceFromPrevious: '3 km by metro',
       parkingInfo: 'Small parking lot available',
       crowdLevel: 'Moderate, busy during hanami season',
       accessibility: 'Paved paths, wheelchair accessible',
-      day: 3
-    }
+      day: 3,
+    },
   ],
   route: [
     { lat: 35.7148, lng: 139.7967 },
     { lat: 35.7101, lng: 139.8107 },
     { lat: 35.6595, lng: 139.7004 },
     { lat: 35.6764, lng: 139.6993 },
-    { lat: 35.6852, lng: 139.7100 }
+    { lat: 35.6852, lng: 139.71 },
   ],
   practicalInfo: {
     totalDistance: '15 km walking + metro',
     estimatedTime: '3 days',
     accommodation: 'Stay in Shinjuku or Asakusa for easy access',
     transportation: 'Get a 72-hour Tokyo Metro pass',
-    weatherBackup: 'Tokyo Station underground, department store rooftops'
-  }
+    weatherBackup: 'Tokyo Station underground, department store rooftops',
+  },
 };
 
 interface Plan {
@@ -143,13 +148,13 @@ async function getPlansFromDynamoDB(): Promise<Plan[]> {
   });
 
   const response = await dynamoClient.send(command);
-  return (response.Items || []).filter(p => p.jsonContent) as Plan[];
+  return (response.Items || []).filter((p) => p.jsonContent) as Plan[];
 }
 
 async function main() {
   const args = process.argv.slice(2);
   const listPlans = args.includes('--list');
-  const planIdArg = args.find(a => a.startsWith('--plan-id='));
+  const planIdArg = args.find((a) => a.startsWith('--plan-id='));
   const specificPlanId = planIdArg?.split('=')[1];
 
   const outputPath = join(process.cwd(), 'preview.html');
@@ -176,7 +181,7 @@ async function main() {
   if (specificPlanId) {
     console.log(`🔍 Loading plan ${specificPlanId} from DynamoDB...`);
     const plans = await getPlansFromDynamoDB();
-    const plan = plans.find(p => p.planId === specificPlanId);
+    const plan = plans.find((p) => p.planId === specificPlanId);
 
     if (!plan || !plan.jsonContent) {
       console.log(`❌ Plan not found or has no JSON content: ${specificPlanId}`);
@@ -204,8 +209,7 @@ async function main() {
   console.log('🌐 Opening in browser...\n');
 
   const platform = process.platform;
-  const command = platform === 'darwin' ? 'open' :
-                  platform === 'win32' ? 'start' : 'xdg-open';
+  const command = platform === 'darwin' ? 'open' : platform === 'win32' ? 'start' : 'xdg-open';
 
   exec(`${command} ${outputPath}`, (error) => {
     if (error) {
@@ -213,7 +217,9 @@ async function main() {
     }
   });
 
-  console.log('💡 Tip: Edit html-template.ts, then run this command again to see changes instantly!');
+  console.log(
+    '💡 Tip: Edit html-template.ts, then run this command again to see changes instantly!'
+  );
 }
 
 main().catch(console.error);
