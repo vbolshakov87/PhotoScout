@@ -1,0 +1,8 @@
+dist
+build
+node_modules
+.vite
+cdk.out
+coverage
+pnpm-lock.yaml
+*.md
