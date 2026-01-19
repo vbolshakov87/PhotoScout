@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, History, MessageSquare, Loader2, X, LogIn } from 'lucide-react';
+import { Search, MessageSquare, Loader2, X, LogIn } from 'lucide-react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import type { Conversation } from '@photoscout/shared';
 import { ConversationCard } from '../components/history/ConversationCard';
@@ -67,16 +67,18 @@ export function HistoryPage() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full glass-bg morphing-blobs">
       {/* Header */}
-      <header className="px-4 pt-4 pb-3 border-b border-border bg-surface">
+      <header className="relative px-4 pt-4 pb-3 liquid-glass glass-reflection border-b border-white/10 z-10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-            <History className="w-5 h-5 text-white" />
-          </div>
+          <img
+            src="https://aiscout.photo/city-images/appicon.png"
+            alt="PhotoScout"
+            className="w-10 h-10 rounded-xl shadow-lg shadow-amber-500/20"
+          />
           <div>
-            <h1 className="text-base font-semibold text-foreground">History</h1>
-            <p className="text-xs text-muted">
+            <h1 className="text-lg font-semibold text-white tracking-tight">History</h1>
+            <p className="text-xs text-white/40">
               {isLoading ? 'Loading...' : `${filteredConversations.length} conversations`}
             </p>
           </div>
@@ -84,18 +86,18 @@ export function HistoryPage() {
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
           <input
             type="text"
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-card border border-border rounded-lg pl-10 pr-9 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-primary/50 transition-colors"
+            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-9 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-violet-500/50 transition-colors"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
             >
               <X className="w-4 h-4" />
             </button>
@@ -104,18 +106,20 @@ export function HistoryPage() {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto hide-scrollbar p-4">
+      <div className="flex-1 overflow-y-auto glass-scrollbar p-4 relative z-10">
         {error && (
-          <div className="mb-4 px-4 py-3 bg-danger/10 border border-danger/20 rounded-lg text-danger text-sm">
+          <div className="mb-4 px-4 py-3 liquid-glass bg-danger/10 border-danger/30 rounded-xl text-danger text-sm">
             {error}
           </div>
         )}
 
         {isGuest ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
-            <LogIn className="w-12 h-12 text-muted/50 mb-4" />
-            <p className="text-foreground text-sm font-medium">Sign in to see your history</p>
-            <p className="text-muted/70 text-xs mt-1 mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-600/20 border border-white/10 flex items-center justify-center mb-4 animate-pulse-glow">
+              <LogIn className="w-8 h-8 text-violet-400" />
+            </div>
+            <p className="text-white text-sm font-medium">Sign in to see your history</p>
+            <p className="text-white/50 text-xs mt-1 mb-4">
               Your conversations will be saved when you sign in
             </p>
             <GoogleLogin
@@ -130,47 +134,56 @@ export function HistoryPage() {
           </div>
         ) : isLoading ? (
           <div className="flex items-center justify-center h-48">
-            <Loader2 className="w-6 h-6 text-muted animate-spin" />
+            <div className="relative">
+              <Loader2 className="w-6 h-6 text-violet-400 animate-spin" />
+              <div className="absolute inset-0 w-6 h-6 rounded-full bg-violet-400/20 animate-ping" />
+            </div>
           </div>
         ) : filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
-            <MessageSquare className="w-12 h-12 text-muted/50 mb-4" />
-            <p className="text-muted text-sm">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-600/20 border border-white/10 flex items-center justify-center mb-4">
+              <MessageSquare className="w-8 h-8 text-violet-400" />
+            </div>
+            <p className="text-white/70 text-sm">
               {searchQuery ? 'No results found' : 'No conversations yet'}
             </p>
-            <p className="text-muted/70 text-xs mt-1">
+            <p className="text-white/40 text-xs mt-1">
               {searchQuery ? 'Try a different search' : 'Start chatting to see history here'}
             </p>
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredConversations.map((conversation) => (
-              <ConversationCard
+            {filteredConversations.map((conversation, index) => (
+              <div
                 key={conversation.conversationId}
-                conversation={conversation}
-                onClick={() => handleConversationClick(conversation)}
-              />
+                className={`animate-fade-in stagger-${Math.min(index + 1, 6)}`}
+              >
+                <ConversationCard
+                  conversation={conversation}
+                  onClick={() => handleConversationClick(conversation)}
+                />
+              </div>
             ))}
           </div>
         )}
       </div>
 
       {/* Footer with legal links */}
-      <footer className="px-4 py-3 border-t border-border/50 text-center bg-surface">
-        <div className="flex items-center justify-center gap-4 text-xs text-muted/60">
-          <Link to="/about" className="hover:text-muted transition-colors">
+      <footer className="relative px-4 py-3 liquid-glass border-t border-white/10 text-center z-10">
+        <div className="flex items-center justify-center gap-4 text-xs text-white/40">
+          <Link to="/about" className="hover:text-white/60 transition-colors">
             About
           </Link>
           <span>·</span>
-          <Link to="/terms" className="hover:text-muted transition-colors">
+          <Link to="/terms" className="hover:text-white/60 transition-colors">
             Terms
           </Link>
           <span>·</span>
-          <Link to="/privacy" className="hover:text-muted transition-colors">
+          <Link to="/privacy" className="hover:text-white/60 transition-colors">
             Privacy
           </Link>
         </div>
-        <p className="text-[10px] text-muted/40 mt-1">PhotoScout © 2026</p>
+        <p className="text-[10px] text-white/30 mt-1">PhotoScout © 2026</p>
       </footer>
     </div>
   );
