@@ -29,9 +29,9 @@ export default {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       boxShadow: {
-        'glow': '0 0 20px 4px rgba(99, 102, 241, 0.15)',
+        glow: '0 0 20px 4px rgba(99, 102, 241, 0.15)',
         'glow-lg': '0 0 30px 8px rgba(99, 102, 241, 0.2)',
-        'violet': '0 4px 14px 0 rgba(139, 92, 246, 0.3)',
+        violet: '0 4px 14px 0 rgba(139, 92, 246, 0.3)',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(ellipse at top, var(--tw-gradient-stops))',

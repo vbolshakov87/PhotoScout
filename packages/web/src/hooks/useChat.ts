@@ -97,7 +97,10 @@ export function useChat() {
               newProgress = 50;
               newStage = 'Planning routes...';
             }
-            if (assistantContent.includes('"dailySchedule"') || assistantContent.includes('"shootingStrategy"')) {
+            if (
+              assistantContent.includes('"dailySchedule"') ||
+              assistantContent.includes('"shootingStrategy"')
+            ) {
               newProgress = 70;
               newStage = 'Optimizing schedule...';
             }

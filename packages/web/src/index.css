@@ -94,23 +94,42 @@ textarea {
 
 /* Custom animations */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-4px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
-  50% { box-shadow: 0 0 20px 4px rgba(99, 102, 241, 0.15); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(99, 102, 241, 0.15);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes fade-in-up {
@@ -144,7 +163,7 @@ textarea {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
@@ -163,12 +182,24 @@ textarea {
 }
 
 /* Staggered animation delays */
-.stagger-1 { animation-delay: 0.05s; }
-.stagger-2 { animation-delay: 0.1s; }
-.stagger-3 { animation-delay: 0.15s; }
-.stagger-4 { animation-delay: 0.2s; }
-.stagger-5 { animation-delay: 0.25s; }
-.stagger-6 { animation-delay: 0.3s; }
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+.stagger-4 {
+  animation-delay: 0.2s;
+}
+.stagger-5 {
+  animation-delay: 0.25s;
+}
+.stagger-6 {
+  animation-delay: 0.3s;
+}
 
 /* Custom scrollbar for glass theme */
 .glass-scrollbar::-webkit-scrollbar {
@@ -190,13 +221,15 @@ textarea {
 
 /* Subtle Light Reflection animation */
 @keyframes light-sweep-subtle {
-  0%, 8.33% {
+  0%,
+  8.33% {
     transform: translateX(-100%) translateY(-100%) rotate(45deg);
   }
   8.33% {
     transform: translateX(200%) translateY(200%) rotate(45deg);
   }
-  8.34%, 100% {
+  8.34%,
+  100% {
     transform: translateX(200%) translateY(200%) rotate(45deg);
     opacity: 0;
   }
@@ -231,7 +264,8 @@ textarea {
 
 /* Morphing Blob Background */
 @keyframes blob-morph {
-  0%, 100% {
+  0%,
+  100% {
     border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
     transform: translate(0, 0) rotate(0deg);
   }
@@ -250,9 +284,16 @@ textarea {
 }
 
 @keyframes blob-float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -20px) scale(1.05); }
-  66% { transform: translate(-20px, 20px) scale(0.95); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
 }
 
 .morphing-blobs {
@@ -277,7 +318,9 @@ textarea {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
   top: -80px;
   right: -60px;
-  animation: blob-morph 15s ease-in-out infinite, blob-float 20s ease-in-out infinite;
+  animation:
+    blob-morph 15s ease-in-out infinite,
+    blob-float 20s ease-in-out infinite;
 }
 
 .morphing-blobs::after {
@@ -286,12 +329,15 @@ textarea {
   background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
   bottom: -50px;
   left: -40px;
-  animation: blob-morph 12s ease-in-out infinite reverse, blob-float 18s ease-in-out infinite reverse;
+  animation:
+    blob-morph 12s ease-in-out infinite reverse,
+    blob-float 18s ease-in-out infinite reverse;
 }
 
 /* Chromatic / Prismatic Edge Glow */
 @keyframes prismatic-shift {
-  0%, 100% {
+  0%,
+  100% {
     filter: hue-rotate(0deg);
     opacity: 0;
   }

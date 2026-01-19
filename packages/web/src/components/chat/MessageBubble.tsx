@@ -154,7 +154,10 @@ export const MessageBubble = memo(function MessageBubble({
             {copied ? 'Copied' : 'Copy'}
           </button>
           <button
-            onClick={() => { haptic('light'); share(message.content, 'PhotoScout Trip'); }}
+            onClick={() => {
+              haptic('light');
+              share(message.content, 'PhotoScout Trip');
+            }}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-gradient-to-br from-violet-500 to-indigo-600 text-white rounded-lg shadow-lg shadow-violet-500/25 hover:scale-105 active:scale-95 transition-transform"
           >
             <Share2 className="w-3.5 h-3.5" />
@@ -167,25 +170,39 @@ export const MessageBubble = memo(function MessageBubble({
 
   return (
     <div className={`flex flex-col animate-fade-in ${isUser ? 'items-end' : 'items-start'}`}>
-      <div className={`max-w-[85%] px-4 py-3 rounded-2xl ${
-        isUser
-          ? 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white rounded-tr-sm shadow-lg shadow-violet-500/25'
-          : 'liquid-glass glass-prismatic rounded-tl-sm text-white/90'
-      }`}>
+      <div
+        className={`max-w-[85%] px-4 py-3 rounded-2xl ${
+          isUser
+            ? 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white rounded-tr-sm shadow-lg shadow-violet-500/25'
+            : 'liquid-glass glass-prismatic rounded-tl-sm text-white/90'
+        }`}
+      >
         {isMarkdown ? (
           <div className="prose prose-invert prose-sm max-w-none">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
-                strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+                strong: ({ children }) => (
+                  <strong className="font-semibold text-white">{children}</strong>
+                ),
                 ul: ({ children }) => <ul className="list-disc pl-5 space-y-1 my-2">{children}</ul>,
-                ol: ({ children }) => <ol className="list-decimal pl-5 space-y-1 my-2">{children}</ol>,
+                ol: ({ children }) => (
+                  <ol className="list-decimal pl-5 space-y-1 my-2">{children}</ol>
+                ),
                 li: ({ children }) => <li className="pl-1">{children}</li>,
                 p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                h1: ({ children }) => <h1 className="text-lg font-semibold mb-2 text-white">{children}</h1>,
-                h2: ({ children }) => <h2 className="text-base font-semibold mb-2 text-white">{children}</h2>,
-                h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 text-white">{children}</h3>,
-                code: ({ children }) => <code className="bg-white/10 px-1 rounded text-sm">{children}</code>,
+                h1: ({ children }) => (
+                  <h1 className="text-lg font-semibold mb-2 text-white">{children}</h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="text-base font-semibold mb-2 text-white">{children}</h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="text-sm font-semibold mb-1 text-white">{children}</h3>
+                ),
+                code: ({ children }) => (
+                  <code className="bg-white/10 px-1 rounded text-sm">{children}</code>
+                ),
               }}
             >
               {cleanContent}

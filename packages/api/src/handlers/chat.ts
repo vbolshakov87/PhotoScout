@@ -124,12 +124,15 @@ async function internalHandler(event: APIGatewayProxyEventV2, responseStream: an
         responseStream.write(htmlEvent);
       } catch (parseError) {
         console.error('[Chat] Failed to parse JSON trip plan:', parseError);
-        console.error('[Chat] Content that failed to parse (first 500 chars):', fullContent.substring(0, 500));
+        console.error(
+          '[Chat] Content that failed to parse (first 500 chars):',
+          fullContent.substring(0, 500)
+        );
 
         // Send error event to client so they know what happened
         const errorEvent = `data: ${JSON.stringify({
           type: 'error',
-          error: 'Failed to generate trip plan. Please try again.'
+          error: 'Failed to generate trip plan. Please try again.',
         })}\n\n`;
         responseStream.write(errorEvent);
       }
