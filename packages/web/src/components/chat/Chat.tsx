@@ -7,7 +7,7 @@ import { MessageList } from './MessageList';
 import { ChatInput, ChatInputHandle } from './ChatInput';
 import { TabbedView } from './TabbedView';
 import { PreviewTab } from './PreviewTab';
-import { Camera, LogOut, User, Plus, Loader2, LogIn } from 'lucide-react';
+import { LogOut, User, Plus, Loader2, LogIn } from 'lucide-react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
 const CITIES = [
@@ -83,19 +83,22 @@ export function Chat() {
   };
 
   const chatContent = (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full glass-bg morphing-blobs">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
+      <header className="relative flex items-center justify-between px-4 pt-3 pb-3 liquid-glass border-b border-white/10 z-20">
         <div
-          className={`flex items-center gap-2 ${isGuest ? 'cursor-pointer' : ''}`}
+          className={`flex items-center gap-2.5 ${isGuest ? 'cursor-pointer' : ''}`}
           onClick={() => isGuest && navigate('/login')}
         >
           <img
             src="https://aiscout.photo/city-images/appicon.png"
             alt="PhotoScout"
-            className="w-9 h-9 rounded-lg"
+            className="w-10 h-10 rounded-xl shadow-lg shadow-amber-500/20 animate-float"
           />
-          <h1 className="text-base font-semibold text-foreground">PhotoScout</h1>
+          <div>
+            <h1 className="text-lg font-semibold text-white tracking-tight">PhotoScout</h1>
+            <p className="text-white/40 text-[10px]">AI Travel Planner</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -105,49 +108,48 @@ export function Chat() {
                 haptic('light');
                 clearChat();
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted hover:text-foreground transition-colors press"
+              className="w-9 h-9 rounded-xl liquid-glass glass-prismatic flex items-center justify-center hover:scale-105 active:scale-95 transition-transform duration-200"
             >
-              <Plus className="w-4 h-4" />
-              New
+              <Plus className="w-4 h-4 text-white/70" />
             </button>
           )}
 
           <div className="relative">
-            <button onClick={() => setShowUserMenu(!showUserMenu)} className="press">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="w-9 h-9 rounded-xl liquid-glass glass-prismatic flex items-center justify-center hover:scale-105 active:scale-95 transition-transform duration-200 overflow-hidden"
+            >
               {user?.picture && !isGuest ? (
                 <img
                   src={user.picture}
                   alt=""
-                  className="w-8 h-8 rounded-full"
+                  className="w-full h-full rounded-xl object-cover"
                   onError={(e) => {
-                    // Hide broken image and show fallback
                     (e.target as HTMLImageElement).style.display = 'none';
                     (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
                   }}
                 />
               ) : null}
-              <div
-                className={`w-8 h-8 rounded-full bg-card flex items-center justify-center ${user?.picture && !isGuest ? 'hidden' : ''}`}
-              >
-                <User className="w-4 h-4 text-muted" />
+              <div className={`${user?.picture && !isGuest ? 'hidden' : ''}`}>
+                <User className="w-4 h-4 text-white/70" />
               </div>
             </button>
 
             {showUserMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
-                <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-xl overflow-hidden z-50">
-                  <div className="px-4 py-3 border-b border-border">
-                    <p className="font-medium text-foreground truncate text-sm">
+                <div className="absolute top-full right-0 mt-2 w-56 liquid-glass rounded-xl overflow-hidden z-50 border border-white/10 shadow-xl">
+                  <div className="px-4 py-3 border-b border-white/10">
+                    <p className="font-medium text-white truncate text-sm">
                       {isGuest ? 'Guest' : user?.name}
                     </p>
-                    <p className="text-xs text-muted truncate">
+                    <p className="text-xs text-white/50 truncate">
                       {isGuest ? 'Not signed in' : user?.email}
                     </p>
                   </div>
                   {isGuest ? (
                     <div className="p-3">
-                      <p className="text-xs text-muted mb-2 flex items-center gap-1">
+                      <p className="text-xs text-white/50 mb-2 flex items-center gap-1">
                         <LogIn className="w-3 h-3" /> Sign in to save trips
                       </p>
                       <GoogleLogin
@@ -166,7 +168,7 @@ export function Chat() {
                         haptic('light');
                         logout();
                       }}
-                      className="w-full px-4 py-3 text-left flex items-center gap-2 text-danger text-sm hover:bg-white/5 press"
+                      className="w-full px-4 py-2.5 text-left flex items-center gap-2 text-red-400 text-sm hover:bg-white/5 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       Sign Out
@@ -180,27 +182,29 @@ export function Chat() {
       </header>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto hide-scrollbar">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto glass-scrollbar relative z-10">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-6 py-8">
-            <div className="w-16 h-16 rounded-2xl bg-card flex items-center justify-center mb-6">
-              <Camera className="w-8 h-8 text-muted" />
-            </div>
+            <img
+              src="https://aiscout.photo/city-images/appicon.png"
+              alt="PhotoScout"
+              className="w-16 h-16 rounded-2xl mb-6 animate-pulse-glow shadow-lg shadow-amber-500/30"
+            />
 
-            <h2 className="text-xl font-semibold text-foreground mb-2 text-center">
+            <h2 className="text-xl font-semibold text-white mb-2 text-center">
               Plan Your Photo Trip
             </h2>
-            <p className="text-muted text-sm text-center mb-8 max-w-xs">
+            <p className="text-white/50 text-sm text-center mb-8 max-w-xs">
               Tell me a destination and I'll create an interactive guide with the best photography
               spots.
             </p>
 
             <div className="flex flex-wrap gap-2 justify-center max-w-sm">
-              {suggestions.map((suggestion) => (
+              {suggestions.map((suggestion, index) => (
                 <button
                   key={suggestion}
                   onClick={() => handleCityClick(suggestion)}
-                  className="px-4 py-2 bg-card border border-border rounded-full text-sm text-foreground hover:bg-surface transition-colors press"
+                  className={`px-4 py-2 liquid-glass glass-prismatic rounded-full text-sm text-white/90 hover:scale-105 active:scale-95 transition-all duration-200 animate-fade-in stagger-${Math.min(index + 1, 6)}`}
                 >
                   {suggestion}
                 </button>
@@ -213,25 +217,31 @@ export function Chat() {
 
             {/* Processing indicator */}
             {generationProgress.isGenerating && (
-              <div className="mt-4 p-4 bg-card border border-border rounded-xl">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Loader2 className="w-4 h-4 text-primary animate-spin" />
+              <div className="mt-4 p-4 liquid-glass rounded-2xl animate-fade-in">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Loader2 className="w-5 h-5 text-violet-400 animate-spin" />
+                      <div className="absolute inset-0 w-5 h-5 rounded-full bg-violet-400/20 animate-ping" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">Processing...</p>
+                      <p className="text-xs text-white/50">{generationProgress.stage}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Processing...</p>
-                    <p className="text-xs text-muted">{generationProgress.stage}</p>
-                  </div>
+                  <span className="text-violet-300 text-sm font-semibold">
+                    {generationProgress.progress}%
+                  </span>
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
+                <div className="relative w-full h-2 bg-white/5 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-primary rounded-full transition-all duration-300"
+                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-violet-500 via-indigo-500 to-violet-400 rounded-full animate-gradient transition-all duration-500"
                     style={{ width: `${generationProgress.progress}%` }}
                   />
+                  <div className="absolute inset-0 animate-shimmer rounded-full" />
                 </div>
-                <p className="text-xs text-muted mt-2 text-right">{generationProgress.progress}%</p>
               </div>
             )}
           </div>
@@ -240,7 +250,7 @@ export function Chat() {
 
       {/* Error */}
       {error && !error.includes('environment variable') && (
-        <div className="mx-4 mb-2 px-4 py-3 bg-danger/10 border border-danger/20 rounded-lg text-danger text-sm">
+        <div className="mx-4 mb-2 px-4 py-3 liquid-glass bg-danger/10 border-danger/30 rounded-xl text-danger text-sm z-10">
           {error}
         </div>
       )}

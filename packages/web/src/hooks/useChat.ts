@@ -85,27 +85,35 @@ export function useChat() {
 
           // Update progress based on JSON content hints
           if (isGeneratingHtml) {
+            // Check keys in order - later keys override earlier ones
+            let newProgress = 10;
+            let newStage = 'Analyzing your request...';
+
             if (assistantContent.includes('"spots"')) {
-              setGenerationProgress({
-                isGenerating: true,
-                progress: 30,
-                stage: 'Finding photography spots...',
-              });
+              newProgress = 30;
+              newStage = 'Finding photography spots...';
             }
-            if (assistantContent.includes('"routes"') || assistantContent.includes('"route"')) {
-              setGenerationProgress({
-                isGenerating: true,
-                progress: 50,
-                stage: 'Planning routes...',
-              });
+            if (assistantContent.includes('"route"')) {
+              newProgress = 50;
+              newStage = 'Planning routes...';
             }
-            if (assistantContent.includes('"schedule"') || assistantContent.includes('"timing"')) {
-              setGenerationProgress({
-                isGenerating: true,
-                progress: 70,
-                stage: 'Optimizing schedule...',
-              });
+            if (
+              assistantContent.includes('"dailySchedule"') ||
+              assistantContent.includes('"shootingStrategy"')
+            ) {
+              newProgress = 70;
+              newStage = 'Optimizing schedule...';
             }
+            if (assistantContent.includes('"practicalInfo"')) {
+              newProgress = 85;
+              newStage = 'Finalizing plan...';
+            }
+
+            setGenerationProgress({
+              isGenerating: true,
+              progress: newProgress,
+              stage: newStage,
+            });
           }
 
           // Only show content if it's not JSON
@@ -167,6 +175,27 @@ export function useChat() {
           if (event.conversationId) {
             setConversationId(event.conversationId);
           }
+
+          // If we were generating HTML but never received it, show the raw content
+          if (isGeneratingHtml && assistantContent) {
+            console.log('[useChat] Generation ended without HTML, showing raw content');
+            setMessages((prev) => {
+              const filtered = prev.filter((m) => m.id !== assistantMessageId);
+              return [
+                ...filtered,
+                {
+                  id: assistantMessageId,
+                  visitorId,
+                  conversationId,
+                  timestamp: Date.now(),
+                  role: 'assistant',
+                  content: assistantContent,
+                  isHtml: false,
+                },
+              ];
+            });
+          }
+
           setGenerationProgress({
             isGenerating: false,
             progress: 0,
@@ -174,6 +203,26 @@ export function useChat() {
           });
         } else if (event.type === 'error') {
           setError(event.error || 'Unknown error');
+
+          // If we have content, show it despite the error
+          if (assistantContent && isGeneratingHtml) {
+            setMessages((prev) => {
+              const filtered = prev.filter((m) => m.id !== assistantMessageId);
+              return [
+                ...filtered,
+                {
+                  id: assistantMessageId,
+                  visitorId,
+                  conversationId,
+                  timestamp: Date.now(),
+                  role: 'assistant',
+                  content: 'Sorry, there was an error generating your trip plan. Please try again.',
+                  isHtml: false,
+                },
+              ];
+            });
+          }
+
           setGenerationProgress({
             isGenerating: false,
             progress: 0,

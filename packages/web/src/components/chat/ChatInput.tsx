@@ -49,7 +49,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
   };
 
   return (
-    <div className="p-4 border-t border-border bg-surface">
+    <div className="p-4 liquid-glass border-t border-white/10 relative z-10">
       <div className="flex items-end gap-3">
         <textarea
           ref={textareaRef}
@@ -59,13 +59,15 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
           placeholder="Where do you want to explore?"
           disabled={disabled}
           rows={1}
-          className="flex-1 bg-card border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted resize-none focus:border-primary/50 transition-colors"
+          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/40 resize-none focus:border-violet-500/50 focus:bg-white/10 transition-all duration-200"
         />
         <button
           onClick={handleSubmit}
           disabled={!value.trim() || disabled}
-          className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors press ${
-            value.trim() && !disabled ? 'bg-primary text-white' : 'bg-card text-muted'
+          className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
+            value.trim() && !disabled
+              ? 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-lg shadow-violet-500/30 hover:scale-105 active:scale-95'
+              : 'bg-white/5 text-white/30'
           }`}
         >
           {disabled ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
