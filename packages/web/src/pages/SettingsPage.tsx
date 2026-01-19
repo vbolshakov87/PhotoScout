@@ -21,31 +21,31 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full glass-bg morphing-blobs">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-border flex items-center gap-3">
+      <div className="relative px-4 py-3 liquid-glass glass-reflection border-b border-white/10 z-10 flex items-center gap-3">
         <img
           src="https://aiscout.photo/city-images/appicon.png"
           alt="PhotoScout"
-          className="w-9 h-9 rounded-lg"
+          className="w-10 h-10 rounded-xl shadow-lg shadow-amber-500/20"
         />
-        <h1 className="text-lg font-semibold text-foreground">Settings</h1>
+        <h1 className="text-lg font-semibold text-white tracking-tight">Settings</h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto glass-scrollbar relative z-10">
         {/* Account Section */}
         <div className="p-4">
-          <h2 className="text-xs font-medium text-muted uppercase tracking-wide mb-3">Account</h2>
-          <div className="bg-card border border-border rounded-xl p-4">
+          <h2 className="text-xs font-medium text-white/50 uppercase tracking-wide mb-3">
+            Account
+          </h2>
+          <div className="liquid-glass rounded-xl p-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center">
-                <User className="w-6 h-6 text-muted" />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-600/20 border border-white/10 flex items-center justify-center">
+                <User className="w-6 h-6 text-violet-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-foreground truncate">
-                  {isGuest ? 'Guest' : user?.name}
-                </p>
-                <p className="text-sm text-muted truncate">
+                <p className="font-medium text-white truncate">{isGuest ? 'Guest' : user?.name}</p>
+                <p className="text-sm text-white/50 truncate">
                   {isGuest ? 'Not signed in' : user?.email}
                 </p>
               </div>
@@ -55,50 +55,50 @@ export function SettingsPage() {
 
         {/* About Section */}
         <div className="p-4 pt-0">
-          <h2 className="text-xs font-medium text-muted uppercase tracking-wide mb-3">About</h2>
-          <div className="bg-card border border-border rounded-xl divide-y divide-border">
+          <h2 className="text-xs font-medium text-white/50 uppercase tracking-wide mb-3">About</h2>
+          <div className="liquid-glass rounded-xl divide-y divide-white/10">
             <Link
               to="/about"
-              className="flex items-center gap-3 p-4 hover:bg-muted/10 transition-colors"
+              className="flex items-center gap-3 p-4 hover:bg-white/5 transition-colors"
             >
-              <Info className="w-5 h-5 text-muted" />
-              <span className="flex-1 text-foreground">About PhotoScout</span>
-              <ExternalLink className="w-4 h-4 text-muted" />
+              <Info className="w-5 h-5 text-white/60" />
+              <span className="flex-1 text-white">About PhotoScout</span>
+              <ExternalLink className="w-4 h-4 text-white/40" />
             </Link>
 
             <a
               href="https://vbolshakov.photo"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 hover:bg-muted/10 transition-colors"
+              className="flex items-center gap-3 p-4 hover:bg-white/5 transition-colors"
             >
-              <Camera className="w-5 h-5 text-muted" />
-              <span className="flex-1 text-foreground">Photography Portfolio</span>
-              <ExternalLink className="w-4 h-4 text-muted" />
+              <Camera className="w-5 h-5 text-white/60" />
+              <span className="flex-1 text-white">Photography Portfolio</span>
+              <ExternalLink className="w-4 h-4 text-white/40" />
             </a>
           </div>
         </div>
 
         {/* Legal Section */}
         <div className="p-4 pt-0">
-          <h2 className="text-xs font-medium text-muted uppercase tracking-wide mb-3">Legal</h2>
-          <div className="bg-card border border-border rounded-xl divide-y divide-border">
+          <h2 className="text-xs font-medium text-white/50 uppercase tracking-wide mb-3">Legal</h2>
+          <div className="liquid-glass rounded-xl divide-y divide-white/10">
             <Link
               to="/terms"
-              className="flex items-center gap-3 p-4 hover:bg-muted/10 transition-colors"
+              className="flex items-center gap-3 p-4 hover:bg-white/5 transition-colors"
             >
-              <FileText className="w-5 h-5 text-muted" />
-              <span className="flex-1 text-foreground">Terms of Service</span>
-              <ExternalLink className="w-4 h-4 text-muted" />
+              <FileText className="w-5 h-5 text-white/60" />
+              <span className="flex-1 text-white">Terms of Service</span>
+              <ExternalLink className="w-4 h-4 text-white/40" />
             </Link>
 
             <Link
               to="/privacy"
-              className="flex items-center gap-3 p-4 hover:bg-muted/10 transition-colors"
+              className="flex items-center gap-3 p-4 hover:bg-white/5 transition-colors"
             >
-              <Shield className="w-5 h-5 text-muted" />
-              <span className="flex-1 text-foreground">Privacy Policy</span>
-              <ExternalLink className="w-4 h-4 text-muted" />
+              <Shield className="w-5 h-5 text-white/60" />
+              <span className="flex-1 text-white">Privacy Policy</span>
+              <ExternalLink className="w-4 h-4 text-white/40" />
             </Link>
           </div>
         </div>
@@ -106,10 +106,10 @@ export function SettingsPage() {
         {/* Sign Out / Sign In */}
         <div className="p-4 pt-0">
           {isGuest ? (
-            <div className="bg-card border border-border rounded-xl p-4">
+            <div className="liquid-glass rounded-xl p-4">
               <div className="flex items-center gap-3 mb-3">
-                <LogIn className="w-5 h-5 text-primary" />
-                <span className="text-foreground">Sign in to save your data</span>
+                <LogIn className="w-5 h-5 text-violet-400" />
+                <span className="text-white">Sign in to save your data</span>
               </div>
               <div className="flex justify-center">
                 <GoogleLogin
@@ -126,24 +126,26 @@ export function SettingsPage() {
           ) : (
             <button
               onClick={handleSignOut}
-              className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:bg-red-500/10 transition-colors"
+              className="w-full liquid-glass rounded-xl p-4 flex items-center gap-3 hover:bg-red-500/10 transition-colors"
             >
-              <LogOut className="w-5 h-5 text-red-500" />
-              <span className="text-red-500">Sign Out</span>
+              <LogOut className="w-5 h-5 text-red-400" />
+              <span className="text-red-400">Sign Out</span>
             </button>
           )}
         </div>
 
         {/* App Info */}
         <div className="p-4 pt-0 pb-8">
-          <h2 className="text-xs font-medium text-muted uppercase tracking-wide mb-3">App Info</h2>
-          <div className="bg-card border border-border rounded-xl divide-y divide-border">
+          <h2 className="text-xs font-medium text-white/50 uppercase tracking-wide mb-3">
+            App Info
+          </h2>
+          <div className="liquid-glass rounded-xl divide-y divide-white/10">
             <div className="flex items-center justify-between p-4">
-              <span className="text-foreground">Version</span>
-              <span className="text-muted">1.0.0</span>
+              <span className="text-white">Version</span>
+              <span className="text-white/50">1.0.0</span>
             </div>
           </div>
-          <p className="text-xs text-muted/60 text-center mt-4">Made with love for photographers</p>
+          <p className="text-xs text-white/30 text-center mt-4">Made with love for photographers</p>
         </div>
       </div>
     </div>

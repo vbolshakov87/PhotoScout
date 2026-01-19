@@ -96,8 +96,21 @@ async function internalHandler(event: APIGatewayProxyEventV2, responseStream: an
       console.log('[Chat] Detected JSON trip plan, converting to HTML...');
 
       try {
+        // Try to extract just the JSON if there's surrounding text
+        let jsonToParse = fullContent.trim();
+
+        // If content doesn't start with {, try to find JSON block
+        if (!jsonToParse.startsWith('{')) {
+          const jsonStart = jsonToParse.indexOf('{');
+          const jsonEnd = jsonToParse.lastIndexOf('}');
+          if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+            jsonToParse = jsonToParse.substring(jsonStart, jsonEnd + 1);
+            console.log('[Chat] Extracted JSON from surrounding text');
+          }
+        }
+
         // Parse JSON and generate HTML
-        const tripPlan: TripPlan = JSON.parse(fullContent);
+        const tripPlan: TripPlan = JSON.parse(jsonToParse);
         generatedHtml = generateHTML(tripPlan);
         isHtmlPlan = true;
 
@@ -111,7 +124,17 @@ async function internalHandler(event: APIGatewayProxyEventV2, responseStream: an
         responseStream.write(htmlEvent);
       } catch (parseError) {
         console.error('[Chat] Failed to parse JSON trip plan:', parseError);
-        // Keep original content if JSON parsing fails
+        console.error(
+          '[Chat] Content that failed to parse (first 500 chars):',
+          fullContent.substring(0, 500)
+        );
+
+        // Send error event to client so they know what happened
+        const errorEvent = `data: ${JSON.stringify({
+          type: 'error',
+          error: 'Failed to generate trip plan. Please try again.',
+        })}\n\n`;
+        responseStream.write(errorEvent);
       }
     } else {
       // Check if response contains HTML plan (legacy support)
