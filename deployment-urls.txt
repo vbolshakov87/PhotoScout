@@ -1,9 +1,0 @@
-PhotoScout Deployment URLs
-Generated: Thu Jan 15 20:38:07 CET 2026
-
-Web App: https://d2mpt2trz11kx7.cloudfront.net
-Chat API: https://ukxa7eu5rks24eoeb445lzzhoi0lsgjj.lambda-url.eu-central-1.on.aws/
-
-iOS Configuration:
-Update ios/PhotoScout/PhotoScout/Config.swift with:
-static let apiBaseURL = "https://d2mpt2trz11kx7.cloudfront.net"

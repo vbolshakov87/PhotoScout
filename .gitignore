@@ -1,4 +1,5 @@
 node_modules/
+.pnpm-store/
 dist/
 .env
 .env.local
@@ -14,3 +15,15 @@ coverage/
 ios/PhotoScout/PhotoScout.xcodeproj/xcuserdata/
 ios/PhotoScout/PhotoScout.xcodeproj/project.xcworkspace/xcuserdata/
 *.xcuserstate
+
+# Private/internal files (not for public repo)
+cdk-outputs.json
+deployment-urls.txt
+test-stream.html
+docs/LAUNCH_PLAN.md
+docs/TODO.md
+docs/POTENTIAL_ISSUES.md
+docs/WHAT_YOU_MIGHT_BE_MISSING.md
+docs/design/
+tmp/
+.claude/
