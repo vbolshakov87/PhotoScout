@@ -139,12 +139,12 @@ export const MessageBubble = memo(function MessageBubble({
 
   if (isCompleteHtml) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-3 animate-fade-in">
         <HtmlPreview html={cleanContent} />
         <div className="flex gap-2 justify-end">
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-card border border-border rounded-lg text-muted hover:text-foreground transition-colors press"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs liquid-glass glass-prismatic rounded-lg text-white/70 hover:text-white transition-colors"
           >
             {copied ? (
               <Check className="w-3.5 h-3.5 text-success" />
@@ -154,11 +154,8 @@ export const MessageBubble = memo(function MessageBubble({
             {copied ? 'Copied' : 'Copy'}
           </button>
           <button
-            onClick={() => {
-              haptic('light');
-              share(message.content, 'PhotoScout Trip');
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-primary text-white rounded-lg press"
+            onClick={() => { haptic('light'); share(message.content, 'PhotoScout Trip'); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-gradient-to-br from-violet-500 to-indigo-600 text-white rounded-lg shadow-lg shadow-violet-500/25 hover:scale-105 active:scale-95 transition-transform"
           >
             <Share2 className="w-3.5 h-3.5" />
             Share
@@ -169,78 +166,71 @@ export const MessageBubble = memo(function MessageBubble({
   }
 
   return (
-    <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
-      <div
-        className={`max-w-[85%] px-4 py-3 rounded-2xl ${
-          isUser
-            ? 'bg-primary text-white rounded-br-md'
-            : 'bg-card border border-border rounded-bl-md'
-        }`}
-      >
+    <div className={`flex flex-col animate-fade-in ${isUser ? 'items-end' : 'items-start'}`}>
+      <div className={`max-w-[85%] px-4 py-3 rounded-2xl ${
+        isUser
+          ? 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white rounded-tr-sm shadow-lg shadow-violet-500/25'
+          : 'liquid-glass glass-prismatic rounded-tl-sm text-white/90'
+      }`}>
         {isMarkdown ? (
           <div className="prose prose-invert prose-sm max-w-none">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
-                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
                 ul: ({ children }) => <ul className="list-disc pl-5 space-y-1 my-2">{children}</ul>,
                 ol: ({ children }) => <ol className="list-decimal pl-5 space-y-1 my-2">{children}</ol>,
                 li: ({ children }) => <li className="pl-1">{children}</li>,
                 p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                h1: ({ children }) => <h1 className="text-lg font-semibold mb-2">{children}</h1>,
-                h2: ({ children }) => <h2 className="text-base font-semibold mb-2">{children}</h2>,
-                h3: ({ children }) => <h3 className="text-sm font-semibold mb-1">{children}</h3>,
-                code: ({ children }) => (
-                  <code className="bg-black/20 px-1 rounded text-sm">{children}</code>
-                ),
+                h1: ({ children }) => <h1 className="text-lg font-semibold mb-2 text-white">{children}</h1>,
+                h2: ({ children }) => <h2 className="text-base font-semibold mb-2 text-white">{children}</h2>,
+                h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 text-white">{children}</h3>,
+                code: ({ children }) => <code className="bg-white/10 px-1 rounded text-sm">{children}</code>,
               }}
             >
               {cleanContent}
             </ReactMarkdown>
           </div>
         ) : (
-          <p className="whitespace-pre-wrap text-[15px]">{cleanContent}</p>
+          <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{cleanContent}</p>
         )}
       </div>
 
       {/* Dynamic suggestions from AI */}
       {showSuggestions && !suggestions.multi && (
-        <div className="mt-3 p-3 bg-surface/50 rounded-xl border border-border/50">
-          <p className="text-xs text-muted mb-2 font-medium">Quick suggestion:</p>
-          <div className="flex flex-wrap gap-2">
-            {suggestions.options.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => handleSuggestionClick(option.value)}
-                className="px-4 py-2.5 bg-card hover:bg-primary hover:text-white border-2 border-border hover:border-primary rounded-xl text-sm font-medium text-foreground transition-all shadow-sm active:scale-95"
-              >
-                {option.emoji && <span className="mr-1.5">{option.emoji}</span>}
-                {option.label}
-              </button>
-            ))}
-          </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {suggestions.options.map((option, index) => (
+            <button
+              key={option.value}
+              onClick={() => handleSuggestionClick(option.value)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full liquid-glass backdrop-blur-sm border border-white/10 text-white text-xs font-medium hover:bg-white/20 hover:border-white/20 hover:scale-105 active:scale-95 transition-all duration-200 animate-fade-in stagger-${Math.min(index + 1, 6)}`}
+            >
+              {option.emoji && <span>{option.emoji}</span>}
+              <span>{option.label}</span>
+            </button>
+          ))}
         </div>
       )}
 
       {/* Multi-select suggestions from AI */}
       {showSuggestions && suggestions.multi && (
-        <div className="mt-3 p-3 bg-surface/50 rounded-xl border border-border/50">
-          <p className="text-xs text-muted mb-2 font-medium">Select all that apply:</p>
+        <div className="mt-4">
+          <p className="text-xs text-white/50 mb-2 font-medium">Select all that apply:</p>
           <div className="flex flex-wrap gap-2 mb-3">
-            {suggestions.options.map((option) => {
+            {suggestions.options.map((option, index) => {
               const isSelected = selectedOptions.includes(option.value);
               return (
                 <button
                   key={option.value}
                   onClick={() => toggleOption(option.value)}
-                  className={`px-4 py-2.5 border-2 rounded-xl text-sm font-medium transition-all shadow-sm active:scale-95 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 active:scale-95 animate-fade-in stagger-${Math.min(index + 1, 6)} ${
                     isSelected
-                      ? 'bg-primary text-white border-primary'
-                      : 'bg-card text-foreground border-border hover:border-primary/50'
+                      ? 'bg-gradient-to-r from-violet-500/30 to-indigo-500/30 text-white border border-violet-400/50'
+                      : 'liquid-glass border border-white/10 text-white/80 hover:bg-white/20 hover:border-white/20'
                   }`}
                 >
-                  {option.emoji && <span className="mr-1.5">{option.emoji}</span>}
-                  {option.label}
+                  {option.emoji && <span>{option.emoji}</span>}
+                  <span>{option.label}</span>
                 </button>
               );
             })}
@@ -248,9 +238,9 @@ export const MessageBubble = memo(function MessageBubble({
           {selectedOptions.length > 0 && (
             <button
               onClick={sendSelectedOptions}
-              className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
+              className="flex items-center gap-2 px-4 py-1.5 bg-violet-500/20 text-violet-300 text-sm font-medium rounded-full border border-violet-500/30 hover:bg-violet-500/30 hover:border-violet-400/50 transition-all duration-200 active:scale-95"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-3.5 h-3.5" />
               Send ({selectedOptions.length} selected)
             </button>
           )}
@@ -261,7 +251,7 @@ export const MessageBubble = memo(function MessageBubble({
       {isPlanReadyMessage && onSend && (
         <button
           onClick={handleQuickReply}
-          className="mt-3 flex items-center gap-2 px-5 py-3 bg-primary text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95"
+          className="mt-4 flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-sm font-medium rounded-full shadow-lg shadow-violet-500/30 hover:scale-105 active:scale-95 transition-all duration-200"
         >
           Yes, let's go!
           <ArrowRight className="w-4 h-4" />
