@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Map, Loader2, LogIn } from 'lucide-react';
+import { Map, Loader2, LogIn, LayoutGrid, List } from 'lucide-react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import type { Plan } from '@photoscout/shared';
 import { TripCard } from '../components/trips/TripCard';
+import { TripListCard } from '../components/trips/TripListCard';
 import { TripDetail } from '../components/trips/TripDetail';
 import { getUserId } from '../lib/storage';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,6 +19,7 @@ export function TripsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cityImages, setCityImages] = useState<Record<string, string | null>>({});
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
     if (credentialResponse.credential) {
@@ -139,16 +141,44 @@ export function TripsPage() {
     <div className="flex flex-col h-full glass-bg morphing-blobs">
       {/* Header */}
       <header className="relative px-4 pt-4 pb-3 liquid-glass glass-reflection border-b border-white/10 z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
-            <Map className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+              <Map className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold text-white tracking-tight">My Trips</h1>
+              <p className="text-xs text-white/40">
+                {isLoading ? 'Loading...' : `${plans.length} saved`}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-semibold text-white tracking-tight">My Trips</h1>
-            <p className="text-xs text-white/40">
-              {isLoading ? 'Loading...' : `${plans.length} saved`}
-            </p>
-          </div>
+
+          {/* View Toggle */}
+          {plans.length > 0 && (
+            <div className="flex items-center gap-1 p-1 liquid-glass rounded-lg">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-md transition-all duration-200 ${
+                  viewMode === 'grid'
+                    ? 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-md'
+                    : 'text-white/50 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-md transition-all duration-200 ${
+                  viewMode === 'list'
+                    ? 'bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-md'
+                    : 'text-white/50 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -194,20 +224,26 @@ export function TripsPage() {
             <p className="text-white/70 text-sm">No trips yet</p>
             <p className="text-white/40 text-xs mt-1">Start a chat to create your first trip</p>
           </div>
-        ) : (
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-2 gap-3">
-            {plans.map((plan, index) => (
-              <div
+            {plans.map((plan) => (
+              <TripCard
                 key={plan.planId}
-                className={`animate-scale-in`}
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <TripCard
-                  plan={plan}
-                  onClick={() => loadPlanDetail(plan)}
-                  imageUrl={cityImages[plan.city]}
-                />
-              </div>
+                plan={plan}
+                onClick={() => loadPlanDetail(plan)}
+                imageUrl={cityImages[plan.city]}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {plans.map((plan) => (
+              <TripListCard
+                key={plan.planId}
+                plan={plan}
+                onClick={() => loadPlanDetail(plan)}
+                imageUrl={cityImages[plan.city]}
+              />
             ))}
           </div>
         )}

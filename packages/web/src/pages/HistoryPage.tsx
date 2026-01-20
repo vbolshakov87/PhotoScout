@@ -153,16 +153,12 @@ export function HistoryPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredConversations.map((conversation, index) => (
-              <div
+            {filteredConversations.map((conversation) => (
+              <ConversationCard
                 key={conversation.conversationId}
-                className={`animate-fade-in stagger-${Math.min(index + 1, 6)}`}
-              >
-                <ConversationCard
-                  conversation={conversation}
-                  onClick={() => handleConversationClick(conversation)}
-                />
-              </div>
+                conversation={conversation}
+                onClick={() => handleConversationClick(conversation)}
+              />
             ))}
           </div>
         )}

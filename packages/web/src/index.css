@@ -55,6 +55,21 @@ textarea,
   display: none;
 }
 
+/* User menu dropdown */
+.user-menu-dropdown {
+  position: fixed;
+  top: 3.5rem;
+  right: 1rem;
+  width: 14rem;
+  background: rgba(30, 30, 45, 0.98);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 0.75rem;
+  z-index: 50;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
 /* Minimal focus styles */
 input:focus,
 textarea:focus {
@@ -407,4 +422,18 @@ textarea {
 /* Gradient background for main container */
 .glass-bg {
   background: radial-gradient(ellipse at top, #1c1c2e 0%, #0a0a0f 50%, #050505 100%);
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  top: 3.7rem;
+  right: 0;
+  width: 14rem; /* w-56 */
+  background: rgba(30, 30, 45, 0.98);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 0.75rem; /* rounded-xl */
+  z-index: 50;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-2xl */
 }

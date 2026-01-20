@@ -134,52 +134,53 @@ export function Chat() {
                 <User className="w-4 h-4 text-white/70" />
               </div>
             </button>
-
-            {showUserMenu && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
-                <div className="absolute top-full right-0 mt-2 w-56 liquid-glass rounded-xl overflow-hidden z-50 border border-white/10 shadow-xl">
-                  <div className="px-4 py-3 border-b border-white/10">
-                    <p className="font-medium text-white truncate text-sm">
-                      {isGuest ? 'Guest' : user?.name}
-                    </p>
-                    <p className="text-xs text-white/50 truncate">
-                      {isGuest ? 'Not signed in' : user?.email}
-                    </p>
-                  </div>
-                  {isGuest ? (
-                    <div className="p-3">
-                      <p className="text-xs text-white/50 mb-2 flex items-center gap-1">
-                        <LogIn className="w-3 h-3" /> Sign in to save trips
-                      </p>
-                      <GoogleLogin
-                        onSuccess={handleGoogleSuccess}
-                        onError={() => console.error('Login failed')}
-                        theme="outline"
-                        size="medium"
-                        text="signin_with"
-                        shape="rectangular"
-                        use_fedcm_for_prompt={false}
-                      />
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        haptic('light');
-                        logout();
-                      }}
-                      className="w-full px-4 py-2.5 text-left flex items-center gap-2 text-red-400 text-sm hover:bg-white/5 transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
           </div>
         </div>
       </header>
+
+      {/* User menu dropdown - outside header to escape backdrop-filter containing block */}
+      {showUserMenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+          <div className="user-menu-dropdown">
+            <div className="px-4 py-3 border-b border-white/10">
+              <p className="font-medium text-white truncate text-sm">
+                {isGuest ? 'Guest' : user?.name}
+              </p>
+              <p className="text-xs text-white/50 truncate">
+                {isGuest ? 'Not signed in' : user?.email}
+              </p>
+            </div>
+            {isGuest ? (
+              <div className="p-3">
+                <p className="text-xs text-white/50 mb-2 flex items-center gap-1">
+                  <LogIn className="w-3 h-3" /> Sign in to save trips
+                </p>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => console.error('Login failed')}
+                  theme="outline"
+                  size="medium"
+                  text="signin_with"
+                  shape="rectangular"
+                  use_fedcm_for_prompt={false}
+                />
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  haptic('light');
+                  logout();
+                }}
+                className="w-full px-4 py-2.5 text-left flex items-center gap-2 text-red-400 text-sm hover:bg-white/5 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </button>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto glass-scrollbar relative z-10">

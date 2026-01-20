@@ -14,7 +14,7 @@ export function BottomNav() {
 
   return (
     <div className="relative liquid-glass glass-reflection border-t border-white/10 pb-safe z-10">
-      <div className="flex items-center justify-around max-w-md mx-auto py-2.5 px-4">
+      <div className="flex items-center justify-around max-w-md mx-auto pt-1.5 pb-2.5 px-4">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive =
@@ -25,16 +25,16 @@ export function BottomNav() {
             <button
               key={tab.path}
               onClick={() => navigate(tab.path)}
-              className={`flex flex-col items-center gap-1.5 relative transition-all duration-300 ${
+              className={`flex flex-col items-center gap-1 relative transition-all duration-300 ${
                 isActive ? 'text-white scale-105' : 'text-white/40 hover:text-white/60'
               }`}
             >
               <div className="relative">
                 {isActive && (
-                  <div className="absolute -inset-1.5 bg-violet-500/20 rounded-xl blur-sm" />
+                  <div className="absolute -inset-1 bg-violet-500/20 rounded-lg blur-sm" />
                 )}
                 <div
-                  className={`relative w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                  className={`relative w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300 ${
                     isActive
                       ? 'bg-gradient-to-br from-violet-500 to-indigo-600 shadow-md shadow-violet-500/30'
                       : 'hover:bg-white/5'
