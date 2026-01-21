@@ -9,9 +9,13 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:prompt": "vitest run src/tests/prompt.test.ts --config vitest.integration.config.ts",
     "test:llm": "vitest run src/tests/llm-comparison.test.ts --config vitest.integration.config.ts",
     "test:llm:haiku": "CLAUDE_MODEL=haiku vitest run src/tests/llm-comparison.test.ts --config vitest.integration.config.ts",
     "test:llm:sonnet": "CLAUDE_MODEL=sonnet vitest run src/tests/llm-comparison.test.ts --config vitest.integration.config.ts",
+    "test:security": "vitest run src/tests/security/security.test.ts --config vitest.integration.config.ts",
+    "test:security:quick": "vitest run src/tests/security/security.test.ts --config vitest.integration.config.ts --testNamePattern='Quick'",
+    "test:security:critical": "vitest run src/tests/security/security.test.ts --config vitest.integration.config.ts --testNamePattern='Critical'",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
