@@ -20,6 +20,10 @@ on:
 env:
   NODE_VERSION: '20'
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   security-smoke-test:
     name: Security Smoke Test

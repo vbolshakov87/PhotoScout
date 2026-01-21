@@ -192,7 +192,11 @@ export function validateOutput(
       for (const match of matches) {
         // Skip common false positives
         if (type === 'phone' && match.length < 10) continue;
-        if (type === 'email' && match.includes('example.com')) continue;
+        // Skip example emails - use strict domain check to prevent bypass
+        if (type === 'email') {
+          const emailDomain = match.split('@')[1]?.toLowerCase();
+          if (emailDomain === 'example.com' || emailDomain === 'example.org') continue;
+        }
 
         violations.push({
           type: 'pii_detected',
