@@ -27,3 +27,24 @@ docs/WHAT_YOU_MIGHT_BE_MISSING.md
 docs/design/
 tmp/
 .claude/
+
+# Test results (generated output, not source)
+model-testing/results/*.json
+model-testing/results/*.html
+model-testing/results/*.md
+model-testing/results/*.txt
+!model-testing/results/.gitkeep
+packages/api/src/tests/security/results/*.json
+packages/api/src/tests/security/results/*.md
+!packages/api/src/tests/security/results/.gitkeep
+
+# Large generated images
+docs/*.png
+
+# Compiled TypeScript (CDK build artifacts)
+infra/lib/*.js
+infra/bin/*.js
+
+# Redundant lockfiles (using pnpm-lock.yaml)
+model-testing/package-lock.json
+infra/package-lock.json

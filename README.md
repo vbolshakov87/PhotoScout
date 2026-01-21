@@ -150,7 +150,9 @@ PhotoScout/
 │   ├── api/                 # AWS Lambda functions
 │   │   ├── src/
 │   │   │   ├── handlers/    # Lambda handlers
-│   │   │   └── lib/         # Shared utilities (imagen.ts)
+│   │   │   ├── lib/         # Shared utilities (prompts, validators)
+│   │   │   └── tests/
+│   │   │       └── security/  # Security test suite (60+ attack vectors)
 │   │   └── scripts/         # Image generation scripts
 │   │
 │   └── shared/              # Shared TypeScript types
@@ -342,6 +344,35 @@ See [ios/AppStore/metadata.md](ios/AppStore/metadata.md) for App Store submissio
 - ✅ CORS configured
 - ✅ No API keys in frontend
 - ✅ DynamoDB TTL for data cleanup
+- ✅ LLM guardrails (prompt injection protection)
+- ✅ Output validation (leakage detection)
+
+### Security Testing
+
+Comprehensive security test suite with 60+ attack vectors:
+
+```bash
+# Quick smoke test (4 critical tests)
+cd packages/api
+pnpm test:security:quick
+
+# Critical attacks only (25 tests)
+pnpm test:security:critical
+
+# Full suite (60+ tests)
+pnpm test:security
+```
+
+**Attack categories tested:**
+- Prompt injection (direct override, fake system messages)
+- Jailbreaks (DAN, roleplay, hypotheticals)
+- Data extraction (system prompt leakage)
+- Context manipulation (token overflow, poisoning)
+- Off-topic abuse (code generation, homework)
+- Photography-adjacent attacks (surveillance, trespassing)
+- Encoding tricks (base64, Unicode, multi-language)
+
+See [docs/SECURITY_REPORT.md](docs/SECURITY_REPORT.md) for detailed security documentation.
 
 ## Legal
 
