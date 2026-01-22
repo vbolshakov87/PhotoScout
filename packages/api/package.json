@@ -20,9 +20,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
-    "@aws-sdk/client-dynamodb": "^3.971.0",
-    "@aws-sdk/client-s3": "^3.971.0",
-    "@aws-sdk/lib-dynamodb": "^3.971.0",
+    "@aws-sdk/client-dynamodb": "^3.972.0",
+    "@aws-sdk/client-s3": "^3.972.0",
+    "@aws-sdk/lib-dynamodb": "^3.972.0",
     "@photoscout/shared": "workspace:*",
     "google-auth-library": "^10.5.0",
     "openai": "^6.16.0",
