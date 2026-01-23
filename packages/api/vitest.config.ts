@@ -8,6 +8,7 @@ export default defineConfig({
       '**/node_modules/**',
       '**/prompt.test.ts', // Integration tests - require API access
       '**/llm-comparison.test.ts', // Integration tests - require API keys
+      '**/security/**', // Security tests - require API access, run via pnpm test:security
     ],
     coverage: {
       provider: 'v8',

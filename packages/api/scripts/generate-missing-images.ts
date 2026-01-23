@@ -241,7 +241,7 @@ async function generateImage(destination: string): Promise<Buffer> {
     throw new Error(`API error ${response.status}: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as { predictions?: { bytesBase64Encoded?: string }[] };
   const imageData = data.predictions?.[0]?.bytesBase64Encoded;
   if (!imageData) {
     throw new Error('No image data in response');

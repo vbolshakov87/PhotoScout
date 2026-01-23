@@ -16,7 +16,15 @@
     "test:security": "vitest run src/tests/security/security.test.ts --config vitest.integration.config.ts",
     "test:security:quick": "vitest run src/tests/security/security.test.ts --config vitest.integration.config.ts --testNamePattern='Quick'",
     "test:security:critical": "vitest run src/tests/security/security.test.ts --config vitest.integration.config.ts --testNamePattern='Critical'",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "security:convert": "tsx scripts/convert-to-promptfoo.ts",
+    "security:eval": "npx promptfoo@latest eval --env-file ../../.env --max-concurrency 2",
+    "security:eval:fast": "npx promptfoo@latest eval --env-file ../../.env --max-concurrency 4",
+    "security:eval:critical": "npx promptfoo@latest eval --env-file ../../.env --filter-pattern CRITICAL --max-concurrency 2",
+    "security:eval:injection": "npx promptfoo@latest eval --env-file ../../.env --filter-pattern prompt_injection --max-concurrency 2",
+    "security:eval:jailbreak": "npx promptfoo@latest eval --env-file ../../.env --filter-pattern jailbreak --max-concurrency 2",
+    "security:report": "npx promptfoo@latest eval --env-file ../../.env --output security-report.html --max-concurrency 2",
+    "security:view": "npx promptfoo@latest view"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
@@ -33,9 +41,11 @@
     "@types/node": "^20.10.0",
     "@types/uuid": "^9.0.0",
     "esbuild": "^0.19.0",
+    "promptfoo": "^0.103.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.0",
     "vitest": "^4.0.16",
+    "yaml": "^2.7.0",
     "@vitest/coverage-v8": "^4.0.16"
   }
 }

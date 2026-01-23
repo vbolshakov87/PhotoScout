@@ -1,69 +1,38 @@
-name: Security Tests
+name: LLM Security Tests (Promptfoo)
+
+# ==============================================================================
+# MANUAL ONLY - This workflow uses paid API keys (OpenAI, Anthropic, etc.)
+# Trigger manually from Actions tab when needed.
+# ==============================================================================
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'packages/api/src/**'
-      - 'packages/api/package.json'
-  push:
-    branches: [main]
-    paths:
-      - 'packages/api/src/**'
   workflow_dispatch:
     inputs:
-      test_mode:
-        description: 'Test mode (quick/critical/all)'
+      test_filter:
+        description: 'Filter pattern (e.g., CRITICAL, prompt_injection, or empty for all)'
         required: false
-        default: 'critical'
+        default: 'CRITICAL'
+      model_set:
+        description: 'Model set to test'
+        required: false
+        default: 'prod'
+        type: choice
+        options:
+          - prod # Claude Sonnet 4 only (~$0.11)
+          - default # 6 models (~$0.50)
+          - all # 8 models (~$0.88)
 
 env:
   NODE_VERSION: '20'
 
-permissions:
-  contents: read
-  pull-requests: write
-
 jobs:
-  security-smoke-test:
-    name: Security Smoke Test
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run quick security smoke test
-        env:
-          API_URL: ${{ secrets.API_URL }}
-        run: |
-          cd packages/api
-          pnpm vitest run src/tests/security/security.test.ts --reporter=verbose --testNamePattern="Quick Security Smoke Test"
-        continue-on-error: false
-
-  security-critical:
-    name: Critical Security Tests
+  llm-security-tests:
+    name: LLM Security Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: security-smoke-test
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup pnpm
@@ -80,179 +49,82 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run critical security tests
-        env:
-          API_URL: ${{ secrets.API_URL }}
+      - name: Generate Promptfoo config
+        working-directory: packages/api
         run: |
-          cd packages/api
-          pnpm vitest run src/tests/security/security.test.ts --reporter=verbose --testNamePattern="Critical Attacks"
+          MODEL_SET="${{ github.event.inputs.model_set || 'prod' }}"
+          echo "🤖 Model set: $MODEL_SET"
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: security-test-results-critical
-          path: packages/api/src/tests/security/results/
-          retention-days: 30
+          case "$MODEL_SET" in
+            prod)
+              pnpm security:convert -- --prod
+              ;;
+            all)
+              pnpm security:convert -- --all
+              ;;
+            *)
+              pnpm security:convert
+              ;;
+          esac
 
-  security-full:
-    name: Full Security Test Suite
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    needs: security-critical
-    if: github.event_name == 'push' || github.event.inputs.test_mode == 'all'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run full security test suite
+      - name: Run Security Tests
+        working-directory: packages/api
         env:
-          API_URL: ${{ secrets.API_URL }}
-        run: |
-          cd packages/api
-          pnpm vitest run src/tests/security/security.test.ts --reporter=verbose
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: security-test-results-full
-          path: packages/api/src/tests/security/results/
-          retention-days: 30
-
-  model-comparison:
-    name: Multi-Model Security Comparison
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    if: github.event_name == 'workflow_dispatch'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build packages
-        run: pnpm build
-
-      - name: Run model comparison
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
         run: |
-          cd packages/api
-          npx ts-node src/tests/security/model-comparison.ts ${{ github.event.inputs.test_mode }}
+          FILTER="${{ github.event.inputs.test_filter }}"
 
-      - name: Upload comparison results
+          if [ -n "$FILTER" ]; then
+            echo "🔍 Running tests with filter: $FILTER"
+            npx promptfoo eval --filter-description "$FILTER" --output results.json --no-cache
+          else
+            echo "🔍 Running full test suite"
+            npx promptfoo eval --output results.json --no-cache
+          fi
+
+      - name: Check Results
+        working-directory: packages/api
+        run: |
+          if [ -f results.json ]; then
+            FAILURES=$(cat results.json | jq '.results.stats.failures // 0')
+            TOTAL=$(cat results.json | jq '.results.stats.successes + .results.stats.failures')
+
+            if [ "$TOTAL" -gt 0 ]; then
+              PASS_RATE=$(echo "scale=1; (($TOTAL - $FAILURES) / $TOTAL) * 100" | bc)
+            else
+              PASS_RATE="0"
+            fi
+
+            echo "## LLM Security Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Configuration:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Model set: \`${{ github.event.inputs.model_set }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Filter: \`${{ github.event.inputs.test_filter || 'none (full suite)' }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Results:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Total Tests: $TOTAL" >> $GITHUB_STEP_SUMMARY
+            echo "- Passed: $(($TOTAL - $FAILURES))" >> $GITHUB_STEP_SUMMARY
+            echo "- Failed: $FAILURES" >> $GITHUB_STEP_SUMMARY
+            echo "- Pass Rate: ${PASS_RATE}%" >> $GITHUB_STEP_SUMMARY
+
+            if [ "$FAILURES" -gt "0" ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo ":warning: **$FAILURES security test(s) failed!**" >> $GITHUB_STEP_SUMMARY
+              echo "::warning::$FAILURES security test(s) failed"
+            else
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo ":white_check_mark: All security tests passed!" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: Upload Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: model-comparison-results
-          path: packages/api/src/tests/security/results/
+          name: security-test-results
+          path: packages/api/results.json
           retention-days: 30
-
-  report:
-    name: Generate Security Report
-    runs-on: ubuntu-latest
-    needs: [security-critical]
-    if: always()
-
-    steps:
-      - name: Download test results
-        uses: actions/download-artifact@v4
-        with:
-          pattern: security-test-results-*
-          merge-multiple: true
-          path: results/
-
-      - name: Generate PR Comment
-        uses: actions/github-script@v7
-        if: github.event_name == 'pull_request'
-        with:
-          script: |
-            const fs = require('fs');
-            const path = require('path');
-
-            // Find the latest results file
-            const resultsDir = 'results';
-            let latestReport = null;
-            let latestTime = 0;
-
-            if (fs.existsSync(resultsDir)) {
-              const files = fs.readdirSync(resultsDir);
-              for (const file of files) {
-                if (file.endsWith('.md')) {
-                  const filePath = path.join(resultsDir, file);
-                  const stats = fs.statSync(filePath);
-                  if (stats.mtimeMs > latestTime) {
-                    latestTime = stats.mtimeMs;
-                    latestReport = fs.readFileSync(filePath, 'utf8');
-                  }
-                }
-              }
-            }
-
-            let body = '## 🔒 Security Test Results\n\n';
-
-            if (latestReport) {
-              // Extract summary section
-              const summaryMatch = latestReport.match(/## Summary[\s\S]*?(?=##|$)/);
-              if (summaryMatch) {
-                body += summaryMatch[0];
-              }
-
-              // Check for critical failures
-              const criticalMatch = latestReport.match(/## Critical Failures[\s\S]*?(?=##|$)/);
-              if (criticalMatch) {
-                body += '\n⚠️ **Critical Failures Detected**\n';
-                body += criticalMatch[0];
-              }
-
-              // Check for leakage
-              const leakageMatch = latestReport.match(/## System Prompt Leakage[\s\S]*?(?=##|$)/);
-              if (leakageMatch) {
-                body += '\n🚨 **System Prompt Leakage Detected**\n';
-                body += leakageMatch[0];
-              }
-            } else {
-              body += '⚠️ No test results found. Check workflow logs for details.\n';
-            }
-
-            body += '\n---\n*Generated by Security Tests workflow*';
-
-            // Post comment
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            });

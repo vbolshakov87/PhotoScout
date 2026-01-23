@@ -72,7 +72,7 @@ Quick links to manage external integrations:
 
 ## Features
 
-- 🤖 **AI Trip Planning** - Claude Sonnet 4 generates personalized photography itineraries
+- 🤖 **AI Trip Planning** - Claude Sonnet 4.5 generates personalized photography itineraries
 - 🖼️ **AI-Generated Images** - Google Imagen 4.0 creates stunning destination visuals
 - 📱 **Native iOS App** - SwiftUI wrapper with Google Sign-In and guest mode
 - 🌐 **Responsive Web App** - React PWA accessible from any device
@@ -110,7 +110,7 @@ Quick links to manage external integrations:
 │  S3 Bucket   │  │    Lambda    │  │    Lambda    │
 │  (Static)    │  │   (Chat)     │  │ (Images API) │
 │  - Web App   │  │              │  │              │
-│  - HTML Plans│  │  Claude 4    │  │ Imagen 4.0   │
+│  - HTML Plans│  │  Claude 4.5  │  │ Imagen 4.0   │
 │  - Images    │  │  Sonnet      │  │ (Google)     │
 └──────────────┘  └──────┬───────┘  └──────┬───────┘
                          │                 │
@@ -127,7 +127,7 @@ Quick links to manage external integrations:
 │                           EXTERNAL SERVICES                                  │
 ├─────────────────────────────┬───────────────────────────────────────────────┤
 │  Anthropic Claude API       │  Google APIs                                  │
-│  - Claude Sonnet 4          │  - Imagen 4.0 (image generation)              │
+│  - Claude Sonnet 4.5        │  - Imagen 4.0 (image generation)              │
 │  - Trip planning            │  - OAuth 2.0 (authentication)                 │
 │  - Itinerary generation     │  - 94 destination images                      │
 └─────────────────────────────┴───────────────────────────────────────────────┘
@@ -184,7 +184,7 @@ PhotoScout/
 | **Storage** | Amazon S3 |
 | **CDN** | Amazon CloudFront |
 | **Infrastructure** | AWS CDK (TypeScript) |
-| **AI - Chat** | Anthropic Claude Sonnet 4 |
+| **AI - Chat** | Anthropic Claude Sonnet 4.5 |
 | **AI - Images** | Google Imagen 4.0 |
 | **Auth** | Google OAuth 2.0 |
 
@@ -347,30 +347,69 @@ See [ios/AppStore/metadata.md](ios/AppStore/metadata.md) for App Store submissio
 - ✅ LLM guardrails (prompt injection protection)
 - ✅ Output validation (leakage detection)
 
-### Security Testing
+### Security Testing with Promptfoo
 
-Comprehensive security test suite with 60+ attack vectors:
+Comprehensive LLM security testing using [Promptfoo](https://promptfoo.dev) with 74 attack vectors across 6 models.
+
+#### Quick Start
 
 ```bash
-# Quick smoke test (4 critical tests)
 cd packages/api
-pnpm test:security:quick
 
-# Critical attacks only (25 tests)
-pnpm test:security:critical
-
-# Full suite (60+ tests)
-pnpm test:security
+# Generate config and run tests
+pnpm security:convert           # Generate promptfoo config (all 6 models)
+pnpm security:eval              # Run full test suite (~$0.50)
+pnpm security:eval:critical     # Critical tests only (~$0.15)
 ```
 
-**Attack categories tested:**
-- Prompt injection (direct override, fake system messages)
-- Jailbreaks (DAN, roleplay, hypotheticals)
-- Data extraction (system prompt leakage)
-- Context manipulation (token overflow, poisoning)
-- Off-topic abuse (code generation, homework)
-- Photography-adjacent attacks (surveillance, trespassing)
-- Encoding tricks (base64, Unicode, multi-language)
+#### Model Selection
+
+```bash
+# Production model only (Claude Haiku 4.5) - fastest, cheapest
+pnpm security:convert -- --prod
+pnpm security:eval              # ~$0.03 for 74 tests
+
+# All 6 models (default)
+pnpm security:convert
+pnpm security:eval              # ~$0.50 for 444 tests
+```
+
+#### Available Models (6)
+
+| Model | Tier | Cost/1M tokens |
+|-------|------|----------------|
+| GPT-4o Mini | Ultra-budget | $0.15 |
+| DeepSeek V3.2 | Ultra-budget | $0.14 |
+| Gemini 3 Flash | Ultra-budget | $0.10 |
+| Claude Haiku 4.5 | Budget | $0.80 |
+| **Claude Sonnet 4.5** | Quality | $3.00 |
+| Mistral Large 3 | Quality | $2.00 |
+
+#### Test Categories (74 vectors)
+
+| Category | Count | Description |
+|----------|-------|-------------|
+| prompt_injection | 11 | Direct override, fake system messages |
+| jailbreak | 10 | DAN, roleplay, hypotheticals |
+| data_extraction | 10 | System prompt leakage attempts |
+| context_manipulation | 4 | Token overflow, context poisoning |
+| off_topic | 18 | Code generation, homework, controversial |
+| photography_adjacent | 13 | Surveillance, trespassing, illegal |
+| encoding_tricks | 8 | Base64, Unicode, multi-language |
+
+#### Reports & Visualization
+
+```bash
+pnpm security:report            # Generate HTML report
+pnpm security:view              # Interactive browser view
+```
+
+#### CI/CD Integration
+
+Security tests run **manually only** (to control API costs):
+1. Go to Actions → "LLM Security Tests (Promptfoo)"
+2. Click "Run workflow"
+3. Choose model set (`prod`, `default`, `all`) and filter (`CRITICAL`, etc.)
 
 See [docs/SECURITY_REPORT.md](docs/SECURITY_REPORT.md) for detailed security documentation.
 
