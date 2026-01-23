@@ -24,7 +24,12 @@
     "security:eval:injection": "npx promptfoo@latest eval --env-file ../../.env --filter-pattern prompt_injection --max-concurrency 2",
     "security:eval:jailbreak": "npx promptfoo@latest eval --env-file ../../.env --filter-pattern jailbreak --max-concurrency 2",
     "security:report": "npx promptfoo@latest eval --env-file ../../.env --output security-report.html --max-concurrency 2",
-    "security:view": "npx promptfoo@latest view"
+    "security:view": "npx promptfoo@latest view",
+    "quality:convert": "tsx scripts/convert-quality-to-promptfoo.ts",
+    "quality:eval": "npx promptfoo@latest eval --config promptfoo-quality.yaml --env-file ../../.env --max-concurrency 2",
+    "quality:eval:fast": "npx promptfoo@latest eval --config promptfoo-quality.yaml --env-file ../../.env --max-concurrency 4",
+    "quality:report": "npx promptfoo@latest eval --config promptfoo-quality.yaml --env-file ../../.env --output quality-report.html --max-concurrency 2",
+    "quality:view": "npx promptfoo@latest view --config promptfoo-quality.yaml"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",

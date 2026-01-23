@@ -1,1 +1,10 @@
 preview.html
+
+# Generated promptfoo configs (regenerate with pnpm security:convert / quality:convert)
+promptfooconfig.yaml
+promptfoo-quality.yaml
+
+# Test reports
+security-report.html
+quality-report.html
+*.report.html
