@@ -2,6 +2,12 @@
   "name": "photoscout",
   "private": true,
   "type": "module",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild"
+    ]
+  },
   "scripts": {
     "dev:web": "pnpm --filter @photoscout/web dev",
     "dev:api": "pnpm --filter @photoscout/api dev",

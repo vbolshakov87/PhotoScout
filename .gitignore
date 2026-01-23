@@ -28,15 +28,20 @@ docs/design/
 tmp/
 .claude/
 
-# Test results (generated output, not source)
-model-testing/results/*.json
-model-testing/results/*.html
-model-testing/results/*.md
-model-testing/results/*.txt
-!model-testing/results/.gitkeep
+# Old custom model-testing (replaced by Promptfoo)
+model-testing/
+
+# Security test results (generated output)
 packages/api/src/tests/security/results/*.json
 packages/api/src/tests/security/results/*.md
 !packages/api/src/tests/security/results/.gitkeep
+
+# Promptfoo outputs
+packages/api/promptfooconfig.yaml
+packages/api/SECURITY_TESTS.md
+packages/api/results*.json
+packages/api/security-report.html
+.promptfoo/
 
 # Large generated images
 docs/*.png
