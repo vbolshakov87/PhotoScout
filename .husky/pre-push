@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Run the same checks as CI before pushing
+echo "🔍 Running pre-push checks (same as CI)..."
+
+echo "\n📝 Checking formatting..."
+pnpm format:check || exit 1
+
+echo "\n🔎 Running ESLint..."
+pnpm lint || exit 1
+
+echo "\n📘 Running type check..."
+pnpm typecheck || exit 1
+
+echo "\n🧪 Running tests with coverage..."
+pnpm test:coverage || exit 1
+
+echo "\n🏗️  Building packages..."
+pnpm build || exit 1
+
+echo "\n✅ All pre-push checks passed!"
