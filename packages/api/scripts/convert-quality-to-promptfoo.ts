@@ -23,103 +23,14 @@ import {
   type QualityTest,
 } from '../src/tests/quality/quality-tests.js';
 import { SYSTEM_PROMPT } from '../src/lib/prompts.js';
-
-// =============================================================================
-// MODEL CONFIGURATIONS
-// =============================================================================
-
-interface Provider {
-  id: string;
-  label: string;
-  tier: 'ultra-budget' | 'budget' | 'quality' | 'premium';
-  costPer1MInput: number;
-  config: { max_tokens: number; temperature: number };
-  delay?: number; // ms between requests for rate limiting
-}
-
-// Production model
-const PROD_MODEL: Provider = {
-  id: 'anthropic:messages:claude-haiku-4-5-20251001',
-  label: 'Claude Haiku 4.5 (PROD)',
-  tier: 'budget',
-  costPer1MInput: 0.8,
-  config: { max_tokens: 2000, temperature: 0.7 },
-  delay: 2500, // Anthropic rate limit: 30k tokens/min
-};
-
-// All available models for quality testing
-const ALL_PROVIDERS: Provider[] = [
-  // Ultra-budget tier
-  {
-    id: 'openai:gpt-4o-mini',
-    label: 'GPT-4o Mini',
-    tier: 'ultra-budget',
-    costPer1MInput: 0.15,
-    config: { max_tokens: 2000, temperature: 0.7 },
-  },
-  {
-    id: 'deepseek:deepseek-chat',
-    label: 'DeepSeek V3.2',
-    tier: 'ultra-budget',
-    costPer1MInput: 0.14,
-    config: { max_tokens: 2000, temperature: 0.7 },
-  },
-  {
-    id: 'google:gemini-3-flash-preview',
-    label: 'Gemini 3 Flash',
-    tier: 'ultra-budget',
-    costPer1MInput: 0.1,
-    config: { max_tokens: 2000, temperature: 0.7 },
-  },
-  // Budget tier - PROD_MODEL
-  PROD_MODEL,
-  // Quality tier
-  {
-    id: 'mistral:mistral-large-latest',
-    label: 'Mistral Large 3',
-    tier: 'quality',
-    costPer1MInput: 2.0,
-    config: { max_tokens: 2000, temperature: 0.7 },
-  },
-];
-
-const DEFAULT_PROVIDERS = ALL_PROVIDERS;
-
-// =============================================================================
-// PARSE CLI ARGUMENTS
-// =============================================================================
-
-function parseArgs(): Provider[] {
-  const args = process.argv.slice(2);
-
-  if (args.includes('--prod')) {
-    console.log('📍 Mode: Production model only (Claude Haiku 4.5)\n');
-    return [PROD_MODEL];
-  }
-
-  if (args.includes('--all')) {
-    console.log('📍 Mode: All 5 models\n');
-    return ALL_PROVIDERS;
-  }
-
-  const modelIndex = args.indexOf('--model');
-  if (modelIndex !== -1 && args[modelIndex + 1]) {
-    const modelId = args[modelIndex + 1];
-    const model = ALL_PROVIDERS.find((p) => p.id === modelId);
-    if (model) {
-      console.log(`📍 Mode: Single model (${model.label})\n`);
-      return [model];
-    } else {
-      console.error(`❌ Unknown model: ${modelId}`);
-      console.error('Available models:');
-      ALL_PROVIDERS.forEach((p) => console.error(`   ${p.id}`));
-      process.exit(1);
-    }
-  }
-
-  console.log('📍 Mode: Default (5 models)\n');
-  return DEFAULT_PROVIDERS;
-}
+import {
+  ALL_PROVIDERS,
+  parseProviderArgs,
+  estimateCost,
+  printProviderSummary,
+  formatProvidersForConfig,
+  type Provider,
+} from './shared/providers.js';
 
 // =============================================================================
 // QUALITY TEST CONVERSION
@@ -132,7 +43,6 @@ function convertQualityTestToPromptfoo(test: QualityTest): object {
   const assertions: object[] = [];
 
   // 1. Check for good photography spots (at least 2 should be mentioned)
-  // Using JavaScript assertion to count matches
   const goodSpotsPattern = test.goodSpots
     .map((s) => s.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
     .join('|');
@@ -220,32 +130,21 @@ function generateConfig(providers: Provider[]): object {
   const tests = QUALITY_TESTS.map(convertQualityTestToPromptfoo);
 
   // Estimate cost (quality tests use more tokens due to detailed responses)
-  const avgTokensPerTest = 1500; // Quality responses are longer
-  const estimatedCost = providers.reduce((sum, p) => {
-    return sum + (tests.length * avgTokensPerTest * p.costPer1MInput) / 1_000_000;
-  }, 0);
+  const avgTokensPerTest = 1500;
+  const cost = estimateCost(providers, tests.length, avgTokensPerTest);
 
   console.log('📊 Quality Test Summary:');
   console.log(`   Total tests: ${tests.length}`);
   console.log(`   Locations: ${QUALITY_TESTS.map((t) => t.location).join(', ')}`);
   console.log(`   Models: ${providers.length}`);
   console.log(`   Total API calls: ${tests.length * providers.length}`);
-  console.log(`   Estimated cost: ~$${estimatedCost.toFixed(3)}\n`);
+  console.log(`   Estimated cost: ~$${cost.toFixed(3)}\n`);
 
-  console.log('🤖 Models:');
-  providers.forEach((p) => {
-    console.log(`   • ${p.label} (${p.tier}, $${p.costPer1MInput}/1M)`);
-  });
-  console.log('');
+  printProviderSummary(providers);
 
   return {
     description: 'PhotoScout Photography Quality Testing - Evaluates spot recommendations quality',
-    providers: providers.map((p) => ({
-      id: p.id,
-      label: p.label,
-      config: p.config,
-      ...(p.delay && { delay: p.delay }),
-    })),
+    providers: formatProvidersForConfig(providers),
     prompts: [
       {
         id: 'photoscout-quality',
@@ -270,7 +169,7 @@ User: {{query}}`,
 
 console.log('🔄 Converting quality-tests.ts to Promptfoo format...\n');
 
-const providers = parseArgs();
+const providers = parseProviderArgs(ALL_PROVIDERS);
 const config = generateConfig(providers);
 const yamlContent = yaml.stringify(config, { lineWidth: 0 });
 

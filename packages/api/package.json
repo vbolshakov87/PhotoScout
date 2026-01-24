@@ -17,7 +17,7 @@
     "test:security:quick": "vitest run src/tests/security/security.test.ts --config vitest.integration.config.ts --testNamePattern='Quick'",
     "test:security:critical": "vitest run src/tests/security/security.test.ts --config vitest.integration.config.ts --testNamePattern='Critical'",
     "typecheck": "tsc --noEmit",
-    "security:convert": "tsx scripts/convert-to-promptfoo.ts",
+    "security:convert": "tsx scripts/convert-security-to-promptfoo.ts",
     "security:eval": "npx promptfoo@latest eval --env-file ../../.env --max-concurrency 2",
     "security:eval:fast": "npx promptfoo@latest eval --env-file ../../.env --max-concurrency 4",
     "security:eval:critical": "npx promptfoo@latest eval --env-file ../../.env --filter-pattern CRITICAL --max-concurrency 2",

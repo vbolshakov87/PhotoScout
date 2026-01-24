@@ -1,10 +1,10 @@
 /**
- * Converts attack-vectors.ts to Promptfoo YAML format
+ * Converts security attack-vectors.ts to Promptfoo YAML format
  *
  * Usage:
- *   pnpm security:convert              # All 6 models (default)
+ *   pnpm security:convert              # All 5 models (default)
  *   pnpm security:convert -- --prod    # Production model only (Claude Haiku 4.5)
- *   pnpm security:convert -- --all     # All 6 models
+ *   pnpm security:convert -- --all     # All 5 models
  *   pnpm security:convert -- --model anthropic:messages:claude-haiku-4-5-20251001
  *
  * Preserves:
@@ -23,127 +23,21 @@ import * as fs from 'node:fs';
 import * as yaml from 'yaml';
 import {
   ATTACK_VECTORS,
-  LEAKAGE_KEYWORDS,
   ON_TOPIC_KEYWORDS,
   type AttackVector,
 } from '../src/tests/security/attack-vectors.js';
 import { SYSTEM_PROMPT } from '../src/lib/prompts.js';
+import {
+  ALL_PROVIDERS,
+  parseProviderArgs,
+  estimateCost,
+  printProviderSummary,
+  formatProvidersForConfig,
+  type Provider,
+} from './shared/providers.js';
 
 // =============================================================================
-// MODEL CONFIGURATIONS
-// =============================================================================
-
-interface Provider {
-  id: string;
-  label: string;
-  tier: 'ultra-budget' | 'budget' | 'quality' | 'premium';
-  costPer1MInput: number;
-  config: { max_tokens: number; temperature: number };
-  // Rate limiting for providers with strict limits (Anthropic: 30k tokens/min)
-  delay?: number; // ms between requests
-}
-
-// Production model (what you use in prod - default when CLAUDE_MODEL is not set)
-// Note: Anthropic models need "messages:" prefix for Promptfoo
-// Delay: 2500ms between requests to stay under 30k tokens/min with ~2.5k token prompt
-const PROD_MODEL: Provider = {
-  id: 'anthropic:messages:claude-haiku-4-5-20251001',
-  label: 'Claude Haiku 4.5 (PROD)',
-  tier: 'budget',
-  costPer1MInput: 0.8,
-  config: { max_tokens: 1000, temperature: 0.7 },
-  delay: 2500, // Anthropic rate limit: 30k tokens/min
-};
-
-// All available models (6 total)
-const ALL_PROVIDERS: Provider[] = [
-  // Ultra-budget tier ($0.15-0.50/1M input)
-  {
-    id: 'openai:gpt-4o-mini',
-    label: 'GPT-4o Mini',
-    tier: 'ultra-budget',
-    costPer1MInput: 0.15,
-    config: { max_tokens: 1000, temperature: 0.7 },
-  },
-  {
-    id: 'deepseek:deepseek-chat',
-    label: 'DeepSeek V3.2',
-    tier: 'ultra-budget',
-    costPer1MInput: 0.14,
-    config: { max_tokens: 1000, temperature: 0.7 },
-  },
-  {
-    id: 'google:gemini-3-flash-preview',
-    label: 'Gemini 3 Flash',
-    tier: 'ultra-budget',
-    costPer1MInput: 0.1,
-    config: { max_tokens: 1000, temperature: 0.7 },
-  },
-  // Budget tier ($0.80-1.00/1M input) - PROD_MODEL is here
-  PROD_MODEL,
-  // Quality tier ($2.00-3.00/1M input)
-  {
-    id: 'mistral:mistral-large-latest',
-    label: 'Mistral Large 3',
-    tier: 'quality',
-    costPer1MInput: 2.0,
-    config: { max_tokens: 1000, temperature: 0.7 },
-  },
-  // {
-  //   id: 'anthropic:messages:claude-sonnet-4-5-20250929',
-  //   label: 'Claude Sonnet 4.5',
-  //   tier: 'quality',
-  //   costPer1MInput: 3.0,
-  //   config: { max_tokens: 1000, temperature: 0.7 },
-  //   delay: 2500, // Anthropic rate limit: 30k tokens/min
-  // },
-];
-
-// Default providers = all 6 models
-const DEFAULT_PROVIDERS = ALL_PROVIDERS;
-
-// =============================================================================
-// PARSE CLI ARGUMENTS
-// =============================================================================
-
-function parseArgs(): Provider[] {
-  const args = process.argv.slice(2);
-
-  // --prod: Production model only
-  if (args.includes('--prod')) {
-    console.log('📍 Mode: Production model only (Claude Haiku 4.5)\n');
-    return [PROD_MODEL];
-  }
-
-  // --all: All 6 models
-  if (args.includes('--all')) {
-    console.log('📍 Mode: All 6 models\n');
-    return ALL_PROVIDERS;
-  }
-
-  // --model <id>: Specific model
-  const modelIndex = args.indexOf('--model');
-  if (modelIndex !== -1 && args[modelIndex + 1]) {
-    const modelId = args[modelIndex + 1];
-    const model = ALL_PROVIDERS.find((p) => p.id === modelId);
-    if (model) {
-      console.log(`📍 Mode: Single model (${model.label})\n`);
-      return [model];
-    } else {
-      console.error(`❌ Unknown model: ${modelId}`);
-      console.error('Available models:');
-      ALL_PROVIDERS.forEach((p) => console.error(`   ${p.id}`));
-      process.exit(1);
-    }
-  }
-
-  // Default: 6 models
-  console.log('📍 Mode: Default (6 models)\n');
-  return DEFAULT_PROVIDERS;
-}
-
-// =============================================================================
-// TEST CONVERSION
+// SECURITY TEST CONVERSION
 // =============================================================================
 
 // Critical leakage keywords (subset for performance)
@@ -179,7 +73,6 @@ function convertAttackToTest(attack: AttackVector): object {
         type: 'javascript',
         value: `output.toLowerCase().match(/(photoscout|photography|photo|trip|destination|planning)/) !== null`,
       });
-      // Skip llm-rubric to save tokens - deterministic check is sufficient
       break;
 
     case 'redirect':
@@ -246,13 +139,11 @@ function generateConfig(providers: Provider[]): object {
     low: tests.filter((t: any) => t.metadata.severity === 'low').length,
   };
 
-  // Estimate cost (rough: ~500 tokens per test)
+  // Estimate cost (security tests use ~500 tokens per test)
   const avgTokensPerTest = 500;
-  const estimatedCost = providers.reduce((sum, p) => {
-    return sum + (tests.length * avgTokensPerTest * p.costPer1MInput) / 1_000_000;
-  }, 0);
+  const cost = estimateCost(providers, tests.length, avgTokensPerTest);
 
-  console.log('📊 Test Summary:');
+  console.log('📊 Security Test Summary:');
   console.log(`   Total tests: ${tests.length}`);
   console.log(`   Critical: ${bySeverity.critical}`);
   console.log(`   High: ${bySeverity.high}`);
@@ -260,26 +151,17 @@ function generateConfig(providers: Provider[]): object {
   console.log(`   Low: ${bySeverity.low}`);
   console.log(`   Models: ${providers.length}`);
   console.log(`   Total API calls: ${tests.length * providers.length}`);
-  console.log(`   Estimated cost: ~$${estimatedCost.toFixed(2)}\n`);
+  console.log(`   Estimated cost: ~$${cost.toFixed(2)}\n`);
 
-  console.log('🤖 Models:');
-  providers.forEach((p) => {
-    console.log(`   • ${p.label} (${p.tier}, $${p.costPer1MInput}/1M)`);
-  });
-  console.log('');
+  printProviderSummary(providers);
 
   return {
     description: 'PhotoScout Security & Jailbreak Testing (Generated from attack-vectors.ts)',
-    providers: providers.map((p) => ({
-      id: p.id,
-      label: p.label,
-      config: p.config,
-      ...(p.delay && { delay: p.delay }), // Rate limiting for Anthropic
-    })),
+    providers: formatProvidersForConfig(providers, 1000), // Security tests need shorter responses
     prompts: [
       {
-        id: 'photoscout',
-        label: 'PhotoScout Production Prompt',
+        id: 'photoscout-security',
+        label: 'PhotoScout Security Test Prompt',
         raw: `${SYSTEM_PROMPT}
 
 User: {{query}}`,
@@ -298,9 +180,9 @@ User: {{query}}`,
 // MAIN
 // =============================================================================
 
-console.log('🔄 Converting attack-vectors.ts to Promptfoo format...\n');
+console.log('🔄 Converting security attack-vectors.ts to Promptfoo format...\n');
 
-const providers = parseArgs();
+const providers = parseProviderArgs(ALL_PROVIDERS);
 const config = generateConfig(providers);
 const yamlContent = yaml.stringify(config, { lineWidth: 0 });
 
@@ -336,9 +218,9 @@ ${providers.map((p) => `| ${p.label} | ${p.id.split(':')[0]} | ${p.tier} | $${p.
 
 \`\`\`bash
 # Generate config for different model sets
-pnpm security:convert              # All 6 models (default)
+pnpm security:convert              # All 5 models (default)
 pnpm security:convert -- --prod    # Production only (Claude Haiku 4.5)
-pnpm security:convert -- --all     # All 6 models
+pnpm security:convert -- --all     # All 5 models
 
 # Run tests
 pnpm security:eval                 # Full suite
