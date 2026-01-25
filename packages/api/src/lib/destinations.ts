@@ -27,6 +27,8 @@ const VALID_DESTINATION_ID_PATTERN = /^[a-z0-9-]+$/;
 // Max retries for fetching status
 const MAX_FETCH_RETRIES = 5;
 const FETCH_RETRY_DELAY = 2000;
+// Fetching timeout - treat as stale after 1 minute (Lambda could have crashed)
+const FETCHING_TIMEOUT_MS = 60 * 1000;
 
 // Status for in-progress fetches to prevent race conditions
 type DestinationStatus = 'ready' | 'fetching' | 'failed';
@@ -113,6 +115,13 @@ export async function getDestinationImage(
       }
 
       if (existing.status === 'fetching') {
+        // Check if the fetch is stale (Lambda may have crashed)
+        const isStale = Date.now() - existing.updatedAt > FETCHING_TIMEOUT_MS;
+        if (isStale) {
+          console.log(`[Destinations] Fetch stale, retrying: ${destinationId}`);
+          break; // Break out to re-fetch
+        }
+
         // Another request is fetching, wait and retry (with max retries)
         console.log(
           `[Destinations] Fetch in progress, retry ${retries + 1}/${MAX_FETCH_RETRIES}: ${destinationId}`
@@ -144,7 +153,12 @@ export async function getDestinationImage(
   }
 
   // 2. Mark as fetching to prevent race conditions
-  await markAsFetching(destinationId);
+  const lockAcquired = await markAsFetching(destinationId);
+  if (!lockAcquired) {
+    // Another request acquired the lock, return placeholder instead of duplicate fetch
+    console.log(`[Destinations] Lock not acquired, returning placeholder: ${destinationId}`);
+    return { imageUrl: getPlaceholderUrl(type), destination: null, fromCache: false };
+  }
 
   // 3. Fetch from image provider
   console.log(`[Destinations] Cache MISS, fetching: ${destinationId}`);
@@ -198,13 +212,14 @@ async function getDestination(destinationId: string): Promise<DestinationRecord 
 /**
  * Mark the destination record as in-progress so other processes know a fetch is underway.
  *
- * Attempts to set the destination's status to `'fetching'` with an updated timestamp; if the record is already marked `'fetching'`, the function does not throw and leaves the existing state unchanged.
+ * Attempts to set the destination's status to `'fetching'` with an updated timestamp; if the record is already marked `'fetching'`, the function returns `false` to indicate the lock was not acquired.
  *
  * @param destinationId - The slug or identifier of the destination to mark as fetching
+ * @returns `true` if the lock was acquired, `false` if another request is already fetching
  */
-async function markAsFetching(destinationId: string): Promise<void> {
-  await docClient
-    .send(
+async function markAsFetching(destinationId: string): Promise<boolean> {
+  try {
+    await docClient.send(
       new PutCommand({
         TableName: DESTINATIONS_TABLE,
         Item: {
@@ -216,10 +231,15 @@ async function markAsFetching(destinationId: string): Promise<void> {
         ExpressionAttributeNames: { '#status': 'status' },
         ExpressionAttributeValues: { ':fetching': 'fetching' },
       })
-    )
-    .catch(() => {
-      // Ignore condition check failure - another request is already fetching
-    });
+    );
+    return true; // Lock acquired
+  } catch (error) {
+    // ConditionalCheckFailedException means another request is already fetching
+    if ((error as Error).name === 'ConditionalCheckFailedException') {
+      return false;
+    }
+    throw error; // Re-throw other errors
+  }
 }
 
 /**

@@ -35,7 +35,7 @@ export function TripListCard({ plan, onClick, imageUrl }: TripListCardProps) {
         {imageUrl && !imageError ? (
           <img
             src={imageUrl}
-            alt={destination}
+            alt={destination || 'Trip destination'}
             className="w-full h-full object-cover"
             onError={() => setImageError(true)}
           />

@@ -27,7 +27,13 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
   try {
     // Rate limiting - use client IP as identifier
-    const clientIp = event.requestContext.http.sourceIp || 'unknown';
+    // With CloudFront, sourceIp is the edge POP IP, not the viewer IP
+    // Extract viewer IP from x-forwarded-for header (leftmost IP is the actual viewer)
+    const forwardedFor = event.headers['x-forwarded-for'];
+    const clientIp =
+      (forwardedFor ? forwardedFor.split(',')[0].trim() : undefined) ||
+      event.requestContext.http.sourceIp ||
+      'unknown';
     if (!checkRateLimit(clientIp)) {
       return {
         statusCode: 429,
