@@ -66,6 +66,11 @@ const exampleTrips = [
   },
 ];
 
+/**
+ * Render the Examples page that showcases predefined photo trip cards and provides navigation controls.
+ *
+ * @returns A JSX element for the Examples page containing the header, example trip cards, call-to-action, and footer.
+ */
 export function ExamplesPage() {
   const navigate = useNavigate();
 

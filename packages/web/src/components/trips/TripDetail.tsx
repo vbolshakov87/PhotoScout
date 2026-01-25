@@ -10,6 +10,17 @@ interface TripDetailProps {
   onDelete: () => void;
 }
 
+/**
+ * Render the trip detail screen with header actions and an HTML preview.
+ *
+ * Displays the plan title and computed destination, and provides buttons to open the HTML in a new tab, share the HTML, or delete the plan (with confirmation). The HTML content is shown in a full-height preview area.
+ *
+ * @param plan - The plan to display
+ * @param htmlContent - The HTML markup to preview and share
+ * @param onBack - Callback invoked when the back button is pressed
+ * @param onDelete - Callback invoked after the user confirms deletion
+ * @returns A React element containing the trip header, action buttons, and HTML preview
+ */
 export function TripDetail({ plan, htmlContent, onBack, onDelete }: TripDetailProps) {
   const { share, haptic } = useNativeBridge();
   const destination = getPlanDestination(plan);

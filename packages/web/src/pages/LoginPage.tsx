@@ -12,6 +12,14 @@ const portfolioImages = [
   'https://d2xkwrs8ekvgk2.cloudfront.net/w_1200,h_800,f_webp,q_90,t_r/germany/DSC_4744-Edit.jpg',
 ];
 
+/**
+ * Render the login page with a cycling background carousel and authentication controls.
+ *
+ * The component displays Google sign-in and a "Continue as guest" option; a successful sign-in
+ * or choosing guest mode triggers navigation to the app root.
+ *
+ * @returns The login page React element
+ */
 export function LoginPage() {
   const { login, loginAsGuest } = useAuth();
   const navigate = useNavigate();

@@ -9,6 +9,11 @@ import { TripDetail } from '../components/trips/TripDetail';
 import { getUserId } from '../lib/storage';
 import { useAuth } from '../contexts/AuthContext';
 
+/**
+ * Renders the My Trips page: fetches and displays saved trip plans, loads destination images, supports grid and list views, opens trip details (HTML or inline), deletes trips, and prompts guest users to sign in with Google.
+ *
+ * @returns The Trips page React element.
+ */
 export function TripsPage() {
   const { planId } = useParams<{ planId?: string }>();
   const navigate = useNavigate();

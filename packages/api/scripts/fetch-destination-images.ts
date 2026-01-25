@@ -119,11 +119,30 @@ const SUGGESTED_DESTINATIONS: Array<{
   { id: 'cappadocia', name: 'Cappadocia', type: 'nature', region: 'africa_middle_east' },
 ];
 
+/**
+ * Extracts the value for a CLI argument formatted as `--name=value` from an arguments array.
+ *
+ * @param args - The list of command-line arguments to search.
+ * @param name - The argument name to find (without leading dashes).
+ * @returns The substring after `=` for the first matching `--name=value` argument, `undefined` if not found.
+ */
 function getArg(args: string[], name: string): string | undefined {
   const arg = args.find((a) => a.startsWith(`--${name}=`));
   return arg ? arg.split('=')[1] : undefined;
 }
 
+/**
+ * Pre-fetches destination images by calling the destinations API for one or multiple destinations and logs the outcomes.
+ *
+ * Supports CLI flags:
+ * - `--destination=<id>` to process a single destination (uses a predefined entry or creates an ad-hoc entry and logs a warning if not predefined)
+ * - `--type=<city|nature>` to filter predefined destinations
+ * - `--region=<region>` to filter predefined destinations
+ * - `--limit <n>` to cap the number of destinations processed
+ * - `--dry-run` to list destinations without making network requests
+ *
+ * For each destination the script calls the /api/destinations/:id endpoint, records whether the response was served from cache, counts successes/cached/failed items, waits DELAY_MS between non-final requests when processing multiple destinations, and exits with a non-zero code if any request fails.
+ */
 async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');

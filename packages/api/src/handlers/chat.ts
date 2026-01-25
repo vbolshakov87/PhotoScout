@@ -27,7 +27,14 @@ declare const awslambda: {
 
 type StreamingHandler = (event: APIGatewayProxyEventV2, responseStream: any) => Promise<void>;
 
-// Internal handler for actual logic
+/**
+ * Handle incoming chat requests: stream LLM responses to the client as SSE, detect and convert trip plans (JSON or HTML), persist messages and plans (including caching and S3 upload), and close the stream.
+ *
+ * Writes intermediate `delta` events during LLM streaming, may emit `html`, `plan_saved`, `done`, or `error` SSE events, and saves user/assistant messages and plan metadata to persistence layers.
+ *
+ * @param event - API Gateway proxy event containing a JSON body with `visitorId`, `message`, and optional `conversationId`. The handler responds to OPTIONS requests with an empty stream.
+ * @param responseStream - Writable stream used to send Server-Sent Events (SSE) back to the client.
+ */
 async function internalHandler(event: APIGatewayProxyEventV2, responseStream: any): Promise<void> {
   // Handle OPTIONS
   if (event.requestContext.http.method === 'OPTIONS') {

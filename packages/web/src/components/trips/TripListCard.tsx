@@ -8,6 +8,14 @@ interface TripListCardProps {
   imageUrl?: string | null;
 }
 
+/**
+ * Renders an interactive trip list card showing title, destination, creation date, thumbnail, and brief metadata.
+ *
+ * @param plan - Plan data used to populate the card (title, derived destination, createdAt, spotCount, dates)
+ * @param onClick - Click handler invoked when the card is activated
+ * @param imageUrl - Optional thumbnail URL; falls back to a visual placeholder if omitted or if loading fails
+ * @returns The rendered trip list card element
+ */
 export function TripListCard({ plan, onClick, imageUrl }: TripListCardProps) {
   const [imageError, setImageError] = useState(false);
   const destination = getPlanDestination(plan);
