@@ -2,13 +2,18 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Map, Loader2, LogIn, LayoutGrid, List } from 'lucide-react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
-import type { Plan } from '@photoscout/shared';
+import { getPlanDestination, type Plan } from '@photoscout/shared';
 import { TripCard } from '../components/trips/TripCard';
 import { TripListCard } from '../components/trips/TripListCard';
 import { TripDetail } from '../components/trips/TripDetail';
 import { getUserId } from '../lib/storage';
 import { useAuth } from '../contexts/AuthContext';
 
+/**
+ * Renders the My Trips page: fetches and displays saved trip plans, loads destination images, supports grid and list views, opens trip details (HTML or inline), deletes trips, and prompts guest users to sign in with Google.
+ *
+ * @returns The Trips page React element.
+ */
 export function TripsPage() {
   const { planId } = useParams<{ planId?: string }>();
   const navigate = useNavigate();
@@ -38,35 +43,34 @@ export function TripsPage() {
         const fetchedPlans = data.items || [];
         setPlans(fetchedPlans);
 
-        // Fetch city images for all unique cities
-        const uniqueCities = [...new Set(fetchedPlans.map((p: Plan) => p.city).filter(Boolean))];
-        if (uniqueCities.length > 0) {
-          try {
-            const imagesResponse = await fetch('/api/images/cities', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ cities: uniqueCities }),
-            });
-            if (imagesResponse.ok) {
-              const imagesData = await imagesResponse.json();
-              const images = imagesData.images || {};
-              setCityImages(images);
-
-              // For any cities without cached images, trigger generation in background
-              const missingCities = (uniqueCities as string[]).filter((city) => !images[city]);
-              missingCities.forEach((city) => {
-                fetch(`/api/images/city/${encodeURIComponent(city)}`)
-                  .then((res) => res.json())
-                  .then((data) => {
-                    if (data.imageUrl) {
-                      setCityImages((prev) => ({ ...prev, [city]: data.imageUrl }));
-                    }
-                  })
-                  .catch((e) => console.warn(`Failed to load image for ${city}:`, e));
-              });
+        // Fetch destination images for all unique destinations
+        const uniqueDestinations = [
+          ...new Set(fetchedPlans.map((p: Plan) => getPlanDestination(p)).filter(Boolean)),
+        ] as string[];
+        if (uniqueDestinations.length > 0) {
+          // Fetch images in parallel via /api/destinations/:id
+          const fetchImage = async (destination: string) => {
+            try {
+              const slug = destination
+                .toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^a-z0-9-]/g, '');
+              const res = await fetch(`/api/destinations/${encodeURIComponent(slug)}`);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.imageUrl) {
+                  setCityImages((prev) => ({ ...prev, [destination]: data.imageUrl }));
+                }
+              }
+            } catch (e) {
+              console.warn(`Failed to load image for ${destination}:`, e);
             }
-          } catch {
-            // Silently fail for images - they're not critical
+          };
+
+          // Fetch in batches of 3 to respect rate limiting
+          for (let i = 0; i < uniqueDestinations.length; i += 3) {
+            const batch = uniqueDestinations.slice(i, i + 3);
+            await Promise.all(batch.map(fetchImage));
           }
         }
       } catch (err) {
@@ -231,7 +235,7 @@ export function TripsPage() {
                 key={plan.planId}
                 plan={plan}
                 onClick={() => loadPlanDetail(plan)}
-                imageUrl={cityImages[plan.city]}
+                imageUrl={cityImages[getPlanDestination(plan) || '']}
               />
             ))}
           </div>
@@ -242,7 +246,7 @@ export function TripsPage() {
                 key={plan.planId}
                 plan={plan}
                 onClick={() => loadPlanDetail(plan)}
-                imageUrl={cityImages[plan.city]}
+                imageUrl={cityImages[getPlanDestination(plan) || '']}
               />
             ))}
           </div>

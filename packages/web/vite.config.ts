@@ -55,13 +55,8 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path,
       },
-      '/api/images': {
-        target: cloudfrontUrl,
-        changeOrigin: true,
-        rewrite: (path) => path,
-      },
-      '/city-images': {
-        target: cloudfrontUrl,
+      '/api/destinations': {
+        target: 'https://aiscout.photo',
         changeOrigin: true,
         rewrite: (path) => path,
       },

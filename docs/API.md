@@ -237,6 +237,56 @@ DELETE /api/plans/:planId?visitorId=string
 }
 ```
 
+### Destinations
+
+#### Get Destination Image
+
+Fetches a destination image. If not cached, lazily loads from the configured image provider (Unsplash by default).
+
+```http
+GET /api/destinations/:destinationId
+```
+
+**Parameters:**
+- `destinationId` (path) - Slugified destination name (e.g., `swiss-alps`, `new-york`, `tokyo`)
+
+**Response (cached - ~50ms):**
+```json
+{
+  "id": "swiss-alps",
+  "name": "Swiss Alps",
+  "imageUrl": "https://aiscout.photo/images/nature/europe/swiss-alps.jpg",
+  "photographer": {
+    "name": "John Doe",
+    "username": "johndoe",
+    "profileUrl": "https://unsplash.com/@johndoe?utm_source=photoscout"
+  },
+  "source": {
+    "provider": "unsplash",
+    "photoId": "abc123",
+    "photoUrl": "https://unsplash.com/photos/abc123?utm_source=photoscout"
+  },
+  "fromCache": true
+}
+```
+
+**Response (first request - ~2-3s):**
+Same structure with `"fromCache": false`
+
+**Notes:**
+- Accepts **any** destination name (not limited to predefined list)
+- First request triggers fetch from image provider → upload to S3 → save to DynamoDB
+- Subsequent requests return cached CloudFront URL
+- 94 popular destinations are pre-warmed via `pnpm images:fetch`
+
+**Example:**
+```bash
+# Get destination image (any name works)
+curl 'https://aiscout.photo/api/destinations/swiss-alps'
+curl 'https://aiscout.photo/api/destinations/my-hometown'
+curl 'https://aiscout.photo/api/destinations/beautiful-beaches-thailand'
+```
+
 ## Data Models
 
 ### Conversation
@@ -282,6 +332,30 @@ interface Plan {
   htmlUrl: string;            // CloudFront URL
   createdAt: number;          // GSI sort key
   expiresAt: number;          // TTL for auto-deletion
+}
+```
+
+### DestinationImage
+
+```typescript
+interface DestinationImage {
+  id: string;                 // Slugified name (e.g., "swiss-alps")
+  name: string;               // Display name (e.g., "Swiss Alps")
+  type: 'city' | 'nature';    // Destination type
+  region?: string;            // Optional region (e.g., "europe")
+  s3Key: string;              // S3 object key
+  s3Url: string;              // Direct S3 URL (fallback)
+  photographer: {
+    name: string;
+    username: string;
+    profileUrl: string;       // Attribution link
+  };
+  source: {
+    provider: string;         // e.g., 'unsplash', 'custom'
+    photoId: string;
+    photoUrl: string;         // Attribution link
+  };
+  fetchedAt: string;          // ISO timestamp
 }
 ```
 
@@ -362,6 +436,17 @@ Currently no rate limiting implemented. For production:
 - **GSI**: `email-index`
   - Partition Key: `email`
 
+### Destinations Table
+
+- **Table Name**: `photoscout-destinations`
+- **Partition Key**: `destinationId` (String)
+- **Attributes**:
+  - `status`: 'ready' | 'fetching' | 'failed'
+  - `provider`: Image provider name (e.g., 'unsplash')
+  - `s3Key`: S3 object key
+  - `photographer`: Attribution info
+  - `updatedAt`: Unix timestamp
+
 ## S3 Structure
 
 ### HTML Plans Bucket
@@ -375,6 +460,28 @@ photoscout-plans-{accountId}/
 **Access:** Via CloudFront at `/plans/{visitorId}/{planId}.html`
 
 **Cache:** 365 days (plans are immutable)
+
+### Destination Images Bucket
+
+```
+photoscout-images-{accountId}/
+└── destinations/
+    ├── city/
+    │   ├── tokyo.jpg
+    │   ├── paris.jpg
+    │   └── ...
+    └── nature/
+        ├── europe/
+        │   ├── swiss-alps.jpg
+        │   └── ...
+        ├── americas/
+        │   └── ...
+        └── ...
+```
+
+**Access:** Via CloudFront at `/images/city/tokyo.jpg` or `/images/nature/europe/swiss-alps.jpg`
+
+**Cache:** 365 days (images are immutable)
 
 ## Lambda Functions
 
@@ -408,6 +515,24 @@ HTML_PLANS_BUCKET=photoscout-plans-{accountId}
 - **Memory**: 256 MB
 - **Timeout**: 30 seconds
 
+### Destinations Function
+
+- **Runtime**: Node.js 20
+- **Memory**: 256 MB
+- **Timeout**: 30 seconds
+
+**Environment:**
+```
+DESTINATIONS_TABLE=photoscout-destinations
+IMAGES_BUCKET=photoscout-images-{accountId}
+CLOUDFRONT_DOMAIN=aiscout.photo
+UNSPLASH_ACCESS_KEY=xxxxx (optional, for Unsplash provider)
+```
+
+**Image Providers (pluggable):**
+- Unsplash (default) - requires `UNSPLASH_ACCESS_KEY`
+- Custom (future) - implement `ImageProvider` interface
+
 ## CloudFront Behaviors
 
 ```
@@ -415,12 +540,15 @@ HTML_PLANS_BUCKET=photoscout-plans-{accountId}
 /api/chat             → Chat Lambda
 /api/conversations*   → Conversations Lambda
 /api/plans*           → Plans Lambda
+/api/destinations*    → Destinations Lambda
 /plans/*              → S3 (HTML Plans)
+/images/*             → S3 (Destination Images)
 ```
 
 **Cache Policies:**
 - Web app: No cache (for development)
 - HTML plans: 365 days
+- Destination images: 365 days
 - API: No cache
 
 ## Example Usage
@@ -483,6 +611,11 @@ curl 'https://your-domain.com/api/conversations?visitorId=test'
 
 # Test plans
 curl 'https://your-domain.com/api/plans?visitorId=test'
+
+# Test destinations (any name works)
+curl 'https://your-domain.com/api/destinations/tokyo'
+curl 'https://your-domain.com/api/destinations/swiss-alps'
+curl 'https://your-domain.com/api/destinations/my-custom-place'
 ```
 
 ### View Logs
@@ -491,6 +624,7 @@ curl 'https://your-domain.com/api/plans?visitorId=test'
 ./scripts/logs.sh chat
 ./scripts/logs.sh conversations
 ./scripts/logs.sh plans
+./scripts/logs.sh destinations
 ```
 
 ## Performance
@@ -501,6 +635,8 @@ curl 'https://your-domain.com/api/plans?visitorId=test'
 - **Chat (streaming)**: 20-50 ms per token
 - **Conversations**: <100 ms
 - **Plans**: <100 ms
+- **Destinations (cached)**: ~50 ms
+- **Destinations (first request)**: ~2-3 seconds
 
 ### Optimization
 

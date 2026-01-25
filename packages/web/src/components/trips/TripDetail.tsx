@@ -1,5 +1,5 @@
 import { ArrowLeft, Share2, Trash2, ExternalLink } from 'lucide-react';
-import type { Plan } from '@photoscout/shared';
+import { getPlanDestination, type Plan } from '@photoscout/shared';
 import { HtmlPreview } from '../shared/HtmlPreview';
 import { useNativeBridge } from '../../hooks/useNativeBridge';
 
@@ -10,8 +10,20 @@ interface TripDetailProps {
   onDelete: () => void;
 }
 
+/**
+ * Render the trip detail screen with header actions and an HTML preview.
+ *
+ * Displays the plan title and computed destination, and provides buttons to open the HTML in a new tab, share the HTML, or delete the plan (with confirmation). The HTML content is shown in a full-height preview area.
+ *
+ * @param plan - The plan to display
+ * @param htmlContent - The HTML markup to preview and share
+ * @param onBack - Callback invoked when the back button is pressed
+ * @param onDelete - Callback invoked after the user confirms deletion
+ * @returns A React element containing the trip header, action buttons, and HTML preview
+ */
 export function TripDetail({ plan, htmlContent, onBack, onDelete }: TripDetailProps) {
   const { share, haptic } = useNativeBridge();
+  const destination = getPlanDestination(plan);
 
   const handleShare = () => {
     haptic('light');
@@ -46,7 +58,7 @@ export function TripDetail({ plan, htmlContent, onBack, onDelete }: TripDetailPr
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="font-semibold text-base md:text-lg truncate">{plan.title}</h1>
-          <p className="text-xs md:text-sm text-gray-400 truncate">{plan.city}</p>
+          <p className="text-xs md:text-sm text-gray-400 truncate">{destination}</p>
         </div>
 
         <div className="flex items-center gap-1">

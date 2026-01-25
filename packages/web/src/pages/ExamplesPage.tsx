@@ -66,6 +66,11 @@ const exampleTrips = [
   },
 ];
 
+/**
+ * Render the Examples page that showcases predefined photo trip cards and provides navigation controls.
+ *
+ * @returns A JSX element for the Examples page containing the header, example trip cards, call-to-action, and footer.
+ */
 export function ExamplesPage() {
   const navigate = useNavigate();
 
@@ -76,11 +81,7 @@ export function ExamplesPage() {
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 press">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
-        <img
-          src="https://aiscout.photo/city-images/appicon.png"
-          alt="PhotoScout"
-          className="w-8 h-8 rounded-lg"
-        />
+        <img src="/appicon.png" alt="PhotoScout" className="w-8 h-8 rounded-lg" />
         <h1 className="text-lg font-semibold text-foreground">Examples</h1>
       </header>
 

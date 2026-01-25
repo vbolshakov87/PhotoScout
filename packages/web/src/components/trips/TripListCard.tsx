@@ -1,5 +1,5 @@
 import { MapPin, Clock, Camera, ChevronRight } from 'lucide-react';
-import type { Plan } from '@photoscout/shared';
+import { getPlanDestination, type Plan } from '@photoscout/shared';
 import { useState } from 'react';
 
 interface TripListCardProps {
@@ -8,8 +8,17 @@ interface TripListCardProps {
   imageUrl?: string | null;
 }
 
+/**
+ * Renders an interactive trip list card showing title, destination, creation date, thumbnail, and brief metadata.
+ *
+ * @param plan - Plan data used to populate the card (title, derived destination, createdAt, spotCount, dates)
+ * @param onClick - Click handler invoked when the card is activated
+ * @param imageUrl - Optional thumbnail URL; falls back to a visual placeholder if omitted or if loading fails
+ * @returns The rendered trip list card element
+ */
 export function TripListCard({ plan, onClick, imageUrl }: TripListCardProps) {
   const [imageError, setImageError] = useState(false);
+  const destination = getPlanDestination(plan);
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -26,7 +35,7 @@ export function TripListCard({ plan, onClick, imageUrl }: TripListCardProps) {
         {imageUrl && !imageError ? (
           <img
             src={imageUrl}
-            alt={plan.city}
+            alt={destination}
             className="w-full h-full object-cover"
             onError={() => setImageError(true)}
           />
@@ -41,7 +50,7 @@ export function TripListCard({ plan, onClick, imageUrl }: TripListCardProps) {
       <div className="flex-1 min-w-0 text-left">
         <h3 className="font-semibold text-white text-sm truncate mb-0.5">{plan.title}</h3>
         <p className="text-xs text-white/50 mb-1.5">
-          {plan.city && <span>{plan.city} • </span>}
+          {destination && <span>{destination} • </span>}
           {formatDate(plan.createdAt)}
         </p>
         <div className="flex items-center gap-2 text-xs text-white/40">

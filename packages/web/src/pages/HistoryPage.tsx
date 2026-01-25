@@ -7,6 +7,17 @@ import { ConversationCard } from '../components/history/ConversationCard';
 import { getUserId, setConversationId } from '../lib/storage';
 import { useAuth } from '../contexts/AuthContext';
 
+/**
+ * Render the History page UI which displays and manages the user's conversation history.
+ *
+ * The component fetches the current visitor's conversations on mount, provides a search
+ * field to filter conversations by title, city, or last message, shows loading and error
+ * states, and gates history behind authentication. Successful Google sign-in is passed to
+ * the app's login handler. Selecting a conversation persists its ID and navigates to the
+ * main chat view (and triggers a global load if available).
+ *
+ * @returns The rendered History page as a JSX element
+ */
 export function HistoryPage() {
   const navigate = useNavigate();
   const { isGuest, login } = useAuth();
@@ -72,7 +83,7 @@ export function HistoryPage() {
       <header className="relative px-4 pt-4 pb-3 liquid-glass glass-reflection border-b border-white/10 z-10">
         <div className="flex items-center gap-3 mb-4">
           <img
-            src="https://aiscout.photo/city-images/appicon.png"
+            src="/appicon.png"
             alt="PhotoScout"
             className="w-10 h-10 rounded-xl shadow-lg shadow-amber-500/20"
           />

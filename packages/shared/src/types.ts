@@ -37,7 +37,8 @@ export interface Plan {
   visitorId: string;
   conversationId: string;
   createdAt: number;
-  city: string;
+  destination: string; // Destination name (e.g., "Swiss Alps", "Tokyo")
+  city?: string; // @deprecated - use destination instead (kept for backwards compatibility)
   title: string;
   dates?: string; // e.g. "Jan 7, 2026" or "Spring 2026"
   htmlUrl: string; // CloudFront URL to HTML file in S3
@@ -135,4 +136,37 @@ export interface NativeBridgeMessage {
     | 'openConversation'
     | 'navigateToTab';
   payload: unknown;
+}
+
+// Destination Images (from image providers)
+export interface DestinationImage {
+  id: string;
+  name: string;
+  type: 'city' | 'nature';
+  region?: string;
+  s3Key: string;
+  s3Url: string;
+  photographer: {
+    name: string;
+    username: string;
+    profileUrl: string;
+  };
+  source: {
+    provider: string; // e.g., 'unsplash', 'custom'
+    photoId: string;
+    photoUrl: string;
+  };
+  fetchedAt: string;
+}
+
+// Utility functions
+
+/**
+ * Obtain the destination name for a plan, using legacy `city` when `destination` is absent.
+ *
+ * @param plan - The plan object to read the destination from
+ * @returns The plan's `destination` if present, otherwise the legacy `city`, or `undefined` if neither exists
+ */
+export function getPlanDestination(plan: Plan): string | undefined {
+  return plan.destination || plan.city;
 }

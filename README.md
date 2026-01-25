@@ -9,6 +9,31 @@
 
 AI-powered photo trip planning assistant with native iOS app and web interface. Plan stunning photography trips to 94 destinations worldwide with personalized AI recommendations.
 
+## Table of Contents
+
+- [Live Demo](#live-demo)
+- [Project Roadmap](#-project-roadmap)
+- [Third-Party Service Consoles](#-third-party-service-consoles)
+- [Features](#features)
+- [Solution Architecture](#solution-architecture)
+- [Project Structure](#project-structure)
+- [Tech Stack](#tech-stack)
+- [Quick Start](#quick-start)
+- [API Endpoints](#api-endpoints)
+- [Destinations](#destinations-94-total)
+- [Destination Images](#destination-images)
+- [Environment Variables](#environment-variables)
+- [Deployment](#deployment)
+- [Monitoring](#monitoring)
+- [Costs](#costs-estimated)
+- [Security](#security)
+  - [Security Testing with Promptfoo](#security-testing-with-promptfoo)
+- [Legal](#legal)
+- [License](#license)
+- [Support](#support)
+
+---
+
 ## Live Demo
 
 - **Web App**: https://aiscout.photo
@@ -35,7 +60,7 @@ Quick links to manage external integrations:
 |---------|---------|-------------------|
 | **Google OAuth** | [Google Cloud Console](https://console.cloud.google.com/apis/credentials) | OAuth 2.0 Client ID, Authorized domains, Redirect URIs |
 | **Google Analytics** | [GA4 Admin](https://analytics.google.com/) | Get Measurement ID (G-XXXXXXXXXX), Configure events |
-| **Google Imagen** | [Vertex AI Console](https://console.cloud.google.com/vertex-ai) | Enable API, Check quotas, Billing |
+| **Unsplash** | [Unsplash Developers](https://unsplash.com/developers) | API Access Key for destination images |
 | **Anthropic Claude** | [Anthropic Console](https://console.anthropic.com/) | API keys, Usage & billing |
 | **DeepSeek** | [DeepSeek Platform](https://platform.deepseek.com/) | Cheaper LLM alternative (~$0.14/1M tokens vs $3) |
 | **AWS Console** | [AWS Console](https://console.aws.amazon.com/) | Lambda, DynamoDB, S3, CloudFront |
@@ -61,22 +86,21 @@ Quick links to manage external integrations:
 # 3. Copy Measurement ID (G-XXXXXXXXXX)
 # 4. Update packages/web/index.html
 
-# Google Imagen - Check/Increase Quota:
-# 1. Go to Vertex AI Console
-# 2. Quotas → Search "imagen"
-# 3. Current: 70 requests/day
-# 4. Request increase: https://forms.gle/ETzX94k8jf7iSotH9
+# Unsplash - Get API Key:
+# 1. Go to unsplash.com/developers
+# 2. Create a new application
+# 3. Copy Access Key to .env as UNSPLASH_ACCESS_KEY
 ```
 
 ---
 
 ## Features
 
-- 🤖 **AI Trip Planning** - Claude Sonnet 4.5 generates personalized photography itineraries
-- 🖼️ **AI-Generated Images** - Google Imagen 4.0 creates stunning destination visuals
+- 🤖 **AI Trip Planning** - Claude Haiku 4.5 generates personalized photography itineraries
+- 🖼️ **Pluggable Image Providers** - Unsplash (default) or custom API for destination photos
 - 📱 **Native iOS App** - SwiftUI wrapper with Google Sign-In and guest mode
 - 🌐 **Responsive Web App** - React PWA accessible from any device
-- 🗺️ **94 Destinations** - 40 cities + 54 nature/landscape locations
+- 🗺️ **Any Destination** - Request any destination, 94 pre-warmed for instant response
 - 💬 **Conversational UI** - Natural language trip planning with guided questions
 - 👤 **Guest Mode** - Try the app without signing in
 - ☁️ **Serverless Backend** - AWS Lambda, DynamoDB, S3, CloudFront
@@ -85,7 +109,7 @@ Quick links to manage external integrations:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                             PHOTOSCOUT ARCHITECTURE                          │
+│                             PHOTOSCOUT ARCHITECTURE                         │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────┐     ┌──────────────┐
@@ -100,37 +124,63 @@ Quick links to manage external integrations:
 ┌───────────────────────────────────────┐
 │           AWS CloudFront              │
 │    (CDN + SPA Routing + Caching)      │
-│    aiscout.photo      │
+│           aiscout.photo               │
 └───────────────┬───────────────────────┘
                 │
-       ┌────────┴────────┬─────────────────┐
-       │                 │                 │
-       ▼                 ▼                 ▼
-┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-│  S3 Bucket   │  │    Lambda    │  │    Lambda    │
-│  (Static)    │  │   (Chat)     │  │ (Images API) │
-│  - Web App   │  │              │  │              │
-│  - HTML Plans│  │  Claude 4.5  │  │ Imagen 4.0   │
-│  - Images    │  │  Sonnet      │  │ (Google)     │
-└──────────────┘  └──────┬───────┘  └──────┬───────┘
-                         │                 │
-                         ▼                 ▼
-                  ┌──────────────┐  ┌──────────────┐
-                  │  DynamoDB    │  │  S3 Bucket   │
-                  │              │  │ (Generated)  │
-                  │ - Chats      │  │              │
-                  │ - Messages   │  │ - City imgs  │
-                  │ - Plans      │  │ - App icons  │
-                  └──────────────┘  └──────────────┘
+    ┌───────────┼───────────┐
+    │           │           │
+    ▼           ▼           ▼
+┌────────┐ ┌────────┐ ┌──────────────┐
+│  S3    │ │  S3    │ │   Lambda     │
+│ (Web)  │ │(Images)│ │              │
+│        │ │        │ │ - Chat       │
+│ - SPA  │ │ - Dest │ │ - Plans      │
+│ - Plans│ │  photos│ │ - Destinations│
+└────────┘ └────────┘ └──────┬───────┘
+                             │
+                             ▼
+                      ┌──────────────┐
+                      │  DynamoDB    │
+                      │              │
+                      │ - Messages   │
+                      │ - Chats      │
+                      │ - Plans      │
+                      │ - Users      │
+                      │ - Destinations│
+                      └──────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           EXTERNAL SERVICES                                  │
+│                           EXTERNAL SERVICES                                 │
 ├─────────────────────────────┬───────────────────────────────────────────────┤
-│  Anthropic Claude API       │  Google APIs                                  │
-│  - Claude Sonnet 4.5        │  - Imagen 4.0 (image generation)              │
-│  - Trip planning            │  - OAuth 2.0 (authentication)                 │
-│  - Itinerary generation     │  - 94 destination images                      │
+│  Anthropic Claude API       │  Other Services                               │
+│  - Claude Haiku 4.5         │  - Google OAuth 2.0 (authentication)          │
+│  - Trip planning            │  - Image Providers (pluggable)                │
+│  - Itinerary generation     │    → Unsplash (default) or Custom API         │
 └─────────────────────────────┴───────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      IMAGE PIPELINE (Runtime Lazy Loading)                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  GET /api/destinations/:id  (accepts ANY destination name)                  │
+│       │                                                                     │
+│       ▼                                                                     │
+│  ┌─────────────┐  Found?  ┌─────────────┐                                   │
+│  │  DynamoDB   │───YES───▶│  Return     │──▶ CloudFront URL (~50ms)         │
+│  │  Lookup     │          │  Cached URL │                                   │
+│  └─────────────┘          └─────────────┘                                   │
+│       │ NO                                                                  │
+│       ▼                                                                     │
+│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐                    │
+│  │   Image     │────▶│  Upload to  │────▶│  Save to    │                    │
+│  │  Provider   │     │  S3 Bucket  │     │  DynamoDB   │                    │
+│  │ (pluggable) │     └─────────────┘     └─────────────┘                    │
+│  └─────────────┘                               │                            │
+│                                                ▼                            │
+│                                          CloudFront URL                     │
+│                                          (cached 1 year)                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Project Structure
@@ -149,11 +199,13 @@ PhotoScout/
 │   │
 │   ├── api/                 # AWS Lambda functions
 │   │   ├── src/
-│   │   │   ├── handlers/    # Lambda handlers
+│   │   │   ├── handlers/    # Lambda handlers (chat, plans, destinations)
 │   │   │   ├── lib/         # Shared utilities (prompts, validators)
+│   │   │   │   └── image-providers/  # Pluggable image providers
 │   │   │   └── tests/
-│   │   │       └── security/  # Security test suite (60+ attack vectors)
-│   │   └── scripts/         # Image generation scripts
+│   │   │       ├── security/  # Security tests (74 attack vectors)
+│   │   │       └── quality/   # Quality tests (Promptfoo)
+│   │   └── scripts/         # Cache warming, Promptfoo converters
 │   │
 │   └── shared/              # Shared TypeScript types
 │
@@ -184,8 +236,8 @@ PhotoScout/
 | **Storage** | Amazon S3 |
 | **CDN** | Amazon CloudFront |
 | **Infrastructure** | AWS CDK (TypeScript) |
-| **AI - Chat** | Anthropic Claude Sonnet 4.5 |
-| **AI - Images** | Google Imagen 4.0 |
+| **AI - Chat** | Anthropic Claude Haiku 4.5 |
+| **Images** | Pluggable providers (Unsplash default, custom API ready) |
 | **Auth** | Google OAuth 2.0 |
 
 ## Quick Start
@@ -210,7 +262,7 @@ pnpm install
 cp .env.example .env
 # Edit .env with your API keys:
 # - ANTHROPIC_API_KEY
-# - GOOGLE_API_KEY
+# - UNSPLASH_ACCESS_KEY
 
 # Deploy to AWS
 ./deploy.sh
@@ -242,39 +294,41 @@ open ios/PhotoScout/PhotoScout.xcodeproj
 | `/api/conversations/:id` | DELETE | Delete conversation |
 | `/api/plans` | GET | List trip plans |
 | `/api/plans/:id` | GET | Get plan details |
-| `/api/images/:city` | GET | Get/generate destination image |
+| `/api/destinations/:id` | GET | Get destination image (lazy-loads on first request) |
 
-## Destinations (94 Total)
+## Destination Images
 
-### Cities (40)
-Tokyo, Paris, New York, London, Rome, Barcelona, Amsterdam, Berlin, Vienna, Prague, Lisbon, Copenhagen, Stockholm, Oslo, Bergen, Dubai, Singapore, Hong Kong, Sydney, Melbourne, San Francisco, Los Angeles, Chicago, Miami, Boston, Vancouver, Toronto, Montreal, Rio de Janeiro, Buenos Aires, Cape Town, Marrakech, Istanbul, Athens, Florence, Venice, Munich, Zurich, Brussels, Dublin
+Users can request **any destination** via `/api/destinations/:id`. Images are lazy-loaded at runtime using a pluggable provider strategy:
 
-### Nature & Landscapes (54)
-**Europe**: Dolomites, Swiss Alps, Scottish Highlands, Lofoten, Norwegian Fjords, Lake Bled, Tuscany, Amalfi Coast, Cinque Terre, Provence, Santorini, Iceland, Faroe Islands, Lake Como, Plitvice Lakes
+**How it works:**
+1. Request `/api/destinations/swiss-alps` (any destination name)
+2. DynamoDB lookup - if cached, return CloudFront URL instantly
+3. If not cached: fetch from image provider → upload to S3 → save metadata to DynamoDB
+4. Subsequent requests return cached CloudFront URL (~50ms)
 
-**Germany**: Black Forest, Saxon Switzerland, Bavarian Alps, Rhine Valley, Moselle Valley, Berchtesgaden, Lake Constance, Harz Mountains, Romantic Road, Baltic Sea Coast
-
-**Americas**: Banff, Yosemite, Grand Canyon, Antelope Canyon, Monument Valley, Big Sur, Hawaii, Yellowstone, Patagonia, Torres del Paine
-
-**Asia & Pacific**: Bali, Ha Long Bay, Zhangjiajie, Maldives, New Zealand, Milford Sound, Mount Fuji, Guilin, Great Barrier Reef
-
-**Africa & Middle East**: Sahara Desert, Serengeti, Victoria Falls, Namib Desert, Cappadocia
-
-## Image Generation
-
-Destination images are generated using Google Imagen 4.0 with epic cinematic photography prompts:
+**Image Providers (pluggable):**
+- **Unsplash** (default) - Professional photos with attribution
+- **Custom** (planned) - Your own image API for license-free images
 
 ```bash
-# Generate missing images (70/day quota)
 cd packages/api
-npx tsx scripts/generate-missing-images.ts
 
-# Regenerate all images with new style
-npx tsx scripts/generate-missing-images.ts --regenerate-all
-
-# Resume from specific destination
-npx tsx scripts/generate-missing-images.ts --regenerate-all --start-from=Hawaii
+# Pre-warm cache for 94 suggested destinations
+pnpm images:fetch                    # All 94 via deployed API
+pnpm images:fetch -- --limit 5       # First 5 only
+pnpm images:fetch -- --dry-run       # Preview without API calls
+pnpm images:fetch -- --local         # Use local dev server
 ```
+
+**Pre-warmed Destinations (94):**
+- **Cities (40)**: Tokyo, Paris, New York, London, Rome, Barcelona, Amsterdam, Berlin, Vienna, Prague, Lisbon, Copenhagen, Stockholm, Dubai, Singapore, Sydney, San Francisco, etc.
+- **Nature - Europe (15)**: Dolomites, Swiss Alps, Scottish Highlands, Lofoten, Norwegian Fjords, Lake Bled, Tuscany, Amalfi Coast, Santorini, Iceland, etc.
+- **Nature - Germany (10)**: Black Forest, Saxon Switzerland, Bavarian Alps, Rhine Valley, Berchtesgaden, etc.
+- **Nature - Americas (10)**: Banff, Yosemite, Grand Canyon, Big Sur, Hawaii, Patagonia, etc.
+- **Nature - Asia Pacific (9)**: Bali, Ha Long Bay, Maldives, New Zealand, Mount Fuji, etc.
+- **Nature - Africa (5)**: Sahara Desert, Serengeti, Victoria Falls, Cappadocia, etc.
+
+Images are stored in S3 with CloudFront CDN (1-year cache). Attribution metadata is stored in DynamoDB.
 
 ## Environment Variables
 
@@ -283,7 +337,7 @@ npx tsx scripts/generate-missing-images.ts --regenerate-all --start-from=Hawaii
 
 # Required
 ANTHROPIC_API_KEY=sk-ant-xxxxx      # Claude API
-GOOGLE_API_KEY=AIza-xxxxx           # Imagen API
+UNSPLASH_ACCESS_KEY=xxxxx           # Unsplash API (for destination images)
 
 # Optional
 DEEPSEEK_API_KEY=sk-xxxxx           # Alternative AI
@@ -330,7 +384,7 @@ See [ios/AppStore/metadata.md](ios/AppStore/metadata.md) for App Store submissio
 | CloudFront | ~$0.085 per GB |
 | Claude API | ~$3 per 1M input tokens |
 | **DeepSeek API** | ~$0.14 per 1M input tokens (20x cheaper!) |
-| Imagen API | ~$0.02 per image |
+| Image Provider | Free (Unsplash: 50 req/hr) or custom API |
 
 **Estimated**: <$10/month for moderate usage
 

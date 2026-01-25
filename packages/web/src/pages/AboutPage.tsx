@@ -12,6 +12,11 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
+/**
+ * Renders the About page for the PhotoScout application.
+ *
+ * @returns The About page's JSX element containing app info, beta notice, description, features, links, creator info, and credits.
+ */
 export function AboutPage() {
   const navigate = useNavigate();
 
@@ -28,11 +33,7 @@ export function AboutPage() {
       <div className="p-4 space-y-6">
         {/* App Info with Beta Badge */}
         <div className="flex items-center justify-center gap-4 py-4">
-          <img
-            src="https://aiscout.photo/city-images/appicon.png"
-            alt="PhotoScout"
-            className="w-16 h-16 rounded-2xl shadow-lg"
-          />
+          <img src="/appicon.png" alt="PhotoScout" className="w-16 h-16 rounded-2xl shadow-lg" />
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-bold text-foreground">PhotoScout</h2>

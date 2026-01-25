@@ -12,6 +12,14 @@ const portfolioImages = [
   'https://d2xkwrs8ekvgk2.cloudfront.net/w_1200,h_800,f_webp,q_90,t_r/germany/DSC_4744-Edit.jpg',
 ];
 
+/**
+ * Render the login page with a cycling background carousel and authentication controls.
+ *
+ * The component displays Google sign-in and a "Continue as guest" option; a successful sign-in
+ * or choosing guest mode triggers navigation to the app root.
+ *
+ * @returns The login page React element
+ */
 export function LoginPage() {
   const { login, loginAsGuest } = useAuth();
   const navigate = useNavigate();
@@ -56,11 +64,7 @@ export function LoginPage() {
       {/* Top - Logo & Tagline */}
       <div className="relative z-10 text-center pt-4">
         <div className="flex items-center justify-center gap-3 mb-2">
-          <img
-            src="https://aiscout.photo/city-images/appicon.png"
-            alt="PhotoScout"
-            className="w-12 h-12 rounded-xl shadow-lg"
-          />
+          <img src="/appicon.png" alt="PhotoScout" className="w-12 h-12 rounded-xl shadow-lg" />
           <h1 className="text-3xl font-semibold text-white">PhotoScout</h1>
         </div>
         <p className="text-white/80 text-sm">Plan your perfect photo trip</p>
