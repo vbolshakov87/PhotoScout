@@ -6,7 +6,7 @@ reviews:
     enabled: true
     # Review PRs targeting any branch, not just default
     base_branches:
-      - '**'
+      - '.*'
   # Show review status in PR
   review_status: true
   # Request changes when issues are found
