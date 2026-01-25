@@ -220,7 +220,8 @@ async function internalHandler(event: APIGatewayProxyEventV2, responseStream: an
         visitorId,
         conversationId,
         createdAt: Date.now(),
-        city: planCity,
+        destination: planCity, // Primary field for destination name
+        city: planCity, // Deprecated - kept for backwards compatibility
         title: planTitle,
         dates: planDates,
         htmlUrl, // CloudFront URL

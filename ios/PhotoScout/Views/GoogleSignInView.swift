@@ -79,7 +79,7 @@ struct GoogleSignInView: View {
                 VStack(spacing: 12) {
                     HStack(spacing: 12) {
                         // App icon
-                        AsyncImage(url: URL(string: "https://d2mpt2trz11kx7.cloudfront.net/city-images/appicon.png")) { image in
+                        AsyncImage(url: URL(string: "https://aiscout.photo/appicon.png")) { image in
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)

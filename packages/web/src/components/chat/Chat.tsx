@@ -91,7 +91,7 @@ export function Chat() {
           onClick={() => isGuest && navigate('/login')}
         >
           <img
-            src="https://aiscout.photo/city-images/appicon.png"
+            src="/appicon.png"
             alt="PhotoScout"
             className="w-10 h-10 rounded-xl shadow-lg shadow-amber-500/20 animate-float"
           />
@@ -187,7 +187,7 @@ export function Chat() {
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-6 py-8">
             <img
-              src="https://aiscout.photo/city-images/appicon.png"
+              src="/appicon.png"
               alt="PhotoScout"
               className="w-16 h-16 rounded-2xl mb-6 animate-pulse-glow shadow-lg shadow-amber-500/30"
             />

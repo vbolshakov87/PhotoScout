@@ -1,5 +1,5 @@
 import { ArrowLeft, Share2, Trash2, ExternalLink } from 'lucide-react';
-import type { Plan } from '@photoscout/shared';
+import { getPlanDestination, type Plan } from '@photoscout/shared';
 import { HtmlPreview } from '../shared/HtmlPreview';
 import { useNativeBridge } from '../../hooks/useNativeBridge';
 
@@ -12,6 +12,7 @@ interface TripDetailProps {
 
 export function TripDetail({ plan, htmlContent, onBack, onDelete }: TripDetailProps) {
   const { share, haptic } = useNativeBridge();
+  const destination = getPlanDestination(plan);
 
   const handleShare = () => {
     haptic('light');
@@ -46,7 +47,7 @@ export function TripDetail({ plan, htmlContent, onBack, onDelete }: TripDetailPr
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="font-semibold text-base md:text-lg truncate">{plan.title}</h1>
-          <p className="text-xs md:text-sm text-gray-400 truncate">{plan.city}</p>
+          <p className="text-xs md:text-sm text-gray-400 truncate">{destination}</p>
         </div>
 
         <div className="flex items-center gap-1">

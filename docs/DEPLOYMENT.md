@@ -40,6 +40,7 @@ Create `.env` in project root:
 ```bash
 # Required
 ANTHROPIC_API_KEY=sk-ant-xxxxx
+UNSPLASH_ACCESS_KEY=xxxxx            # For destination images
 
 # Optional
 DEEPSEEK_API_KEY=sk-xxxxx
@@ -96,6 +97,7 @@ cat cdk-outputs.json
     "ChatApiUrl": "https://xxx.lambda-url.eu-central-1.on.aws/",
     "ConversationsApiUrl": "https://yyy.lambda-url.eu-central-1.on.aws/",
     "PlansApiUrl": "https://zzz.lambda-url.eu-central-1.on.aws/",
+    "DestinationsApiUrl": "https://www.lambda-url.eu-central-1.on.aws/",
     "DistributionUrl": "https://aiscout.photo",
     "HtmlPlansCloudFrontUrl": "https://aiscout.photo/plans/",
     "CloudFrontDomain": "aiscout.photo"
@@ -159,6 +161,10 @@ curl 'https://YOUR_CLOUDFRONT_URL/api/conversations?visitorId=test'
 
 # Test plans
 curl 'https://YOUR_CLOUDFRONT_URL/api/plans?visitorId=test'
+
+# Test destinations (any name works)
+curl 'https://YOUR_CLOUDFRONT_URL/api/destinations/tokyo'
+curl 'https://YOUR_CLOUDFRONT_URL/api/destinations/swiss-alps'
 ```
 
 ### Test Web App
@@ -184,16 +190,19 @@ https://aiscout.photo
 - `PhotoScoutStack-ChatFunction-xxx` (512 MB, 120s timeout)
 - `PhotoScoutStack-ConversationsFunction-xxx` (256 MB, 30s timeout)
 - `PhotoScoutStack-PlansFunction-xxx` (256 MB, 30s timeout)
+- `PhotoScoutStack-DestinationsFunction-xxx` (256 MB, 30s timeout)
 
 **DynamoDB Tables:**
 - `photoscout-messages` (On-Demand, TTL 30 days)
 - `photoscout-conversations` (On-Demand, TTL 30 days)
 - `photoscout-plans` (On-Demand, TTL 90 days)
 - `photoscout-users` (On-Demand)
+- `photoscout-destinations` (On-Demand, no TTL)
 
 **S3 Buckets:**
 - `photoscout-web-{accountId}` (Web app files)
 - `photoscout-plans-{accountId}` (HTML plans)
+- `photoscout-images-{accountId}` (Destination images)
 
 **CloudFront:**
 - Distribution with multiple behaviors
@@ -280,6 +289,7 @@ pnpm deploy
 ./scripts/logs.sh chat
 ./scripts/logs.sh conversations
 ./scripts/logs.sh plans
+./scripts/logs.sh destinations
 
 # Follow live
 ./scripts/logs.sh chat --follow

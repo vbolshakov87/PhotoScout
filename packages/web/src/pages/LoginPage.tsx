@@ -56,11 +56,7 @@ export function LoginPage() {
       {/* Top - Logo & Tagline */}
       <div className="relative z-10 text-center pt-4">
         <div className="flex items-center justify-center gap-3 mb-2">
-          <img
-            src="https://aiscout.photo/city-images/appicon.png"
-            alt="PhotoScout"
-            className="w-12 h-12 rounded-xl shadow-lg"
-          />
+          <img src="/appicon.png" alt="PhotoScout" className="w-12 h-12 rounded-xl shadow-lg" />
           <h1 className="text-3xl font-semibold text-white">PhotoScout</h1>
         </div>
         <p className="text-white/80 text-sm">Plan your perfect photo trip</p>

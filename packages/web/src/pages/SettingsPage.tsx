@@ -25,7 +25,7 @@ export function SettingsPage() {
       {/* Header */}
       <div className="relative px-4 py-3 liquid-glass glass-reflection border-b border-white/10 z-10 flex items-center gap-3">
         <img
-          src="https://aiscout.photo/city-images/appicon.png"
+          src="/appicon.png"
           alt="PhotoScout"
           className="w-10 h-10 rounded-xl shadow-lg shadow-amber-500/20"
         />

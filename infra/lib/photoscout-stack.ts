@@ -5,6 +5,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import { Construct } from 'constructs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -82,6 +83,14 @@ export class PhotoScoutStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
+    // Destinations Table - for destination images from Unsplash
+    const destinationsTable = new dynamodb.Table(this, 'DestinationsTable', {
+      tableName: 'photoscout-destinations',
+      partitionKey: { name: 'destinationId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     // ============ S3 Buckets ============
 
     // S3 Bucket for HTML Plans
@@ -100,6 +109,14 @@ export class PhotoScoutStack extends cdk.Stack {
       ],
     });
 
+    // S3 Bucket for Destination Images (from Unsplash)
+    const imagesBucket = new s3.Bucket(this, 'ImagesBucket', {
+      bucketName: `photoscout-images-${this.account}`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+    });
+
     // ============ Lambda Functions ============
 
     // Get API keys from environment variables
@@ -112,16 +129,21 @@ export class PhotoScoutStack extends cdk.Stack {
 
     // Optional: DeepSeek API key for development
     const deepseekApiKey = process.env.DEEPSEEK_API_KEY;
-    // Optional: Google API key for image generation
-    const googleApiKey = process.env.GOOGLE_API_KEY;
     // Google OAuth Client ID (for token validation)
     const googleClientId = process.env.GOOGLE_CLIENT_ID;
-    // Admin API key (for protected endpoints like image generation)
+    // Admin API key (for protected admin endpoints)
     const adminApiKey = process.env.ADMIN_API_KEY;
+    // Unsplash API key for destination images
+    const unsplashAccessKey = process.env.UNSPLASH_ACCESS_KEY;
     const environment = process.env.ENVIRONMENT || 'production';
 
-    // Will add CLOUDFRONT_DOMAIN after distribution is created
-    const lambdaEnvironment: { [key: string]: string } = {
+    // Custom domain for CloudFront distribution
+    const cloudfrontDomain = 'aiscout.photo';
+
+    // ============ Separate Lambda Environments (Principle of Least Privilege) ============
+
+    // Chat Lambda: needs LLM API keys, all tables for conversation flow
+    const chatEnvironment: { [key: string]: string } = {
       MESSAGES_TABLE: messagesTable.tableName,
       CONVERSATIONS_TABLE: conversationsTable.tableName,
       PLANS_TABLE: plansTable.tableName,
@@ -129,71 +151,79 @@ export class PhotoScoutStack extends cdk.Stack {
       CACHE_TABLE: cacheTable.tableName,
       HTML_PLANS_BUCKET: htmlPlansBucket.bucketName,
       ANTHROPIC_API_KEY: anthropicApiKey,
+      CLOUDFRONT_DOMAIN: cloudfrontDomain,
       ENVIRONMENT: environment,
     };
+    if (deepseekApiKey) chatEnvironment.DEEPSEEK_API_KEY = deepseekApiKey;
+    if (googleClientId) chatEnvironment.GOOGLE_CLIENT_ID = googleClientId;
+    if (adminApiKey) chatEnvironment.ADMIN_API_KEY = adminApiKey;
 
-    // Add DeepSeek key if available (for development)
-    if (deepseekApiKey) {
-      lambdaEnvironment.DEEPSEEK_API_KEY = deepseekApiKey;
-    }
+    // Conversations Lambda: only needs conversation-related tables
+    const conversationsEnvironment: { [key: string]: string } = {
+      MESSAGES_TABLE: messagesTable.tableName,
+      CONVERSATIONS_TABLE: conversationsTable.tableName,
+      USERS_TABLE: usersTable.tableName,
+      ENVIRONMENT: environment,
+    };
+    if (googleClientId) conversationsEnvironment.GOOGLE_CLIENT_ID = googleClientId;
 
-    // Add Google API key if available (for image generation)
-    if (googleApiKey) {
-      lambdaEnvironment.GOOGLE_API_KEY = googleApiKey;
-    }
+    // Plans Lambda: only needs plans table and HTML bucket
+    const plansEnvironment: { [key: string]: string } = {
+      PLANS_TABLE: plansTable.tableName,
+      HTML_PLANS_BUCKET: htmlPlansBucket.bucketName,
+      USERS_TABLE: usersTable.tableName,
+      CLOUDFRONT_DOMAIN: cloudfrontDomain,
+      ENVIRONMENT: environment,
+    };
+    if (googleClientId) plansEnvironment.GOOGLE_CLIENT_ID = googleClientId;
 
-    // Add Google Client ID if available (for OAuth token validation)
-    if (googleClientId) {
-      lambdaEnvironment.GOOGLE_CLIENT_ID = googleClientId;
-    }
+    // Destinations Lambda: only needs image provider keys and destinations table
+    const destinationsEnvironment: { [key: string]: string } = {
+      DESTINATIONS_TABLE: destinationsTable.tableName,
+      IMAGES_BUCKET: imagesBucket.bucketName,
+      CLOUDFRONT_DOMAIN: cloudfrontDomain,
+      ENVIRONMENT: environment,
+    };
+    if (unsplashAccessKey) destinationsEnvironment.UNSPLASH_ACCESS_KEY = unsplashAccessKey;
 
-    // Add Admin API key if available (for protected admin endpoints)
-    if (adminApiKey) {
-      lambdaEnvironment.ADMIN_API_KEY = adminApiKey;
-    }
-
-    // Hardcode CloudFront domain to avoid circular dependency
-    // This is the domain for photoscout-plans bucket distribution
-    lambdaEnvironment.CLOUDFRONT_DOMAIN = 'd2mpt2trz11kx7.cloudfront.net';
-
-    // Chat Function (streaming)
+    // Chat Function (streaming) - needs LLM API keys
     const chatFunction = new lambda.Function(this, 'ChatFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'chat.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api/dist')),
       timeout: cdk.Duration.seconds(120),
       memorySize: 512,
-      environment: lambdaEnvironment,
+      environment: chatEnvironment,
     });
 
-    // Conversations Function
+    // Conversations Function - read-only, no API keys needed
     const conversationsFunction = new lambda.Function(this, 'ConversationsFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'conversations.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api/dist')),
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
-      environment: lambdaEnvironment,
+      environment: conversationsEnvironment,
     });
 
-    // Plans Function
+    // Plans Function - read-only, no API keys needed
     const plansFunction = new lambda.Function(this, 'PlansFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'plans.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api/dist')),
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
-      environment: lambdaEnvironment,
+      environment: plansEnvironment,
     });
 
-    // Images Function (for city image generation)
-    const imagesFunction = new lambda.Function(this, 'ImagesFunction', {
+    // Destinations Function - only needs image provider keys
+    const destinationsFunction = new lambda.Function(this, 'DestinationsFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'images.handler',
+      handler: 'destinations.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api/dist')),
-      timeout: cdk.Duration.seconds(120), // Image generation can take time
-      memorySize: 512,
-      environment: lambdaEnvironment,
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+      environment: destinationsEnvironment,
     });
 
     // Grant permissions
@@ -212,7 +242,8 @@ export class PhotoScoutStack extends cdk.Stack {
     htmlPlansBucket.grantRead(plansFunction);
     usersTable.grantReadData(plansFunction);
 
-    htmlPlansBucket.grantReadWrite(imagesFunction);
+    destinationsTable.grantReadWriteData(destinationsFunction);
+    imagesBucket.grantReadWrite(destinationsFunction);
 
     // Function URLs
     const chatFunctionUrl = chatFunction.addFunctionUrl({
@@ -243,11 +274,11 @@ export class PhotoScoutStack extends cdk.Stack {
       },
     });
 
-    const imagesFunctionUrl = imagesFunction.addFunctionUrl({
+    const destinationsFunctionUrl = destinationsFunction.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
       cors: {
         allowedOrigins: ['*'],
-        allowedMethods: [lambda.HttpMethod.GET, lambda.HttpMethod.POST],
+        allowedMethods: [lambda.HttpMethod.GET],
         allowedHeaders: ['Content-Type'],
       },
     });
@@ -262,7 +293,16 @@ export class PhotoScoutStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
 
+    // Import existing ACM certificate for aiscout.photo
+    const certificate = acm.Certificate.fromCertificateArn(
+      this,
+      'AiScoutCertificate',
+      'arn:aws:acm:us-east-1:707282829805:certificate/40873ec5-420f-4f89-a62a-076c08869c12'
+    );
+
     const distribution = new cloudfront.Distribution(this, 'Distribution', {
+      domainNames: ['aiscout.photo'],
+      certificate,
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(websiteBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -321,20 +361,20 @@ export class PhotoScoutStack extends cdk.Stack {
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
         },
-        '/api/images*': {
-          origin: new origins.FunctionUrlOrigin(imagesFunctionUrl),
+        '/api/destinations*': {
+          origin: new origins.FunctionUrlOrigin(destinationsFunctionUrl),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
         },
-        '/city-images/*': {
-          origin: origins.S3BucketOrigin.withOriginAccessControl(htmlPlansBucket),
+        '/destinations/*': {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(imagesBucket),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          cachePolicy: new cloudfront.CachePolicy(this, 'CityImagesCachePolicy', {
+          cachePolicy: new cloudfront.CachePolicy(this, 'DestinationImagesCachePolicy', {
             defaultTtl: cdk.Duration.days(365),
             maxTtl: cdk.Duration.days(365),
-            minTtl: cdk.Duration.days(30),
+            minTtl: cdk.Duration.days(1),
           }),
         },
       },
@@ -380,6 +420,11 @@ export class PhotoScoutStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'PlansApiUrl', {
       value: plansFunctionUrl.url,
       description: 'Plans Lambda Function URL',
+    });
+
+    new cdk.CfnOutput(this, 'DestinationsApiUrl', {
+      value: destinationsFunctionUrl.url,
+      description: 'Destinations Lambda Function URL',
     });
 
     new cdk.CfnOutput(this, 'HtmlPlansBucketName', {
