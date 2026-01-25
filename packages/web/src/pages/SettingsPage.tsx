@@ -3,6 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Info, FileText, Shield, LogOut, ExternalLink, Camera, LogIn } from 'lucide-react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
+/**
+ * Render the Settings page UI that shows account information, About and Legal links, sign-in/sign-out controls, and app metadata.
+ *
+ * The component adapts to guest vs signed-in state: guests are shown a Google sign-in control, while signed-in users are shown a Sign Out action that prompts for confirmation before logging out and navigating to the login route.
+ *
+ * @returns The Settings page as a JSX element.
+ */
 export function SettingsPage() {
   const { user, logout, isGuest, login } = useAuth();
   const navigate = useNavigate();

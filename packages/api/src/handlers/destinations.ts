@@ -7,6 +7,17 @@ import {
 } from '../lib/destinations';
 import { getCorsHeaders } from '../lib/cors';
 
+/**
+ * Handle GET /api/destinations/:id requests, applying CORS, per-IP rate limiting, destination id validation, and returning a destination image payload.
+ *
+ * @param event - The incoming API Gateway HTTP event
+ * @returns An HTTP response with CORS headers. Possible responses:
+ * - 200: JSON body with `{ id, name, imageUrl, photographer, source, fromCache }` for a found destination
+ * - 400: JSON body `{ error }` for validation errors
+ * - 404: JSON body `{ error: 'Not found' }` when the path does not match
+ * - 429: JSON body `{ error: 'Too many requests' }` when the client is rate-limited (includes `Retry-After` header)
+ * - 500: JSON body `{ error: 'Internal server error' }` for unexpected failures
+ */
 export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
   const corsHeaders = getCorsHeaders(event.headers.origin, 'GET, OPTIONS');
 

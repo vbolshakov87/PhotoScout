@@ -38,8 +38,10 @@ interface DestinationRecord extends DestinationImage {
 }
 
 /**
- * Validate destination ID
- * Returns error message if invalid, null if valid
+ * Validate a destination identifier.
+ *
+ * @param destinationId - The destination identifier (slug) to validate
+ * @returns `null` if the identifier is valid, otherwise an error message describing the validation failure
  */
 export function validateDestinationId(destinationId: string): string | null {
   if (!destinationId) {
@@ -55,8 +57,10 @@ export function validateDestinationId(destinationId: string): string | null {
 }
 
 /**
- * Simple rate limiting check
- * Returns true if request is allowed, false if rate limited
+ * Enforces a simple per-client request rate limit.
+ *
+ * @param clientId - Identifier for the client used to track request counts
+ * @returns `true` if the request is allowed under the current rate limit, `false` otherwise
  */
 export function checkRateLimit(clientId: string): boolean {
   const now = Date.now();
@@ -76,8 +80,16 @@ export function checkRateLimit(clientId: string): boolean {
 }
 
 /**
- * Get a destination image by ID
- * Returns the CloudFront URL if available, or fetches from provider if not
+ * Retrieve a destination image URL, using a cached ready record when available and fetching from the image provider on cache miss.
+ *
+ * @param destinationId - The canonical ID of the destination to look up or fetch
+ * @param destinationName - The human-readable name used by the image provider when fetching
+ * @param type - The image type/category (`city` or `nature`), defaults to `city`
+ * @param region - Optional region hint for provider selection or S3 key placement
+ * @returns An object containing:
+ *  - `imageUrl` — The CloudFront URL for the fetched or cached image, or a placeholder URL on failure
+ *  - `destination` — The persisted DestinationImage when available, or `null` when a placeholder is returned
+ *  - `fromCache` — `true` if the URL came from an existing ready record, `false` otherwise
  */
 export async function getDestinationImage(
   destinationId: string,
@@ -152,8 +164,11 @@ export async function getDestinationImage(
 }
 
 /**
- * Get destination from DynamoDB
- * Handles backward compatibility for old records with 'unsplash' field
+ * Retrieve a destination record by ID from DynamoDB and apply backward-compatible mapping for legacy records.
+ *
+ * If an item contains an older `unsplash` field but lacks `source`, the function copies relevant `unsplash` data into `source` before returning.
+ *
+ * @returns The destination record for `destinationId`, or `null` if no record exists.
  */
 async function getDestination(destinationId: string): Promise<DestinationRecord | null> {
   const result = await docClient.send(
@@ -181,7 +196,11 @@ async function getDestination(destinationId: string): Promise<DestinationRecord 
 }
 
 /**
- * Mark destination as currently being fetched
+ * Mark the destination record as in-progress so other processes know a fetch is underway.
+ *
+ * Attempts to set the destination's status to `'fetching'` with an updated timestamp; if the record is already marked `'fetching'`, the function does not throw and leaves the existing state unchanged.
+ *
+ * @param destinationId - The slug or identifier of the destination to mark as fetching
  */
 async function markAsFetching(destinationId: string): Promise<void> {
   await docClient
@@ -204,7 +223,12 @@ async function markAsFetching(destinationId: string): Promise<void> {
 }
 
 /**
- * Mark destination as failed
+ * Record that a destination fetch has failed by persisting failure details.
+ *
+ * Writes or updates the destination record with status `failed`, stores the provided `errorMessage`, and sets `updatedAt` to the current timestamp.
+ *
+ * @param destinationId - The destination's identifier (primary key) to mark as failed
+ * @param errorMessage - A human-readable error message or diagnostic information to store with the record
  */
 async function markAsFailed(destinationId: string, errorMessage: string): Promise<void> {
   await docClient.send(
@@ -221,7 +245,15 @@ async function markAsFailed(destinationId: string, errorMessage: string): Promis
 }
 
 /**
- * Fetch image from provider, upload to S3, save to DynamoDB
+ * Fetches an image from the configured image provider, uploads the image to S3,
+ * and saves a ready destination record to DynamoDB.
+ *
+ * @param destinationId - Identifier used for the S3 object key and DynamoDB item key
+ * @param destinationName - Human-readable name to request from the image provider
+ * @param type - Image category, either `'city'` or `'nature'`
+ * @param region - Optional region used for provider lookup and included in the S3 key when present
+ * @returns The persisted DestinationImage containing S3 metadata, photographer and source details, and `fetchedAt` timestamp
+ * @throws Error if no image provider is configured
  */
 async function fetchFromProvider(
   destinationId: string,
@@ -286,15 +318,20 @@ async function fetchFromProvider(
 }
 
 /**
- * Get CloudFront URL for an S3 key
- * S3 key matches CloudFront path: /destinations/type/[region/]id.jpg
+ * Constructs the CloudFront URL for a given S3 object key.
+ *
+ * @param s3Key - The S3 object key path used by CloudFront (e.g. `destinations/type/[region/]id.jpg`)
+ * @returns The full CloudFront URL for the specified `s3Key`
  */
 function getCloudFrontUrl(s3Key: string): string {
   return `https://aiscout.photo/${s3Key}`;
 }
 
 /**
- * Get placeholder image URL for missing destinations
+ * Selects the configured placeholder image URL for the given destination type.
+ *
+ * @param type - Use `'city'` to get the city placeholder, `'nature'` to get the nature placeholder
+ * @returns The absolute URL of the placeholder image
  */
 function getPlaceholderUrl(type: 'city' | 'nature'): string {
   return type === 'city'
@@ -303,7 +340,14 @@ function getPlaceholderUrl(type: 'city' | 'nature'): string {
 }
 
 /**
- * Slugify a destination name to create an ID
+ * Creates a URL-friendly destination identifier from a name.
+ *
+ * Converts the input to lowercase, replaces runs of whitespace with hyphens,
+ * removes characters other than lowercase letters, digits, and hyphens,
+ * and truncates the result to the maximum allowed destination ID length.
+ *
+ * @param name - The original destination name to convert
+ * @returns The resulting slug suitable for use as a destination ID
  */
 export function slugify(name: string): string {
   return name

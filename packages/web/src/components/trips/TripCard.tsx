@@ -8,6 +8,14 @@ interface TripCardProps {
   imageUrl?: string | null;
 }
 
+/**
+ * Render an interactive trip card populated from a Plan, including title, destination, background image (or placeholder), and metadata badges.
+ *
+ * @param plan - The trip plan used to populate the card's title, destination, spot count, and dates.
+ * @param onClick - Handler invoked when the card is clicked or activated.
+ * @param imageUrl - Optional URL for the card background image; when missing or if image loading fails, a gradient placeholder with a camera icon is shown.
+ * @returns The JSX element representing the trip card.
+ */
 export function TripCard({ plan, onClick, imageUrl }: TripCardProps) {
   const [imageError, setImageError] = useState(false);
   const destination = getPlanDestination(plan);

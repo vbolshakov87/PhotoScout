@@ -162,8 +162,10 @@ export interface DestinationImage {
 // Utility functions
 
 /**
- * Get the destination name from a plan (handles backward compatibility)
- * New plans have `destination`, old plans only have `city`
+ * Obtain the destination name for a plan, using legacy `city` when `destination` is absent.
+ *
+ * @param plan - The plan object to read the destination from
+ * @returns The plan's `destination` if present, otherwise the legacy `city`, or `undefined` if neither exists
  */
 export function getPlanDestination(plan: Plan): string | undefined {
   return plan.destination || plan.city;

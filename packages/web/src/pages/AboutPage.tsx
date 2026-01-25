@@ -12,6 +12,11 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
+/**
+ * Renders the About page for the PhotoScout application.
+ *
+ * @returns The About page's JSX element containing app info, beta notice, description, features, links, creator info, and credits.
+ */
 export function AboutPage() {
   const navigate = useNavigate();
 

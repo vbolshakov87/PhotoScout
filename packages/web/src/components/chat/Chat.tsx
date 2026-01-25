@@ -36,6 +36,13 @@ const LOCATIONS = [
 ];
 const COUNTRIES = ['Iceland', 'Japan', 'New Zealand', 'Norway', 'Portugal', 'Croatia', 'Scotland'];
 
+/**
+ * Renders the main chat interface for PhotoScout, including header, user menu and sign-in, messages list, suggestions, processing state, error banner, and input.
+ *
+ * The component wires authentication, chat state, native haptic feedback, auto-scrolling, and handlers for sending messages, using suggestions, and clearing the conversation.
+ *
+ * @returns The chat view as a JSX element ready to be rendered inside the app layout.
+ */
 export function Chat() {
   const navigate = useNavigate();
   const { messages, isLoading, error, generationProgress, sendMessage, clearChat } = useChat();

@@ -10,8 +10,9 @@ const providers: ImageProvider[] = [
 ];
 
 /**
- * Get the first configured image provider
- * Returns null if no providers are configured
+ * Selects the first available image provider from the registry.
+ *
+ * @returns The first provider whose `isConfigured()` returns `true`, or `null` if none are available.
  */
 export function getImageProvider(): ImageProvider | null {
   for (const provider of providers) {
@@ -23,7 +24,10 @@ export function getImageProvider(): ImageProvider | null {
 }
 
 /**
- * Get a specific provider by name
+ * Finds the configured image provider with the given name.
+ *
+ * @param name - The provider name to look up.
+ * @returns The matching configured provider, or `null` if none is found.
  */
 export function getProviderByName(name: string): ImageProvider | null {
   return providers.find((p) => p.name === name && p.isConfigured()) || null;
