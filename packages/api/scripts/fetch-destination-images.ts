@@ -149,12 +149,18 @@ async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
   const limitIdx = args.indexOf('--limit');
-  const limitRaw = limitIdx !== -1 ? args[limitIdx + 1] : undefined;
-  const limit = limitRaw !== undefined ? parseInt(limitRaw, 10) : undefined;
-
-  if (limit !== undefined && (Number.isNaN(limit) || limit <= 0)) {
-    console.error('❌ --limit requires a positive integer');
-    process.exit(1);
+  let limit: number | undefined;
+  if (limitIdx !== -1) {
+    const limitRaw = args[limitIdx + 1];
+    if (limitRaw === undefined || limitRaw.startsWith('-') || !/^\d+$/.test(limitRaw)) {
+      console.error('❌ --limit requires a positive integer value');
+      process.exit(1);
+    }
+    limit = parseInt(limitRaw, 10);
+    if (limit <= 0) {
+      console.error('❌ --limit requires a positive integer value');
+      process.exit(1);
+    }
   }
 
   // Single destination mode
@@ -217,7 +223,20 @@ async function main() {
         // Handle rate limiting with Retry-After header
         if (res.status === 429) {
           const retryAfter = res.headers.get('Retry-After');
-          const waitTime = retryAfter ? parseInt(retryAfter, 10) * 1000 : 60000;
+          let waitTime = 60000; // default 60s
+          if (retryAfter) {
+            if (/^\d+$/.test(retryAfter)) {
+              // Retry-After is seconds
+              waitTime = parseInt(retryAfter, 10) * 1000;
+            } else {
+              // Retry-After is an HTTP-date
+              const retryDate = new Date(retryAfter).getTime();
+              if (!Number.isNaN(retryDate)) {
+                const delta = retryDate - Date.now();
+                if (delta > 0) waitTime = delta;
+              }
+            }
+          }
           console.log(`⏳ ${dest.name}: Rate limited, waiting ${waitTime / 1000}s...`);
           await new Promise((r) => setTimeout(r, waitTime));
           // Retry the same destination by decrementing index
