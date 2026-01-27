@@ -202,6 +202,8 @@ async function main() {
 
   console.log(`📍 Processing ${toFetch.length} destination${toFetch.length === 1 ? '' : 's'}...\n`);
 
+  const MAX_RETRIES_PER_DESTINATION = 3;
+
   let success = 0,
     cached = 0,
     failed = 0;
@@ -214,51 +216,62 @@ async function main() {
       continue;
     }
 
-    const start = Date.now();
-    try {
-      const res = await fetch(`${API_BASE}/api/destinations/${dest.id}`);
-      const ms = Date.now() - start;
+    let retryCount = 0;
+    let shouldRetry = true;
 
-      if (!res.ok) {
-        // Handle rate limiting with Retry-After header
-        if (res.status === 429) {
-          const retryAfter = res.headers.get('Retry-After');
-          let waitTime = 60000; // default 60s
-          if (retryAfter) {
-            if (/^\d+$/.test(retryAfter)) {
-              // Retry-After is seconds
-              waitTime = parseInt(retryAfter, 10) * 1000;
-            } else {
-              // Retry-After is an HTTP-date
-              const retryDate = new Date(retryAfter).getTime();
-              if (!Number.isNaN(retryDate)) {
-                const delta = retryDate - Date.now();
-                if (delta > 0) waitTime = delta;
+    while (shouldRetry) {
+      shouldRetry = false;
+      const start = Date.now();
+      try {
+        const res = await fetch(`${API_BASE}/api/destinations/${dest.id}`);
+        const ms = Date.now() - start;
+
+        if (!res.ok) {
+          // Handle rate limiting with Retry-After header
+          if (res.status === 429) {
+            retryCount++;
+            if (retryCount > MAX_RETRIES_PER_DESTINATION) {
+              throw new Error(`HTTP 429: max retries (${MAX_RETRIES_PER_DESTINATION}) exceeded`);
+            }
+            const retryAfter = res.headers.get('Retry-After');
+            let waitTime = 60000; // default 60s
+            if (retryAfter) {
+              if (/^\d+$/.test(retryAfter)) {
+                // Retry-After is seconds
+                waitTime = parseInt(retryAfter, 10) * 1000;
+              } else {
+                // Retry-After is an HTTP-date
+                const retryDate = new Date(retryAfter).getTime();
+                if (!Number.isNaN(retryDate)) {
+                  const delta = retryDate - Date.now();
+                  if (delta > 0) waitTime = delta;
+                }
               }
             }
+            console.log(
+              `⏳ ${dest.name}: Rate limited (attempt ${retryCount}/${MAX_RETRIES_PER_DESTINATION}), waiting ${waitTime / 1000}s...`
+            );
+            await new Promise((r) => setTimeout(r, waitTime));
+            shouldRetry = true;
+            continue;
           }
-          console.log(`⏳ ${dest.name}: Rate limited, waiting ${waitTime / 1000}s...`);
-          await new Promise((r) => setTimeout(r, waitTime));
-          // Retry the same destination by decrementing index
-          i--;
-          continue;
+          const body = await res.text();
+          throw new Error(`HTTP ${res.status}: ${body || res.statusText}`);
         }
-        const body = await res.text();
-        throw new Error(`HTTP ${res.status}: ${body || res.statusText}`);
-      }
 
-      const data = (await res.json()) as { fromCache: boolean; photographer?: { name: string } };
+        const data = (await res.json()) as { fromCache: boolean; photographer?: { name: string } };
 
-      if (data.fromCache) {
-        console.log(`⏭️  ${dest.name} — cached (${ms}ms)`);
-        cached++;
-      } else {
-        console.log(`✅ ${dest.name} — ${data.photographer?.name || 'fetched'} (${ms}ms)`);
-        success++;
+        if (data.fromCache) {
+          console.log(`⏭️  ${dest.name} — cached (${ms}ms)`);
+          cached++;
+        } else {
+          console.log(`✅ ${dest.name} — ${data.photographer?.name || 'fetched'} (${ms}ms)`);
+          success++;
+        }
+      } catch (e) {
+        console.log(`❌ ${dest.name}: ${e instanceof Error ? e.message : e}`);
+        failed++;
       }
-    } catch (e) {
-      console.log(`❌ ${dest.name}: ${e instanceof Error ? e.message : e}`);
-      failed++;
     }
 
     // Skip delay for single destination or last item
