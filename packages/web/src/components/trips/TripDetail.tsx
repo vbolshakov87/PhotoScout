@@ -58,7 +58,9 @@ export function TripDetail({ plan, htmlContent, onBack, onDelete }: TripDetailPr
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="font-semibold text-base md:text-lg truncate">{plan.title}</h1>
-          <p className="text-xs md:text-sm text-gray-400 truncate">{destination}</p>
+          {destination && (
+            <p className="text-xs md:text-sm text-gray-400 truncate">{destination}</p>
+          )}
         </div>
 
         <div className="flex items-center gap-1">

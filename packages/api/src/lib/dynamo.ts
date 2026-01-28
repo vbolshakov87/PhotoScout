@@ -210,7 +210,8 @@ export async function savePlan(plan: Plan): Promise<void> {
         planId: plan.planId,
         conversationId: plan.conversationId,
         createdAt: plan.createdAt,
-        city: plan.city,
+        destination: plan.destination,
+        city: plan.city, // Keep for backwards compatibility
         title: plan.title,
         dates: plan.dates,
         htmlUrl: plan.htmlUrl,
@@ -235,7 +236,7 @@ export async function listPlans(
         ':vid': visitorId,
       },
       ProjectionExpression:
-        'planId, visitorId, conversationId, createdAt, city, title, dates, spotCount, htmlUrl, htmlContent, jsonContent',
+        'planId, visitorId, conversationId, createdAt, destination, city, title, dates, spotCount, htmlUrl, htmlContent, jsonContent',
       ScanIndexForward: false,
       Limit: limit,
       ...(cursor && { ExclusiveStartKey: parseCursor(cursor) }),

@@ -320,7 +320,7 @@ pnpm images:fetch -- --dry-run       # Preview without API calls
 pnpm images:fetch -- --local         # Use local dev server
 ```
 
-**Pre-warmed Destinations (94):**
+**Pre-warmed Destinations (89):**
 - **Cities (40)**: Tokyo, Paris, New York, London, Rome, Barcelona, Amsterdam, Berlin, Vienna, Prague, Lisbon, Copenhagen, Stockholm, Dubai, Singapore, Sydney, San Francisco, etc.
 - **Nature - Europe (15)**: Dolomites, Swiss Alps, Scottish Highlands, Lofoten, Norwegian Fjords, Lake Bled, Tuscany, Amalfi Coast, Santorini, Iceland, etc.
 - **Nature - Germany (10)**: Black Forest, Saxon Switzerland, Bavarian Alps, Rhine Valley, Berchtesgaden, etc.
@@ -384,7 +384,7 @@ See [ios/AppStore/metadata.md](ios/AppStore/metadata.md) for App Store submissio
 | CloudFront | ~$0.085 per GB |
 | Claude API | ~$3 per 1M input tokens |
 | **DeepSeek API** | ~$0.14 per 1M input tokens (20x cheaper!) |
-| Image Provider | Free (Unsplash: 50 req/hr) or custom API |
+| Image Provider | Free (Unsplash: 50 req/hr Demo, 5000 req/hr Production) |
 
 **Estimated**: <$10/month for moderate usage
 
